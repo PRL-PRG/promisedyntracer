@@ -1,0 +1,2 @@
+PKG_CPPFLAGS=-I$(R_HOME)/src/include/
+PKG_LIBS=-lssl -lcrypto

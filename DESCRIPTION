@@ -1,0 +1,9 @@
+Package: promisedyntracer
+Type: Package
+Title: Generates traces for promises and other aspects related to laziness
+Version: 1.0
+Date: 2017-10-26
+Authors@R: c(person("Aviral", "Goel", role = c("aut", "cre"), email = "goel.aviral@gmail.com"),
+             person("Konrad", "Siek", role = "aut", email = "konrad.siek@gmail.com"))
+Description: Generates traces for promises and other aspects related to laziness
+License: GPL-2

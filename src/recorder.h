@@ -5,8 +5,6 @@
 #include "State.h"
 #include "utilities.h"
 
-void get_environment_metadata(metadata_t &metadata);
-void get_current_time_metadata(metadata_t &metadata, string prefix);
 closure_info_t function_entry_get_info(dyntrace_context_t *context,
                                        const SEXP call, const SEXP op,
                                        const SEXP rho);

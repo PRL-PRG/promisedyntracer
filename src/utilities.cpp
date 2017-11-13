@@ -211,3 +211,11 @@ std::string compute_hash(const char *data) {
     EVP_MD_CTX_free(mdctx);
     return std::string(reinterpret_cast<const char *>(md_value), md_len);
 }
+
+const char * remove_null(const char * value) {
+    return  value ? value : "";
+}
+
+std::string clock_ticks_to_string(clock_t ticks) {
+    return std::to_string((double)ticks / CLOCKS_PER_SEC);
+}

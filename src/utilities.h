@@ -30,5 +30,6 @@ const char *get_call(SEXP call);
 int is_byte_compiled(SEXP op);
 // char *to_string(SEXP var);
 const char *get_expression(SEXP e);
-
+const char * remove_null(const char * value);
+std::string clock_ticks_to_string(clock_t ticks);
 #endif /* __UTILITIES_H__ */

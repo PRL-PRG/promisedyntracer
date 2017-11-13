@@ -11,8 +11,8 @@ class SqlSerializer {
     SqlSerializer(const std::string &database_path,
                   const std::string &schema_path, bool verbose = false);
     ~SqlSerializer();
-    void serialize_start_trace(const metadata_t &info);
-    void serialize_finish_trace(const metadata_t &info);
+    void serialize_start_trace();
+    void serialize_finish_trace();
     void serialize_function_entry(dyntrace_context_t *context,
                                   const closure_info_t &info);
     void serialize_function_exit(const closure_info_t &info);
@@ -34,6 +34,7 @@ class SqlSerializer {
     void serialize_gc_exit(const gc_info_t &info);
     void serialize_unwind(const unwind_info_t &info);
     void serialize_new_environment(const env_id_t env_id, const fn_id_t fun_id);
+    void serialize_metadatum(const std::string& key, const std::string& value);
 
   private:
     sqlite3_stmt *compile(const char *statement);

@@ -1,33 +1,5 @@
 #include "recorder.h"
 
-void get_metadatum(metadata_t &metadata, string key) {
-    char *value = getenv(key.c_str());
-    if (value == NULL)
-        metadata[key] = "";
-    else
-        metadata[key] = string(value);
-}
-
-void get_environment_metadata(metadata_t &metadata) {
-    get_metadatum(metadata, "RDT_COMPILE_VIGNETTE");
-    get_metadatum(metadata, "R_COMPILE_PKGS");
-    get_metadatum(metadata, "R_DISABLE_BYTECODE");
-    get_metadatum(metadata, "R_ENABLE_JIT");
-    get_metadatum(metadata, "R_KEEP_PKG_SOURCE");
-    get_metadatum(metadata, "R_ENABLE_JIT");
-}
-
-void get_current_time_metadata(metadata_t &metadata, string prefix) {
-    chrono::time_point<chrono::system_clock> time_point =
-        chrono::system_clock::now();
-    time_t time = chrono::system_clock::to_time_t(time_point);
-    string kludge = ctime(&time);
-    metadata["RDT_TRACE_" + prefix + "_DATE"] =
-        kludge.substr(0, kludge.length() - 1);
-    metadata["RDT_TRACE_" + prefix + "_TIME"] =
-        to_string(static_cast<long int>(time));
-}
-
 recursion_type is_recursive(dyntrace_context_t *context, fn_id_t function) {
     for (vector<call_stack_elem_t>::reverse_iterator i =
              tracer_state(context).fun_stack.rbegin();

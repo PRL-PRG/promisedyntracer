@@ -2,19 +2,111 @@
 
 void begin(dyntrace_context_t *context, const SEXP prom) {
     tracer_state(context).start_pass(context, prom);
-    metadata_t metadata;
-    get_environment_metadata(metadata);
-    get_current_time_metadata(metadata, "START");
-    tracer_serializer(context).serialize_start_trace(metadata);
+    tracer_serializer(context).serialize_start_trace();
+    environment_variables_t environment_variables =
+        context->dyntracing_context->environment_variables;
+    tracer_serializer(context).serialize_metadatum(
+        "DYNTRACE_BEGIN_DATETIME",
+        remove_null(context->dyntracing_context->begin_datetime));
+    tracer_serializer(context).serialize_metadatum(
+        "R_COMPILE_PKGS", remove_null(environment_variables.r_compile_pkgs));
+    tracer_serializer(context).serialize_metadatum(
+        "R_DISABLE_BYTECODE",
+        remove_null(environment_variables.r_disable_bytecode));
+    tracer_serializer(context).serialize_metadatum(
+        "R_ENABLE_JIT", remove_null(environment_variables.r_enable_jit));
+    tracer_serializer(context).serialize_metadatum(
+        "R_KEEP_PKG_SOURCE",
+        remove_null(environment_variables.r_keep_pkg_source));
+    tracer_serializer(context).serialize_metadatum(
+        "RDT_COMPILE_VIGNETTE", remove_null(getenv("RDT_COMPILE_VIGNETTE")));
+}
+
+void serialize_execution_time(dyntrace_context_t *context) {
+    SqlSerializer &serializer = tracer_serializer(context);
+    execution_time_t execution_time =
+        context->dyntracing_context->execution_time;
+    serializer.serialize_metadatum(
+        "PROBE_FUNCTION_ENTRY",
+        clock_ticks_to_string(execution_time.probe_function_entry));
+    serializer.serialize_metadatum(
+        "PROBE_FUNCTION_EXIT",
+        clock_ticks_to_string(execution_time.probe_function_exit));
+    serializer.serialize_metadatum(
+        "PROBE_BUILTIN_ENTRY",
+        clock_ticks_to_string(execution_time.probe_builtin_entry));
+    serializer.serialize_metadatum(
+        "PROBE_BUILTIN_EXIT",
+        clock_ticks_to_string(execution_time.probe_builtin_exit));
+    serializer.serialize_metadatum(
+        "PROBE_SPECIALSXP_ENTRY",
+        clock_ticks_to_string(execution_time.probe_specialsxp_entry));
+    serializer.serialize_metadatum(
+        "PROBE_SPECIALSXP_EXIT",
+        clock_ticks_to_string(execution_time.probe_specialsxp_exit));
+    serializer.serialize_metadatum(
+        "PROBE_PROMISE_CREATED",
+        clock_ticks_to_string(execution_time.probe_promise_created));
+    serializer.serialize_metadatum(
+        "PROBE_PROMISE_FORCE_ENTRY",
+        clock_ticks_to_string(execution_time.probe_promise_force_entry));
+    serializer.serialize_metadatum(
+        "PROBE_PROMISE_FORCE_EXIT",
+        clock_ticks_to_string(execution_time.probe_promise_force_exit));
+    serializer.serialize_metadatum(
+        "PROBE_PROMISE_VALUE_LOOKUP",
+        clock_ticks_to_string(execution_time.probe_promise_value_lookup));
+    serializer.serialize_metadatum(
+        "PROBE_PROMISE_EXPRESSION_LOOKUP",
+        clock_ticks_to_string(execution_time.probe_promise_expression_lookup));
+    serializer.serialize_metadatum(
+        "PROBE_ERROR", clock_ticks_to_string(execution_time.probe_error));
+    serializer.serialize_metadatum(
+        "PROBE_VECTOR_ALLOC",
+        clock_ticks_to_string(execution_time.probe_vector_alloc));
+    serializer.serialize_metadatum(
+        "PROBE_EVAL_ENTRY",
+        clock_ticks_to_string(execution_time.probe_eval_entry));
+    serializer.serialize_metadatum(
+        "PROBE_EVAL_EXIT",
+        clock_ticks_to_string(execution_time.probe_eval_exit));
+    serializer.serialize_metadatum(
+        "PROBE_GC_ENTRY", clock_ticks_to_string(execution_time.probe_gc_entry));
+    serializer.serialize_metadatum(
+        "PROBE_GC_EXIT", clock_ticks_to_string(execution_time.probe_gc_exit));
+    serializer.serialize_metadatum(
+        "PROBE_GC_PROMISE_UNMARKED",
+        clock_ticks_to_string(execution_time.probe_gc_promise_unmarked));
+    serializer.serialize_metadatum(
+        "PROBE_JUMP_CTXT",
+        clock_ticks_to_string(execution_time.probe_jump_ctxt));
+    serializer.serialize_metadatum(
+        "PROBE_NEW_ENVIRONMENT",
+        clock_ticks_to_string(execution_time.probe_new_environment));
+    serializer.serialize_metadatum(
+        "PROBE_S3_GENERIC_ENTRY",
+        clock_ticks_to_string(execution_time.probe_S3_generic_entry));
+    serializer.serialize_metadatum(
+        "PROBE_S3_GENERIC_EXIT",
+        clock_ticks_to_string(execution_time.probe_S3_generic_exit));
+    serializer.serialize_metadatum(
+        "PROBE_S3_DISPATCH_ENTRY",
+        clock_ticks_to_string(execution_time.probe_S3_dispatch_entry));
+    serializer.serialize_metadatum(
+        "PROBE_S3_DISPATCH_EXIT",
+        clock_ticks_to_string(execution_time.probe_S3_dispatch_exit));
+    serializer.serialize_metadatum(
+        "EXPRESSION", clock_ticks_to_string(execution_time.expression));
 }
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-
-    metadata_t metadata;
-    get_current_time_metadata(metadata, "END");
-    tracer_serializer(context).serialize_finish_trace(metadata);
-
+    serialize_execution_time(context);
+    // serialize_execution_count(context);
+    tracer_serializer(context).serialize_finish_trace();
+    tracer_serializer(context).serialize_metadatum(
+        "DYNTRACE_END_DATETIME",
+        remove_null(context->dyntracing_context->end_datetime));
     if (!tracer_state(context).fun_stack.empty()) {
         Rprintf("Function stack is not balanced: %d remaining.\n",
                 tracer_state(context).fun_stack.size());

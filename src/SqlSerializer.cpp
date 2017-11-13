@@ -95,19 +95,17 @@ void SqlSerializer::prepare_statements() {
         compile("insert into environments values (?,?);");
 }
 
-void SqlSerializer::serialize_start_trace(const metadata_t &info) {
+void SqlSerializer::serialize_start_trace() {
     indent();
     execute(compile("begin transaction;"));
     indent();
-    for (auto const &i : info) {
-        execute(populate_metadata_statement(i.first, i.second));
-    }
 }
 
-void SqlSerializer::serialize_finish_trace(const metadata_t &info) {
-    for (auto const &i : info) {
-        execute(populate_metadata_statement(i.first, i.second));
-    }
+void SqlSerializer::serialize_metadatum(const std::string& key, const std::string& value) {
+    execute(populate_metadata_statement(key.c_str(), value.c_str()));
+}
+
+void SqlSerializer::serialize_finish_trace() {
     unindent();
     execute(compile("commit;"));
     unindent();

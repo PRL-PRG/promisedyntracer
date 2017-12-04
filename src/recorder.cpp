@@ -204,8 +204,8 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
     }
 }
 
-inline void get_full_type(SEXP promise, SEXP rho,
-                          full_sexp_type &result) { // FIXME remove rho
+inline void get_full_type(SEXP promise,
+                          full_sexp_type &result) {
     set<SEXP> visited;
     get_full_type_inner(PRCODE(promise), PRENV(promise), result, visited);
 }
@@ -418,7 +418,7 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
     tracer_state(context).fresh_promises.insert(info.prom_id);
 
     info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
-    get_full_type(promise, rho, info.full_type);
+    get_full_type(promise, info.full_type);
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
@@ -428,15 +428,11 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
 }
 
 prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
-                                         const SEXP symbol, const SEXP rho) {
+                                         const SEXP promise) {
     prom_info_t info;
+    info.name = "DONT_CARE";
 
-    const char *name = get_name(symbol);
-    if (name != NULL)
-        info.name = name;
-
-    SEXP promise_expression = get_promise(symbol, rho);
-    info.prom_id = get_promise_id(context, promise_expression);
+    info.prom_id = get_promise_id(context, promise);
 
     call_stack_elem_t call_stack_elem = tracer_state(context).fun_stack.back();
     info.in_call_id = get<0>(call_stack_elem);
@@ -444,8 +440,8 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise_expression)));
-    get_full_type(promise_expression, rho, info.full_type);
+    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
+    get_full_type(promise, info.full_type);
     info.return_type = sexp_type::OMEGA;
 
     get_stack_parent(info, tracer_state(context).full_stack);
@@ -461,16 +457,11 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
 }
 
 prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
-                                        const SEXP symbol, const SEXP rho,
-                                        const SEXP val) {
+                                        const SEXP promise) {
     prom_info_t info;
+    info.name = "DONT_CARE";
 
-    const char *name = get_name(symbol);
-    if (name != NULL)
-        info.name = name;
-
-    SEXP promise_expression = get_promise(symbol, rho);
-    info.prom_id = get_promise_id(context, promise_expression);
+    info.prom_id = get_promise_id(context, promise);
 
     call_stack_elem_t stack_elem = tracer_state(context).fun_stack.back();
     info.in_call_id = get<0>(stack_elem);
@@ -478,9 +469,9 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise_expression)));
-    get_full_type(promise_expression, rho, info.full_type);
-    info.return_type = static_cast<sexp_type>(TYPEOF(val));
+    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
+    get_full_type(promise, info.full_type);
+    info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
 
     tracer_state(context).full_stack.pop_back();
 
@@ -492,16 +483,12 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
 }
 
 prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
-                                    const SEXP symbol, const SEXP rho,
-                                    const SEXP val) {
+                                    const SEXP promise) {
     prom_info_t info;
 
-    const char *name = get_name(symbol);
-    if (name != NULL)
-        info.name = name;
+    info.name = "DONT_CARE";
 
-    SEXP promise_expression = get_promise(symbol, rho);
-    info.prom_id = get_promise_id(context, promise_expression);
+    info.prom_id = get_promise_id(context, promise);
 
     call_stack_elem_t stack_elem = tracer_state(context).fun_stack.back();
     info.in_call_id = get<0>(stack_elem);
@@ -509,9 +496,9 @@ prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise_expression)));
+    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
     info.full_type.push_back(sexp_type::OMEGA);
-    info.return_type = static_cast<sexp_type>(TYPEOF(val));
+    info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);

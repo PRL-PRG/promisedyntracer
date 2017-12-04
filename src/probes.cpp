@@ -221,32 +221,39 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
         tracer_serializer(context).serialize_promise_lifecycle(
             {info.prom_id, 0, tracer_state(context).gc_trigger_counter});
     }
+    tracer_serializer(context).serialize_interference_information(
+        std::string("cre ") + std::to_string(info.prom_id));
 }
 
 // Promise is being used inside a function body for the first time.
-void promise_force_entry(dyntrace_context_t *context, const SEXP symbol,
-                         const SEXP rho) {
-    prom_info_t info = force_promise_entry_get_info(context, symbol, rho);
+void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
+    prom_info_t info = force_promise_entry_get_info(context, promise);
+    tracer_serializer(context).serialize_interference_information(
+        std::string("ent ") + std::to_string(info.prom_id));
     tracer_serializer(context).serialize_force_promise_entry(
         context, info, tracer_state(context).clock_id);
     tracer_state(context).clock_id++;
+    /* reset number of environment bindings. We want to know how many bindings
+       happened while forcing this promise */
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_promise_lifecycle(
             {info.prom_id, 1, tracer_state(context).gc_trigger_counter});
     }
 }
 
-void promise_force_exit(dyntrace_context_t *context, const SEXP symbol,
-                        const SEXP rho, const SEXP val) {
-    prom_info_t info = force_promise_exit_get_info(context, symbol, rho, val);
+void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
+    prom_info_t info = force_promise_exit_get_info(context, promise);
+    tracer_serializer(context).serialize_interference_information(
+        std::string("ext ") + std::to_string(info.prom_id));
     tracer_serializer(context).serialize_force_promise_exit(
         info, tracer_state(context).clock_id);
     tracer_state(context).clock_id++;
 }
 
-void promise_value_lookup(dyntrace_context_t *context, const SEXP symbol,
-                          const SEXP rho, const SEXP val) {
-    prom_info_t info = promise_lookup_get_info(context, symbol, rho, val);
+void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
+    prom_info_t info = promise_lookup_get_info(context, promise);
+    tracer_serializer(context).serialize_interference_information(
+        std::string("val ") + std::to_string(info.prom_id));
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_promise_lookup(
             info, tracer_state(context).clock_id);
@@ -316,6 +323,8 @@ void new_environment(dyntrace_context_t *context, const SEXP rho) {
     fn_id_t fn_id = std::get<fn_id_t>(tracer_state(context).fun_stack.back());
     env_id_t env_id = tracer_state(context).environment_id_counter++;
     tracer_serializer(context).serialize_new_environment(env_id, fn_id);
+    tracer_state(context).environments[rho] =
+        std::pair<env_id_t, unordered_map<string, var_id_t>>(env_id, {});
 }
 
 void jump_ctxt(dyntrace_context_t *context, const SEXP rho, const SEXP val) {
@@ -326,4 +335,43 @@ void jump_ctxt(dyntrace_context_t *context, const SEXP rho, const SEXP val) {
     tracer_state(context).adjust_stacks(rho, info);
 
     tracer_serializer(context).serialize_unwind(info);
+}
+
+void environment_action(dyntrace_context_t *context, const SEXP symbol,
+                        const SEXP rho, const std::string &action) {
+    bool exists = true;
+    prom_id_t promise_id = tracer_state(context).enclosing_promise_id();
+    env_id_t environment_id = tracer_state(context).to_environment_id(rho);
+    var_id_t variable_id =
+        tracer_state(context).to_variable_id(symbol, rho, exists);
+    // serialize variable iff it has not been seen before.
+    // if it has been seen before, then it has already been serialized.
+    if (!exists) {
+        tracer_serializer(context).serialize_variable(
+            variable_id, CHAR(PRINTNAME(symbol)), environment_id);
+    }
+    tracer_serializer(context).serialize_variable_action(promise_id,
+                                                         variable_id, action);
+    tracer_serializer(context).serialize_interference_information(
+        action + " " + std::to_string(variable_id));
+}
+
+void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
+                            const SEXP value, const SEXP rho) {
+    environment_action(context, symbol, rho, "def");
+}
+
+void environment_assign_var(dyntrace_context_t *context, const SEXP symbol,
+                            const SEXP value, const SEXP rho) {
+    environment_action(context, symbol, rho, "asn");
+}
+
+void environment_remove_var(dyntrace_context_t *context, const SEXP symbol,
+                            const SEXP rho) {
+    environment_action(context, symbol, rho, "rem");
+}
+
+void environment_lookup_var(dyntrace_context_t *context, const SEXP symbol,
+                            const SEXP value, const SEXP rho) {
+    environment_action(context, symbol, rho, "rea");
 }

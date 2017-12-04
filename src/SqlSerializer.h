@@ -9,7 +9,8 @@
 class SqlSerializer {
   public:
     SqlSerializer(const std::string &database_path,
-                  const std::string &schema_path, bool verbose = false);
+                  const std::string &schema_path, bool truncate = false,
+                  bool verbose = false);
     ~SqlSerializer();
     void serialize_start_trace();
     void serialize_finish_trace();
@@ -22,7 +23,8 @@ class SqlSerializer {
     void serialize_promise_origin(prom_id_t id, bool default_argument);
     void serialize_force_promise_entry(dyntrace_context_t *context,
                                        const prom_info_t &info, int clock_id);
-    void serialize_force_promise_exit(const prom_info_t &info, int clock_id);
+    void serialize_force_promise_exit(const prom_info_t &info,
+                                      int clock_id);
     void serialize_promise_created(const prom_basic_info_t &info);
     void serialize_promise_lookup(const prom_info_t &info, int clock_id);
     void serialize_promise_expression_lookup(const prom_info_t &info,
@@ -34,12 +36,18 @@ class SqlSerializer {
     void serialize_gc_exit(const gc_info_t &info);
     void serialize_unwind(const unwind_info_t &info);
     void serialize_new_environment(const env_id_t env_id, const fn_id_t fun_id);
-    void serialize_metadatum(const std::string& key, const std::string& value);
-
+    void serialize_metadatum(const std::string &key, const std::string &value);
+    void serialize_variable(var_id_t variable_id, const std::string &name,
+                            env_id_t environment_id);
+    void serialize_variable_action(prom_id_t promise_id, var_id_t variable_id,
+                                   const std::string &action);
+    void serialize_interference_information(const std::string& information);
   private:
     sqlite3_stmt *compile(const char *statement);
     void execute(sqlite3_stmt *statement);
-    void open_database(const std::string database_path);
+    void open_database(const std::string database_path, bool truncate);
+    void open_trace(const std::string database_path, bool truncate);
+    void close_trace();
     void close_database();
     void create_tables(const std::string schema_path);
     void prepare_statements();
@@ -69,6 +77,7 @@ class SqlSerializer {
     bool verbose;
     int indentation;
     sqlite3 *database = nullptr;
+    std::ofstream trace;
     sqlite3_stmt *insert_metadata_statement = nullptr;
     sqlite3_stmt *insert_function_statement = nullptr;
     sqlite3_stmt *insert_argument_statement = nullptr;
@@ -82,6 +91,8 @@ class SqlSerializer {
     sqlite3_stmt *insert_gc_trigger_statement = nullptr;
     sqlite3_stmt *insert_type_distribution_statement = nullptr;
     sqlite3_stmt *insert_environment_statement = nullptr;
+    sqlite3_stmt *insert_variable_statement = nullptr;
+    sqlite3_stmt *insert_variable_action_statement = nullptr;
 };
 
 #endif /* __SQL_SERIALIZER_H__ */

@@ -1,10 +1,11 @@
 #include "SqlSerializer.h"
 
 SqlSerializer::SqlSerializer(const std::string &database_filepath,
-                             const std::string &schema_filepath,
+                             const std::string &schema_filepath, bool truncate,
                              bool verbose) try : verbose(verbose),
                                                  indentation(0) {
-    open_database(database_filepath);
+    open_database(database_filepath, truncate);
+    open_trace(database_filepath, truncate);
     create_tables(schema_filepath);
     prepare_statements();
 } catch (const std::runtime_error &e) {
@@ -12,12 +13,25 @@ SqlSerializer::SqlSerializer(const std::string &database_filepath,
     throw e;
 }
 
-void SqlSerializer::open_database(const std::string database_path) {
+void SqlSerializer::open_database(const std::string database_path,
+                                  bool truncate) {
+    if (truncate)
+        remove(database_path.c_str());
     if (sqlite3_open(database_path.c_str(), &database) != SQLITE_OK) {
         throw std::runtime_error(std::string("unable to open database: ") +
                                  std::string(sqlite3_errmsg(database)));
     }
 }
+
+void SqlSerializer::open_trace(const std::string database_path, bool truncate) {
+    size_t lastindex = database_path.find_last_of(".");
+    std::string trace_path = database_path.substr(0, lastindex) + ".trace";
+    if (truncate)
+        remove(trace_path.c_str());
+    trace = std::ofstream(trace_path);
+}
+
+void SqlSerializer::close_trace() { trace.close(); }
 
 void SqlSerializer::create_tables(const std::string schema_path) {
     // https://sqlite.org/c3ref/exec.HTML
@@ -34,6 +48,7 @@ void SqlSerializer::create_tables(const std::string schema_path) {
 
 SqlSerializer::~SqlSerializer() {
     close_database();
+    close_trace();
     finalize_statements();
 }
 
@@ -52,6 +67,8 @@ void SqlSerializer::finalize_statements() {
     sqlite3_finalize(insert_gc_trigger_statement);
     sqlite3_finalize(insert_type_distribution_statement);
     sqlite3_finalize(insert_environment_statement);
+    sqlite3_finalize(insert_variable_statement);
+    sqlite3_finalize(insert_variable_action_statement);
 }
 
 void SqlSerializer::prepare_statements() {
@@ -93,6 +110,12 @@ void SqlSerializer::prepare_statements() {
 
     insert_environment_statement =
         compile("insert into environments values (?,?);");
+
+    insert_variable_statement =
+        compile("insert into variables values (?,?,?);");
+
+    insert_variable_action_statement =
+        compile("insert into variable_actions values (?,?,?);");
 }
 
 void SqlSerializer::serialize_start_trace() {
@@ -101,7 +124,8 @@ void SqlSerializer::serialize_start_trace() {
     indent();
 }
 
-void SqlSerializer::serialize_metadatum(const std::string& key, const std::string& value) {
+void SqlSerializer::serialize_metadatum(const std::string &key,
+                                        const std::string &value) {
     execute(populate_metadata_statement(key.c_str(), value.c_str()));
 }
 
@@ -138,9 +162,9 @@ void SqlSerializer::execute(sqlite3_stmt *statement) {
     if (sqlite3_step(statement) != SQLITE_DONE) {
         std::string expanded_sql(sqlite3_expanded_sql(statement));
         finalize_statements();
-        throw std::runtime_error(std::string("unable to execute statement: ") +
-                                 expanded_sql + "\n" +
-                                 sqlite3_errmsg(database));
+        Rf_warning((std::string("unable execute statement: '") + expanded_sql +
+                    "'\n" + sqlite3_errmsg(database))
+                       .c_str());
     }
 
     if (verbose) {
@@ -323,6 +347,31 @@ void SqlSerializer::serialize_unwind(const unwind_info_t &info) {
     }
 }
 
+void SqlSerializer::serialize_variable(var_id_t variable_id,
+                                       const std::string &name,
+                                       env_id_t environment_id) {
+    sqlite3_bind_int(insert_variable_statement, 1, variable_id);
+    sqlite3_bind_text(insert_variable_statement, 2, name.c_str(), name.length(),
+                      NULL);
+    sqlite3_bind_int(insert_variable_statement, 3, environment_id);
+    execute(insert_variable_statement);
+}
+
+void SqlSerializer::serialize_variable_action(prom_id_t promise_id,
+                                              var_id_t variable_id,
+                                              const std::string &action) {
+    sqlite3_bind_int(insert_variable_action_statement, 1, promise_id);
+    sqlite3_bind_int(insert_variable_action_statement, 2, variable_id);
+    sqlite3_bind_text(insert_variable_action_statement, 3, action.c_str(),
+                      action.length(), NULL);
+    execute(insert_variable_action_statement);
+}
+
+void SqlSerializer::serialize_interference_information(
+    const std::string &info) {
+    trace << info << std::endl;
+}
+
 sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
     const prom_basic_info_t &info) {
     sqlite3_bind_int(insert_promise_statement, 1, (int)info.prom_id);
@@ -430,7 +479,7 @@ sqlite3_stmt *SqlSerializer::populate_metadata_statement(const string key,
 
 sqlite3_stmt *
 SqlSerializer::populate_function_statement(const call_info_t &info) {
-    sqlite3_bind_text(insert_function_statement, 1, info.fn_id.c_str(),
+    sqlite3_bind_blob(insert_function_statement, 1, info.fn_id.c_str(),
                       info.fn_id.length(), NULL);
 
     if (info.loc.empty())

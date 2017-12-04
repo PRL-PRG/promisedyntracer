@@ -1,6 +1,6 @@
-create_dyntracer <- function(database, verbose=TRUE) {
+create_dyntracer <- function(database, truncate=FALSE, verbose=TRUE) {
   schema <- file.path(path.package("promisedyntracer"), "exec/schema.sql")
-  .Call(C_create_dyntracer, database, schema, verbose)
+  .Call(C_create_dyntracer, database, schema, truncate, verbose)
 }
 
 destroy_dyntracer <- function(dyntracer)

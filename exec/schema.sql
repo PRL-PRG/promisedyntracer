@@ -12,7 +12,7 @@ create table if not exists metadata (
 
 create table if not exists functions (
     --[ identity ]-------------------------------------------------------------
-    id text primary key, -- equiv. to pointer of function definition SEXP
+    id blob primary key, -- equiv. to pointer of function definition SEXP
     --[ data ]-----------------------------------------------------------------
     location text,
     definition text,
@@ -155,4 +155,23 @@ create table if not exists environments (
     function_id text not null,
     --[ relations ]------------------------------------------------------------
     foreign key (function_id) references functions
+);
+
+create table if not exists variables (
+    --[ data ]-----------------------------------------------------------------
+    id integer primary key,
+    name text not null,
+    environment_id integer not null,
+    --[ relations ]------------------------------------------------------------
+    foreign key (environment_id) references environments
+);
+
+create table if not exists variable_actions (
+    --[ data ] ----------------------------------------------------------------
+    promise_id integer not null,
+    variable_id integer not null,
+    action text not null,
+    --[ relations ]------------------------------------------------------------
+    foreign key (promise_id) references promises,
+    foreign key (variable_id) references variables
 );

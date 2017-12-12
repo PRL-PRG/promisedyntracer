@@ -13,7 +13,7 @@ std::string readfile(const std::string &filepath) {
     std::ifstream file(filepath);
     if (!file.good()) {
         throw std::runtime_error(std::string("unable to open file: ") +
-                                     filepath);
+                                 filepath);
     }
     std::string contents;
     file.seekg(0, std::ios::end);
@@ -163,7 +163,13 @@ int is_byte_compiled(SEXP op) {
     return TYPEOF(body) == BCODESXP;
 }
 
-const char *get_expression(SEXP e) { return serialize_sexp(e); }
+std::string get_expression(SEXP e) {
+    char *expr = serialize_sexp(e);
+    assert(expr != NULL);
+    std::string expression(expr);
+    free(expr);
+    return expression;
+}
 
 // returns a monotonic timestamp in microseconds
 uint64_t timestamp() {
@@ -212,9 +218,7 @@ std::string compute_hash(const char *data) {
     return std::string(reinterpret_cast<const char *>(md_value), md_len);
 }
 
-const char * remove_null(const char * value) {
-    return  value ? value : "";
-}
+const char *remove_null(const char *value) { return value ? value : ""; }
 
 std::string clock_ticks_to_string(clock_t ticks) {
     return std::to_string((double)ticks / CLOCKS_PER_SEC);

@@ -61,9 +61,7 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
 }
 
 fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
-    const char *def = get_expression(func);
-    assert(def != NULL);
-    fn_key_t definition = def;
+    fn_key_t definition(get_expression(func));
 
     auto &function_ids = tracer_state(context).function_ids;
     auto it = function_ids.find(definition);
@@ -74,7 +72,7 @@ fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
         /*Use hash on the function body to compute a unique (hopefully) id
          for each function.*/
 
-        fn_id_t fn_id = compute_hash(def);
+        fn_id_t fn_id = compute_hash(definition.c_str());
         tracer_state(context).function_ids[definition] = fn_id;
         return fn_id;
     }
@@ -118,19 +116,6 @@ call_id_t make_funcall_id(dyntrace_context_t *context, SEXP function) {
 //    assert(fn_env != NULL);
 //    return get_sexp_address(fn_env);
 //}
-
-// Wraper for findVar. Does not look up the value if it already is PROMSXP.
-SEXP get_promise(SEXP var, SEXP rho) {
-    SEXP prom = R_NilValue;
-
-    if (TYPEOF(var) == PROMSXP) {
-        prom = var;
-    } else if (TYPEOF(var) == SYMSXP) {
-        prom = findVar(var, rho);
-    }
-
-    return prom;
-}
 
 prom_id_t get_parent_promise(dyntrace_context_t *context) {
     for (std::vector<stack_event_t>::reverse_iterator iterator =
@@ -185,7 +170,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
          formals = CDR(formals)) {
         // Retrieve the argument name.
         SEXP argument_expression = TAG(formals);
-        SEXP promise_expression = get_promise(argument_expression, rho);
+        SEXP promise_expression = argument_expression;
         bool default_argument;
         if (TYPEOF(promise_expression) == DOTSXP) {
             int i = 0;

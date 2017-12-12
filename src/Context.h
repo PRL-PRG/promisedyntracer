@@ -12,7 +12,8 @@
 
 class Context {
   public:
-    Context(std::string database, std::string schema, bool verbose);
+    Context(std::string database, std::string schema, bool truncate,
+            bool verbose);
     tracer_state_t &get_state();
     SqlSerializer &get_serializer();
 

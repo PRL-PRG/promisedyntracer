@@ -2,10 +2,6 @@
 #include "utilities.h"
 
 void tracer_state_t::start_pass(dyntrace_context_t *context, const SEXP prom) {
-    reset();
-    indent = 0;
-    // clock_id = 0;
-
     // We have to make sure the stack is not empty
     // when referring to the promise created by call to Rdt.
     // This is just a dummy call and environment.
@@ -77,7 +73,6 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
 //}
 
 tracer_state_t::tracer_state_t() {
-    indent = 0;
     clock_id = 0;
     call_id_counter = 0;
     fn_id_counter = 0;
@@ -86,21 +81,49 @@ tracer_state_t::tracer_state_t() {
     argument_id_sequence = 0;
     gc_trigger_counter = 0;
     environment_id_counter = 0;
+    variable_id_counter = 0;
 }
 
-void tracer_state_t::reset() {
-    clock_id = 0;
-    call_id_counter = 0;
-    fn_id_counter = 0;
-    prom_id_counter = 0;
-    prom_neg_id_counter = 0;
-    argument_id_sequence = 0;
-    gc_trigger_counter = 0;
-    environment_id_counter = 0;
-    already_inserted_functions.clear();
-    already_inserted_negative_promises.clear();
-    promise_lookup_gc_trigger_counter.clear();
-    function_ids.clear();
-    argument_ids.clear();
-    promise_ids.clear();
+env_id_t tracer_state_t::to_environment_id(SEXP rho) {
+    const auto &iter = environments.find(rho);
+    if (iter == environments.end()) {
+        env_id_t environment_id = environment_id_counter++;
+        environments[rho] =
+            std::pair<env_id_t, unordered_map<string, var_id_t>>(environment_id, {});
+        return environment_id;
+    } else {
+        return (iter->second).first;
+    }
+}
+
+var_id_t tracer_state_t::to_variable_id(SEXP symbol, SEXP rho, bool &exists) {
+    var_id_t variable_id;
+    const auto &iter = environments.find(rho);
+    assert(iter != environments.end());
+    auto &variables = (iter->second).second;
+    const auto &iter2 = variables.find(CHAR(PRINTNAME(symbol)));
+    if (iter2 == variables.end()) {
+        exists = false;
+        variable_id = variable_id_counter++;
+        variables[std::string(CHAR(PRINTNAME(symbol)))] = variable_id;
+    } else {
+        exists = true;
+        variable_id = iter2->second;
+    }
+    return variable_id;
+}
+
+// This function returns -1 if we are not in an enclosing promise scope.
+// -1 is also used for foreign promises, so the client should appropriately
+// process this information downstream.
+prom_id_t tracer_state_t::enclosing_promise_id() {
+
+    for (std::vector<stack_event_t>::reverse_iterator iterator =
+             full_stack.rbegin();
+         iterator != full_stack.rend(); ++iterator) {
+        auto event = *iterator;
+        if (event.type == stack_type::PROMISE)
+            return event.promise_id;    
+    }
+    return -1;
 }

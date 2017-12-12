@@ -14,11 +14,11 @@
 
 extern "C" {
 
-SEXP create_dyntracer(SEXP database, SEXP schema, SEXP verbose) {
+SEXP create_dyntracer(SEXP database, SEXP schema, SEXP truncate, SEXP verbose) {
     try {
         void *context =
             new Context(sexp_to_string(database), sexp_to_string(schema),
-                        sexp_to_bool(verbose));
+                        sexp_to_bool(truncate), sexp_to_bool(verbose));
         /* calloc initializes the memory to zero. This ensures that probes not
            attached will be NULL. Replacing calloc with malloc will cause
            segfaults. */
@@ -42,11 +42,15 @@ SEXP create_dyntracer(SEXP database, SEXP schema, SEXP verbose) {
         dyntracer->probe_gc_exit = gc_exit;
         dyntracer->probe_new_environment = new_environment;
         dyntracer->probe_jump_ctxt = jump_ctxt;
+        dyntracer->probe_environment_define_var = environment_define_var;
+        dyntracer->probe_environment_assign_var = environment_assign_var;
+        dyntracer->probe_environment_remove_var = environment_remove_var;
+        dyntracer->probe_environment_lookup_var = environment_lookup_var;
         dyntracer->context = context;
         return dyntracer_to_sexp(dyntracer, "dyntracer.promise");
     } catch (const std::runtime_error &e) {
-        REprintf(e.what());
-        return NULL;
+        Rf_error(e.what());
+        return R_NilValue;
     }
 }
 

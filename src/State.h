@@ -25,6 +25,7 @@ typedef string fn_id_t;  // integer
 typedef rid_t fn_addr_t; // hexadecimal
 typedef string fn_key_t; // pun
 typedef int env_id_t;
+typedef int var_id_t;
 typedef unsigned long int arg_id_t; // integer
 
 typedef int event_t;
@@ -271,10 +272,6 @@ bool register_inserted_function(dyntrace_context_t *context, fn_id_t id);
 bool function_already_inserted(fn_id_t id);
 bool negative_promise_already_inserted(dyntrace_context_t *context,
                                        prom_id_t id);
-
-// Wraper for findVar. Does not look up the value if it already is PROMSXP.
-SEXP get_promise(SEXP var, SEXP rho);
-
 template <typename T>
 void get_stack_parent(T &info, vector<stack_event_t> &stack) {
     // put the body here
@@ -321,8 +318,6 @@ string sexp_type_to_string(sexp_type);
 SEXPTYPE sexp_type_to_SEXPTYPE(sexp_type);
 
 struct tracer_state_t {
-    stack<int, vector<int>> curr_fn_indent_level;
-    int indent;
     int clock_id; // Should be kept across Rdt calls (unless overwrite is true)
     // Function call stack (may be useful)
     // Whenever R makes a function call, we generate a function ID and store
@@ -341,9 +336,8 @@ struct tracer_state_t {
     // Map from promise address to promise ID;
     unordered_map<prom_key_t, prom_id_t, prom_id_triple_hash> promise_ids;
     unordered_map<prom_id_t, int> promise_lookup_gc_trigger_counter;
-
     env_id_t environment_id_counter;
-
+    var_id_t variable_id_counter;
     call_id_t call_id_counter; // IDs assigned should be globally unique but we
                                // can reset it after each pass if overwrite is
                                // true)
@@ -373,6 +367,8 @@ struct tracer_state_t {
                                            // (unless overwrite is true)
     int gc_trigger_counter; // Incremented each time there is a gc_entry
 
+    unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
+        environments;
     void start_pass(dyntrace_context_t *context, const SEXP prom);
     void finish_pass();
     // When doing longjump (exception thrown, etc.) this function gets the
@@ -381,10 +377,9 @@ struct tracer_state_t {
     // fixes indentation.
     void adjust_stacks(SEXP rho, unwind_info_t &info);
     //    void adjust_prom_stack(SEXP rho, vector<prom_id_t> & unwound_prom);
-
+    env_id_t to_environment_id(SEXP rho);
+    var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
+    prom_id_t enclosing_promise_id();
     tracer_state_t();
-
-  private:
-    void reset();
 };
 #endif /* __STATE_H__ */

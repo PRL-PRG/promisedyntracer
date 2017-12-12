@@ -5,7 +5,7 @@ recursion_type is_recursive(dyntrace_context_t *context, fn_id_t function) {
              tracer_state(context).fun_stack.rbegin();
          i != tracer_state(context).fun_stack.rend(); ++i) {
         call_id_t cursor_call = get<0>(*i);
-        fn_id_t cursor_function = get<1>(*i);
+        fn_id_t cursor_function = (get<1>(*i));
         function_type cursor_type = get<2>(*i);
 
         if (cursor_call == 0) {
@@ -226,7 +226,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     info.call_id = make_funcall_id(context, op);
     // info.call_id = make_funcall_id(rho);
 
-    call_stack_elem_t elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(elem);
 
     char *location = get_location(op);
@@ -273,7 +273,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.fn_compiled = is_byte_compiled(op);
     info.fn_id = get_function_id(context, op);
     info.fn_addr = get_function_addr(op);
-    call_stack_elem_t elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.call_id = get<0>(elem);
     info.fn_type = function_type::CLOSURE;
 
@@ -298,7 +298,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.fn_definition = get_expression(op);
 
     tracer_state(context).fun_stack.pop_back();
-    call_stack_elem_t elem_parent = tracer_state(context).fun_stack.back();
+    call_stack_elem_t elem_parent = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(elem_parent);
 
     info.recursion = is_recursive(context, info.fn_id);
@@ -327,7 +327,7 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
 
     // R_FunTab[PRIMOFFSET(op)].eval % 100 )/10 ==
 
-    call_stack_elem_t elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(elem);
 
     char *location = get_location(op);
@@ -373,7 +373,7 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
         info.name = name;
     info.fn_id = get_function_id(context, op);
     info.fn_addr = get_function_addr(op);
-    call_stack_elem_t elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.call_id = get<0>(elem);
     if (name != NULL)
         info.name = name;
@@ -381,7 +381,7 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     info.fn_compiled = is_byte_compiled(op);
     info.fn_definition = get_expression(op);
 
-    call_stack_elem_t parent_elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t parent_elem = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(parent_elem);
     info.recursion = is_recursive(context, info.fn_id);
 
@@ -438,7 +438,7 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
     SEXP promise_expression = get_promise(symbol, rho);
     info.prom_id = get_promise_id(context, promise_expression);
 
-    call_stack_elem_t call_stack_elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t call_stack_elem = (tracer_state(context).fun_stack.back());
     info.in_call_id = get<0>(call_stack_elem);
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 
@@ -472,7 +472,7 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
     SEXP promise_expression = get_promise(symbol, rho);
     info.prom_id = get_promise_id(context, promise_expression);
 
-    call_stack_elem_t stack_elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t stack_elem = (tracer_state(context).fun_stack.back());
     info.in_call_id = get<0>(stack_elem);
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 
@@ -503,7 +503,7 @@ prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
     SEXP promise_expression = get_promise(symbol, rho);
     info.prom_id = get_promise_id(context, promise_expression);
 
-    call_stack_elem_t stack_elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t stack_elem = (tracer_state(context).fun_stack.back());
     info.in_call_id = get<0>(stack_elem);
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 
@@ -526,7 +526,7 @@ prom_info_t promise_expression_lookup_get_info(dyntrace_context_t *context,
 
     info.prom_id = get_promise_id(context, prom);
 
-    call_stack_elem_t stack_elem = tracer_state(context).fun_stack.back();
+    call_stack_elem_t stack_elem = (tracer_state(context).fun_stack.back());
     info.in_call_id = get<0>(stack_elem);
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 

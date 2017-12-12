@@ -34,7 +34,7 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
 
     while (!fun_stack.empty() && (call_addr = curr_env_stack.top()) &&
            get_sexp_address(rho) != call_addr) {
-        auto elem = fun_stack.back();
+        auto elem = (fun_stack.back());
         call_id = get<0>(elem);
         curr_env_stack.pop();
         fun_stack.pop_back();

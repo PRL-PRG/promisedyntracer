@@ -313,7 +313,7 @@ void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
 }
 
 void new_environment(dyntrace_context_t *context, const SEXP rho) {
-    fn_id_t fn_id = std::get<fn_id_t>(tracer_state(context).fun_stack.back());
+    fn_id_t fn_id = (std::get<fn_id_t>(tracer_state(context).fun_stack.back()));
     env_id_t env_id = tracer_state(context).environment_id_counter++;
     tracer_serializer(context).serialize_new_environment(env_id, fn_id);
 }

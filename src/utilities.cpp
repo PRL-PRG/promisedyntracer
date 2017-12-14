@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "base64.h"
 
 int get_file_size(std::ifstream &file) {
     int position = file.tellg();
@@ -215,7 +216,8 @@ std::string compute_hash(const char *data) {
     EVP_DigestUpdate(mdctx, data, strlen(data));
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
     EVP_MD_CTX_free(mdctx);
-    return std::string(reinterpret_cast<const char *>(md_value), md_len);
+
+    return base64_encode(reinterpret_cast<const unsigned char *>(md_value), md_len);
 }
 
 const char *remove_null(const char *value) { return value ? value : ""; }

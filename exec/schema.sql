@@ -12,7 +12,7 @@ create table if not exists metadata (
 
 create table if not exists functions (
     --[ identity ]-------------------------------------------------------------
-    id blob primary key, -- equiv. to pointer of function definition SEXP
+    id text primary key, -- equiv. to pointer of function definition SEXP
     --[ data ]-----------------------------------------------------------------
     location text,
     definition text,

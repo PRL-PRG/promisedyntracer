@@ -1,4 +1,5 @@
 #include "SqlSerializer.h"
+#include "base64.h"
 
 SqlSerializer::SqlSerializer(const std::string &database_filepath,
                              const std::string &schema_filepath, bool truncate,
@@ -265,13 +266,13 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
         execute(populate_function_statement(info));
     }
 
-    for (int index = 0; index < info.arguments.size(); ++index) {
+    for (unsigned int index = 0; index < info.arguments.size(); ++index) {
         execute(populate_insert_argument_statement(info, index));
     }
 
     execute(populate_call_statement(info));
 
-    for (int index = 0; index < info.arguments.size(); ++index) {
+    for (unsigned int index = 0; index < info.arguments.size(); ++index) {
         execute(populate_promise_association_statement(info, index));
     }
 }
@@ -479,7 +480,7 @@ sqlite3_stmt *SqlSerializer::populate_metadata_statement(const string key,
 
 sqlite3_stmt *
 SqlSerializer::populate_function_statement(const call_info_t &info) {
-    sqlite3_bind_blob(insert_function_statement, 1, info.fn_id.c_str(),
+    sqlite3_bind_text(insert_function_statement, 1, info.fn_id.c_str(),
                       info.fn_id.length(), NULL);
 
     if (info.loc.empty())

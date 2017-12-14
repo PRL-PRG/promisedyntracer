@@ -65,7 +65,7 @@ create table if not exists promises (
 
 create table if not exists promise_associations (
     --[ relations ]------------------------------------------------------------
-    promise_id integer not null,
+    promise_id integer null,
     call_id integer not null,
     argument_id integer not null,
     --[ keys ]-----------------------------------------------------------------

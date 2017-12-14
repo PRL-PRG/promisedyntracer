@@ -287,10 +287,10 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
             string arg_name = get_name(argument_expression);
             prom_id_t prom_id = get_promise_id(context, promise_expression);
             default_argument = (PRENV(promise_expression) == rho);
-            if (prom_id != RID_INVALID)
-                arguments.push_back(std::make_tuple(
-                    arg_name, get_argument_id(context, call_id, arg_name),
-                    prom_id, default_argument));
+
+            arguments.push_back(std::make_tuple(
+                arg_name, get_argument_id(context, call_id, arg_name),
+                prom_id, default_argument));
         }
     }
 

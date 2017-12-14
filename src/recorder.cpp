@@ -248,7 +248,6 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
             info.name = name;
     }
 
-    cerr << info.name + "\n";
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 
@@ -296,8 +295,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
         if (name != NULL)
             info.name = name;
     }
-
-    cerr << info.name + "\n";
+    
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 

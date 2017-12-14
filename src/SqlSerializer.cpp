@@ -454,7 +454,10 @@ sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
     arg_id_t arg_id = get<1>(argument);
     prom_id_t promise = get<2>(argument);
 
-    sqlite3_bind_int(insert_promise_association_statement, 1, promise);
+    if (promise != RID_INVALID)
+        sqlite3_bind_int(insert_promise_association_statement, 1, promise);
+    else
+        sqlite3_bind_null(insert_promise_association_statement, 1);
     sqlite3_bind_int(insert_promise_association_statement, 2, info.call_id);
     sqlite3_bind_int(insert_promise_association_statement, 3, arg_id);
 

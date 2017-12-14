@@ -303,8 +303,7 @@ void get_stack_parent(T &info, vector<stack_event_t> &stack) {
 prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
                          const string &argument);
-arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
-                        SEXP rho);
+arglist_t get_arguments(dyntrace_context_t *, call_id_t, SEXP op, SEXP rho);
 
 string full_sexp_type_to_string(full_sexp_type);
 string full_sexp_type_to_number_string(full_sexp_type);

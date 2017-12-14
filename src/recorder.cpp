@@ -38,28 +38,30 @@ judge_promise_lifestyle(dyntrace_context_t *context, call_id_t from_call_id) {
         call_id_t cursor = get<0>(*i);
         function_type type = get<2>(*i);
 
-        if (cursor == from_call_id)
+        if (cursor == from_call_id) {
             if (effective_distance == 0) {
                 if (actual_distance == 0) {
                     return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::IMMEDIATE_LOCAL, effective_distance,
-                        actual_distance);
+                            lifestyle_type::IMMEDIATE_LOCAL, effective_distance,
+                            actual_distance);
                 } else {
                     return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::LOCAL, effective_distance,
-                        actual_distance);
+                            lifestyle_type::LOCAL, effective_distance,
+                            actual_distance);
                 }
             } else {
                 if (effective_distance == 1) {
                     return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::IMMEDIATE_BRANCH_LOCAL,
-                        effective_distance, actual_distance);
+                            lifestyle_type::IMMEDIATE_BRANCH_LOCAL,
+                            effective_distance, actual_distance);
                 } else {
                     return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::BRANCH_LOCAL, effective_distance,
-                        actual_distance);
+                            lifestyle_type::BRANCH_LOCAL, effective_distance,
+                            actual_distance);
                 }
             }
+        }
+
 
         if (cursor == 0) {
             return tuple<lifestyle_type, int, int>(
@@ -246,6 +248,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
             info.name = name;
     }
 
+    cerr << info.name + "\n";
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 
@@ -294,6 +297,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
             info.name = name;
     }
 
+    cerr << info.name + "\n";
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 
@@ -430,7 +434,7 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
 prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
                                          const SEXP promise) {
     prom_info_t info;
-    info.name = "DONT_CARE";
+    info.name = "DONT_CARE"; // FIXME WTF is this?!
 
     info.prom_id = get_promise_id(context, promise);
 

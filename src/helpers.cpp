@@ -4,11 +4,93 @@
 #include <cassert>
 #include <sstream>
 
+SEXP find_promise_in_global_cache(const SEXP symbol) {
+    Rf_error(_("DYNTRACE: my_find_in_global_cache, missing implementation, confused"));
+}
+
+inline SEXP get_symbol_binding_value(const SEXP symbol) {
+    if (IS_ACTIVE_BINDING(symbol))
+        Rf_error(_("DYNTRACE: encountered ACTIVE BINDING symbol, missing implementation, confused"));
+    return SYMVALUE(symbol); // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(SYMVALUE(s))
+}
+
+inline SEXP get_binding_value(const SEXP frame) {
+    if (IS_ACTIVE_BINDING(frame))
+        Rf_error(_("DYNTRACE: encountered ACTIVE BINDING frame, missing implementation, confused"));
+    return CAR(frame); // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(CAR(s))
+}
+
+SEXP find_promise_in_single_environment(const SEXP symbol, const SEXP rho) {
+    if (TYPEOF(rho) == NILSXP)
+        Rf_error(_("DYNTRACE: encountered NILSXP as environment"));
+
+    if (rho == R_BaseNamespace || rho == R_BaseEnv)
+        return get_symbol_binding_value(symbol);
+
+    if (rho == R_EmptyEnv)
+        return R_UnboundValue;
+
+    if ((OBJECT(rho)) && inherits((rho), "UserDefinedDatabase")) // (IS_USER_DATABASE(rho))
+        Rf_error(_("DYNTRACE: encountered UserDefinedDatabase class environment, missing implementation, confused"));
+
+    if (HASHTAB(rho) == R_NilValue) {
+        SEXP frame = FRAME(rho);
+        while (frame != R_NilValue) {
+            if (TAG(frame) == symbol)
+                return get_binding_value(frame);
+            frame = CDR(frame);
+        }
+    }
+
+    if (HASHTAB(rho) != R_NilValue) {
+        Rf_error(_("DYNTRACE: encountered HASHTAB(rho) != R_NilValue, missing implementation, confused"));
+    }
+
+    return R_UnboundValue;
+}
+
+SEXP find_promise_in_environment(const SEXP symbol, const SEXP rho2) {
+    SEXP rho = rho2;
+
+    if (TYPEOF(rho) == NILSXP)
+        Rf_error(_("DYNTRACE: encountered NILSXP as environment"));
+
+    if (TYPEOF(rho) != ENVSXP)
+        Rf_error(_("DYNTRACE: argument to '%s' is not an environment"));
+
+#ifdef USE_GLOBAL_CACHE
+    while (rho != R_GlobalEnv && rho != R_EmptyEnv)
+#else
+    while (rho != R_EmptyEnv)
+#endif
+    {
+        SEXP v = find_promise_in_single_environment(symbol, rho);
+        if (v != R_UnboundValue)
+            return v;
+        rho = ENCLOS(rho);
+    }
+#ifdef USE_GLOBAL_CACHE
+    if (rho == R_GlobalEnv)
+        return find_promise_in_global_cache(symbol);
+    else
+#endif
+    return R_UnboundValue;
+}
+
+SEXP get_promise(SEXP var, SEXP rho) {
+    if (TYPEOF(var) == PROMSXP)
+        return var;
+    else if (TYPEOF(var) == SYMSXP)
+        return find_promise_in_environment(var, rho);
+    return R_NilValue;
+}
+
 rid_t get_sexp_address(SEXP e) { return (rid_t)e; }
 
 prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise) {
     if (promise == R_NilValue)
         return RID_INVALID;
+
     if (TYPEOF(promise) != PROMSXP)
         return RID_INVALID;
 
@@ -162,7 +244,7 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
     return argument_id;
 }
 
-arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
+arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op,
                         SEXP rho) {
     arglist_t arguments;
 
@@ -170,7 +252,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
          formals = CDR(formals)) {
         // Retrieve the argument name.
         SEXP argument_expression = TAG(formals);
-        SEXP promise_expression = argument_expression;
+        SEXP promise_expression = get_promise(argument_expression, rho);
         bool default_argument;
         if (TYPEOF(promise_expression) == DOTSXP) {
             int i = 0;
@@ -426,3 +508,6 @@ string full_sexp_type_to_number_string(full_sexp_type type) {
     }
     return result.str();
 }
+
+
+

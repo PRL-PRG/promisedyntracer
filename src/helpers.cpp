@@ -3,9 +3,26 @@
 #include "utilities.h"
 #include <cassert>
 #include <sstream>
+#include "Defn.h"
 
 SEXP find_promise_in_global_cache(const SEXP symbol) {
     Rf_error(_("DYNTRACE: my_find_in_global_cache, missing implementation, confused"));
+}
+
+// This is a copy of int attribute_hidden R_Newhashpjw(const char *s) from envir.c
+// it was copied here, because I couldn't get it to run on account of it being hidden,
+// extern etc.
+inline int get_new_hash(const char *s) {
+    char *p;
+    unsigned h = 0, g;
+    for (p = (char *) s; *p; p++) {
+        h = (h << 4) + (*p);
+        if ((g = h & 0xf0000000) != 0) {
+            h = h ^ (g >> 24);
+            h = h ^ g;
+        }
+    }
+    return h;
 }
 
 inline SEXP get_symbol_binding_value(const SEXP symbol) {
@@ -18,6 +35,16 @@ inline SEXP get_binding_value(const SEXP frame) {
     if (IS_ACTIVE_BINDING(frame))
         Rf_error(_("DYNTRACE: encountered ACTIVE BINDING frame, missing implementation, confused"));
     return CAR(frame); // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(CAR(s))
+}
+
+inline SEXP get_hash(int hashcode, SEXP symbol, SEXP table)
+{
+    for (SEXP chain = VECTOR_ELT(table, hashcode);
+         chain != R_NilValue; chain = CDR(chain)) {
+        if (TAG(chain) == symbol)
+            return get_binding_value(chain);
+    }
+    return R_UnboundValue;
 }
 
 SEXP find_promise_in_single_environment(const SEXP symbol, const SEXP rho) {
@@ -42,8 +69,34 @@ SEXP find_promise_in_single_environment(const SEXP symbol, const SEXP rho) {
         }
     }
 
+    // Look up by the hash but without changing anything - the original cached the hash on the SXP.
     if (HASHTAB(rho) != R_NilValue) {
-        Rf_error(_("DYNTRACE: encountered HASHTAB(rho) != R_NilValue, missing implementation, confused"));
+        // SEXP c = PRINTNAME(symbol);
+        SEXP print_name = PRINTNAME(symbol);
+
+        // if( !HASHASH(c) )
+        if(!HASHASH(print_name)) {
+
+            // SET_HASHVALUE(c, R_Newhashpjw(CHAR(c)))
+            // => SET_TRUELENGTH(c, R_Newhashpjw(CHAR(c)))
+            int new_hash = get_new_hash(CHAR(print_name));
+
+            // SET_HASHASH(c, 1);
+            // =>  ((1) ? (((c)->sxpinfo.gp) |= HASHASH_MASK) : (((c)->sxpinfo.gp) &= (~HASHASH_MASK)))
+            // =>  ((c->sxpinfo.gp) |= HASHASH_MASK)
+            // =>  c->sxpinfo.gp = c->sxpinfo.gp | HASHASH_MASK
+            //unsigned int hashash = (print_name->sxpinfo.gp) | HASHASH_MASK; // unnecessary?
+
+            // hashcode = HASHVALUE(c)         % HASHSIZE(HASHTAB(rho))
+            // =>         TRUELENGTH(c)        % LENGTH(HASHTAB(rho))
+            // =>         c->vecsxp.truelength % (HASHTAB(rho))->vecsxp.length
+            // =>         c->vecsxp.truelength % (rho->u.envsxp.hashtab)->vecsxp.length
+            int hashcode = new_hash % LENGTH(HASHTAB(rho));
+            return get_hash(hashcode, symbol, HASHTAB(rho));
+        } else {
+            int hashcode = HASHVALUE(print_name) % LENGTH(HASHTAB(rho));
+            return get_hash(hashcode, symbol, HASHTAB(rho));
+        }
     }
 
     return R_UnboundValue;
@@ -477,6 +530,8 @@ string recursive_type_to_string(recursion_type type) {
             return "not_recursive";
         case recursion_type::UNKNOWN:
             return "unknown";
+        default:
+            return "???????";
     }
 }
 

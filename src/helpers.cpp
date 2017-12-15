@@ -71,32 +71,11 @@ SEXP find_promise_in_single_environment(const SEXP symbol, const SEXP rho) {
 
     // Look up by the hash but without changing anything - the original cached the hash on the SXP.
     if (HASHTAB(rho) != R_NilValue) {
-        // SEXP c = PRINTNAME(symbol);
         SEXP print_name = PRINTNAME(symbol);
-
-        // if( !HASHASH(c) )
-        if(!HASHASH(print_name)) {
-
-            // SET_HASHVALUE(c, R_Newhashpjw(CHAR(c)))
-            // => SET_TRUELENGTH(c, R_Newhashpjw(CHAR(c)))
-            int new_hash = get_new_hash(CHAR(print_name));
-
-            // SET_HASHASH(c, 1);
-            // =>  ((1) ? (((c)->sxpinfo.gp) |= HASHASH_MASK) : (((c)->sxpinfo.gp) &= (~HASHASH_MASK)))
-            // =>  ((c->sxpinfo.gp) |= HASHASH_MASK)
-            // =>  c->sxpinfo.gp = c->sxpinfo.gp | HASHASH_MASK
-            //unsigned int hashash = (print_name->sxpinfo.gp) | HASHASH_MASK; // unnecessary?
-
-            // hashcode = HASHVALUE(c)         % HASHSIZE(HASHTAB(rho))
-            // =>         TRUELENGTH(c)        % LENGTH(HASHTAB(rho))
-            // =>         c->vecsxp.truelength % (HASHTAB(rho))->vecsxp.length
-            // =>         c->vecsxp.truelength % (rho->u.envsxp.hashtab)->vecsxp.length
-            int hashcode = new_hash % LENGTH(HASHTAB(rho));
-            return get_hash(hashcode, symbol, HASHTAB(rho));
-        } else {
-            int hashcode = HASHVALUE(print_name) % LENGTH(HASHTAB(rho));
-            return get_hash(hashcode, symbol, HASHTAB(rho));
-        }
+        int hashcode = (!HASHASH(print_name)) ?
+                       (get_new_hash(CHAR(print_name)) % LENGTH(HASHTAB(rho))) :
+                       (HASHVALUE(print_name) % LENGTH(HASHTAB(rho)));
+        return get_hash(hashcode, symbol, HASHTAB(rho));
     }
 
     return R_UnboundValue;

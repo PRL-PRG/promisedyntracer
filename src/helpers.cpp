@@ -1,121 +1,9 @@
 #include "Context.h"
 #include "State.h"
 #include "utilities.h"
+#include "lookup.h"
 #include <cassert>
 #include <sstream>
-#include "Defn.h"
-
-SEXP find_promise_in_global_cache(const SEXP symbol) {
-    Rf_error(_("DYNTRACE: my_find_in_global_cache, missing implementation, confused"));
-}
-
-// This is a copy of int attribute_hidden R_Newhashpjw(const char *s) from envir.c
-// it was copied here, because I couldn't get it to run on account of it being hidden,
-// extern etc.
-inline int get_new_hash(const char *s) {
-    char *p;
-    unsigned h = 0, g;
-    for (p = (char *) s; *p; p++) {
-        h = (h << 4) + (*p);
-        if ((g = h & 0xf0000000) != 0) {
-            h = h ^ (g >> 24);
-            h = h ^ g;
-        }
-    }
-    return h;
-}
-
-inline SEXP get_symbol_binding_value(const SEXP symbol) {
-    if (IS_ACTIVE_BINDING(symbol))
-        Rf_error(_("DYNTRACE: encountered ACTIVE BINDING symbol, missing implementation, confused"));
-    return SYMVALUE(symbol); // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(SYMVALUE(s))
-}
-
-inline SEXP get_binding_value(const SEXP frame) {
-    if (IS_ACTIVE_BINDING(frame))
-        Rf_error(_("DYNTRACE: encountered ACTIVE BINDING frame, missing implementation, confused"));
-    return CAR(frame); // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(CAR(s))
-}
-
-inline SEXP get_hash(int hashcode, SEXP symbol, SEXP table)
-{
-    for (SEXP chain = VECTOR_ELT(table, hashcode);
-         chain != R_NilValue; chain = CDR(chain)) {
-        if (TAG(chain) == symbol)
-            return get_binding_value(chain);
-    }
-    return R_UnboundValue;
-}
-
-SEXP find_promise_in_single_environment(const SEXP symbol, const SEXP rho) {
-    if (TYPEOF(rho) == NILSXP)
-        Rf_error(_("DYNTRACE: encountered NILSXP as environment"));
-
-    if (rho == R_BaseNamespace || rho == R_BaseEnv)
-        return get_symbol_binding_value(symbol);
-
-    if (rho == R_EmptyEnv)
-        return R_UnboundValue;
-
-    if ((OBJECT(rho)) && inherits((rho), "UserDefinedDatabase")) // (IS_USER_DATABASE(rho))
-        Rf_error(_("DYNTRACE: encountered UserDefinedDatabase class environment, missing implementation, confused"));
-
-    if (HASHTAB(rho) == R_NilValue) {
-        SEXP frame = FRAME(rho);
-        while (frame != R_NilValue) {
-            if (TAG(frame) == symbol)
-                return get_binding_value(frame);
-            frame = CDR(frame);
-        }
-    }
-
-    // Look up by the hash but without changing anything - the original cached the hash on the SXP.
-    if (HASHTAB(rho) != R_NilValue) {
-        SEXP print_name = PRINTNAME(symbol);
-        int hashcode = (!HASHASH(print_name)) ?
-                       (get_new_hash(CHAR(print_name)) % LENGTH(HASHTAB(rho))) :
-                       (HASHVALUE(print_name) % LENGTH(HASHTAB(rho)));
-        return get_hash(hashcode, symbol, HASHTAB(rho));
-    }
-
-    return R_UnboundValue;
-}
-
-SEXP find_promise_in_environment(const SEXP symbol, const SEXP rho2) {
-    SEXP rho = rho2;
-
-    if (TYPEOF(rho) == NILSXP)
-        Rf_error(_("DYNTRACE: encountered NILSXP as environment"));
-
-    if (TYPEOF(rho) != ENVSXP)
-        Rf_error(_("DYNTRACE: argument to '%s' is not an environment"));
-
-#ifdef USE_GLOBAL_CACHE
-    while (rho != R_GlobalEnv && rho != R_EmptyEnv)
-#else
-    while (rho != R_EmptyEnv)
-#endif
-    {
-        SEXP v = find_promise_in_single_environment(symbol, rho);
-        if (v != R_UnboundValue)
-            return v;
-        rho = ENCLOS(rho);
-    }
-#ifdef USE_GLOBAL_CACHE
-    if (rho == R_GlobalEnv)
-        return find_promise_in_global_cache(symbol);
-    else
-#endif
-    return R_UnboundValue;
-}
-
-SEXP get_promise(SEXP var, SEXP rho) {
-    if (TYPEOF(var) == PROMSXP)
-        return var;
-    else if (TYPEOF(var) == SYMSXP)
-        return find_promise_in_environment(var, rho);
-    return R_NilValue;
-}
 
 rid_t get_sexp_address(SEXP e) { return (rid_t)e; }
 
@@ -284,7 +172,18 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
          formals = CDR(formals)) {
         // Retrieve the argument name.
         SEXP argument_expression = TAG(formals);
-        SEXP promise_expression = get_promise(argument_expression, rho);
+        SEXP promise_expression = R_NilValue;
+        /* We want the promise associated with the symbol.
+           Generally, the argument_expression should be the promise.
+           But if JIT is enabled, its possible for the argument_expression
+           to be unpromised. In this case, it will be a symbol.
+        */
+        if (TYPEOF(argument_expression) == PROMSXP) {
+            promise_expression = argument_expression;
+        }
+        else if (TYPEOF(argument_expression) == SYMSXP) {
+            promise_expression = find_promise_in_environment(argument_expression, rho);
+        }
         bool default_argument;
         if (TYPEOF(promise_expression) == DOTSXP) {
             int i = 0;

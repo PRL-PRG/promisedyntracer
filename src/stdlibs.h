@@ -16,8 +16,10 @@
 #include <config.h>
 #include <stdint.h>
 #define HAVE_DECL_SIZE_MAX 1
+extern "C" {
 #include <Defn.h>
 #include <Rdyntrace.h>
+}
 
 #ifdef __cplusplus
 #include <chrono>

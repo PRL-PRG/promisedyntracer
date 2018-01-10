@@ -2,6 +2,7 @@
 #define __STATE_H__
 
 #include "stdlibs.h"
+#include "sexptypes.h"
 
 using namespace std;
 
@@ -60,36 +61,6 @@ enum class lifestyle_type {
     IMMEDIATE_BRANCH_LOCAL = 5
 };
 
-enum class sexp_type {
-    NIL = 0,
-    SYM = 1,
-    LIST = 2,
-    CLOS = 3,
-    ENV = 4,
-    PROM = 5,
-    LANG = 6,
-    SPECIAL = 7,
-    BUILTIN = 8,
-    CHAR = 9,
-    LGL = 10,
-    INT = 13,
-    REAL = 14,
-    CPLX = 15,
-    STR = 16,
-    DOT = 17,
-    ANY = 18,
-    VEC = 19,
-    EXPR = 20,
-    BCODE = 21,
-    EXTPTR = 22,
-    WEAKREF = 23,
-    RAW = 24,
-    S4 = 25,
-
-    // I made these up:
-    OMEGA = 69
-};
-
 enum class stack_type { PROMISE = 1, CALL = 2, NONE = 0 };
 
 struct stack_event_t {
@@ -99,8 +70,6 @@ struct stack_event_t {
         call_id_t call_id;
     };
 };
-
-typedef vector<sexp_type> full_sexp_type;
 
 typedef map<std::string, std::string> metadata_t;
 
@@ -305,16 +274,12 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
                          const string &argument);
 arglist_t get_arguments(dyntrace_context_t *, call_id_t, SEXP op, SEXP rho);
 
-string full_sexp_type_to_string(full_sexp_type);
-string full_sexp_type_to_number_string(full_sexp_type);
 
 size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context);
 size_t get_no_of_ancestors_on_stack();
 size_t get_no_of_ancestor_calls_on_stack();
 
 string recursive_type_to_string(recursion_type);
-string sexp_type_to_string(sexp_type);
-SEXPTYPE sexp_type_to_SEXPTYPE(sexp_type);
 
 struct tracer_state_t {
     int clock_id; // Should be kept across Rdt calls (unless overwrite is true)

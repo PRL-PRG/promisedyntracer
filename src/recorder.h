@@ -4,6 +4,7 @@
 #include "Context.h"
 #include "State.h"
 #include "utilities.h"
+#include "sexptypes.h"
 
 closure_info_t function_entry_get_info(dyntrace_context_t *context,
                                        const SEXP call, const SEXP op,

@@ -1,4 +1,5 @@
 #include "sexptypes.h"
+#include "lookup.h"
 
 void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                          std::set<SEXP> &visited);
@@ -156,7 +157,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
            at
            /home/aviral/projects/aviral-r-dyntrace/rdt-plugins/promises/src/recorder.h:352
          */
-        SEXP symbol_points_to = R_UnboundValue; // findVar(sexp, rho);
+        SEXP symbol_points_to = find_promise_in_environment(sexp, rho);
 
         if (symbol_points_to == R_UnboundValue)
             return;

@@ -4,11 +4,16 @@
 #include "stdlibs.h"
 #include <openssl/evp.h>
 
+extern size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE;
+extern size_t SQLITE3_EXPANDED_SQL_BUFFER_SIZE;
+
 int get_file_size(std::ifstream &file);
 
-std::string readfile(const std::string &filepath);
+std::string readfile(std::ifstream &file);
 
 bool file_exists(const std::string &filepath);
+
+char * copy_string(char * destination, const char * source, size_t buffer_size);
 
 bool sexp_to_bool(SEXP value);
 

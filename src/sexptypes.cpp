@@ -9,7 +9,7 @@ void infer_type_from_bytecode(SEXP bc, SEXP rho, full_sexp_type &result,
 
     // retrieve the instructions
     SEXP code = BCODE_CODE(bc);
-    BCODE * pc = (BCODE *) INTEGER(code);
+    BCODE *pc = (BCODE *)INTEGER(code);
 
     // We ignore pc[0].i. This is the version number.
     // Its not relevant to the analysis.
@@ -17,42 +17,51 @@ void infer_type_from_bytecode(SEXP bc, SEXP rho, full_sexp_type &result,
     // Look up the first opcode
     int opcode = findOp(pc[1].v);
 
-    if(opcode == LDNULL_OP) result.push_back((sexp_type) NILSXP);
-    else if(opcode == LDTRUE_OP) result.push_back((sexp_type) LGLSXP);
-    else if(opcode == LDFALSE_OP) result.push_back((sexp_type) LGLSXP);
-    else if(opcode == LDCONST_OP) {
-      /* This opcode represents constant (literal) value.
-         It only has one argument, the index of the literal in the constant pool.
-         We return the type of this value by accessing it via the index. */
+    if (opcode == LDNULL_OP)
+        result.push_back((sexp_type)NILSXP);
+    else if (opcode == LDTRUE_OP)
+        result.push_back((sexp_type)LGLSXP);
+    else if (opcode == LDFALSE_OP)
+        result.push_back((sexp_type)LGLSXP);
+    else if (opcode == LDCONST_OP) {
+        /* This opcode represents constant (literal) value.
+           It only has one argument, the index of the literal in the constant
+           pool.
+           We return the type of this value by accessing it via the index. */
+        int index = pc[2].i;
+        SEXP consts = BCODE_CONSTS(bc);
+        SEXP value = VECTOR_ELT(consts, index);
+        get_full_type_inner(value, rho, result, visited);
+    } else if (opcode == GETVAR_OP || opcode == DDVAL_OP) {
+        int index = pc[2].i;
+        SEXP consts = BCODE_CONSTS(bc);
+        SEXP value = VECTOR_ELT(consts, index);
+        get_full_type_inner(value, rho, result, visited);
+    } else if (opcode == BASEGUARD_OP) {
         int index = pc[2].i;
         SEXP consts = BCODE_CONSTS(bc);
         SEXP value = VECTOR_ELT(consts, index);
         get_full_type_inner(value, rho, result, visited);
     }
-    else if(opcode == GETVAR_OP || opcode == DDVAL_OP) {
-      int index = pc[2].i;
-      SEXP consts = BCODE_CONSTS(bc);
-      SEXP value = VECTOR_ELT(consts, index);
-      get_full_type_inner(value, rho, result, visited);
-    }
-    else if(opcode == BASEGUARD_OP) {
-      int index = pc[2].i;
-      SEXP consts = BCODE_CONSTS(bc);
-      SEXP value = VECTOR_ELT(consts, index);
-      get_full_type_inner(value, rho, result, visited);
-    }
     /* call to a closure */
-    else if(opcode == GETFUN_OP) result.push_back((sexp_type) LANGSXP);
+    else if (opcode == GETFUN_OP)
+        result.push_back((sexp_type)LANGSXP);
     /* call to a builtin */
-    else if(opcode == GETBUILTIN_OP) result.push_back((sexp_type) LANGSXP);
+    else if (opcode == GETBUILTIN_OP)
+        result.push_back((sexp_type)LANGSXP);
     /* call to internal builtin */
-    else if(opcode == GETINTLBUILTIN_OP) result.push_back((sexp_type) LANGSXP);
+    else if (opcode == GETINTLBUILTIN_OP)
+        result.push_back((sexp_type)LANGSXP);
     /* call to special functions */
-    else if(opcode == CALLSPECIAL_OP) result.push_back((sexp_type) LANGSXP);
+    else if (opcode == CALLSPECIAL_OP)
+        result.push_back((sexp_type)LANGSXP);
     /* closure object */
-    else if(opcode == MAKECLOSURE_OP) result.push_back((sexp_type) CLOSXP);
+    else if (opcode == MAKECLOSURE_OP)
+        result.push_back((sexp_type)CLOSXP);
     /* print all other opcodes */
-    else { std::cout << std::endl << "OPCODE: " << opcode << std::endl; }
+    else {
+        dyntrace_log_warning("cannot infer type of opcode : %d", opcode);
+    }
     return;
 }
 
@@ -75,7 +84,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
 
     // Question... are all BCODEs functions?
     if (type == sexp_type::BCODE) {
-      infer_type_from_bytecode(sexp, rho, result, visited);
+        infer_type_from_bytecode(sexp, rho, result, visited);
         //            bool try_to_attach_symbol_value = (rho != R_NilValue) ?
         //            isEnvironment(rho) : false;
         //            if (!try_to_attach_symbol_value) return;
@@ -176,34 +185,33 @@ void get_full_type(SEXP promise, full_sexp_type &result) {
     get_full_type_inner(PRCODE(promise), PRENV(promise), result, visited);
 }
 
-
 std::string full_sexp_type_to_string(full_sexp_type type) {
-  std::stringstream result;
-  bool first = true;
-  for (auto iterator = type.begin(); iterator != type.end(); ++iterator) {
-    if (first) {
-      first = false;
-    } else {
-      result << "->";
+    std::stringstream result;
+    bool first = true;
+    for (auto iterator = type.begin(); iterator != type.end(); ++iterator) {
+        if (first) {
+            first = false;
+        } else {
+            result << "->";
+        }
+        // result << sexp_type_to_string_short(*iterator);
+        result << sexp_type_to_string(*iterator);
     }
-    // result << sexp_type_to_string_short(*iterator);
-    result << sexp_type_to_string(*iterator);
-  }
-  return result.str();
+    return result.str();
 }
 
 std::string full_sexp_type_to_number_string(full_sexp_type type) {
-  std::stringstream result;
-  bool first = true;
-  for (auto iterator = type.begin(); iterator != type.end(); ++iterator) {
-    if (first) {
-      first = false;
-    } else {
-      result << ",";
+    std::stringstream result;
+    bool first = true;
+    for (auto iterator = type.begin(); iterator != type.end(); ++iterator) {
+        if (first) {
+            first = false;
+        } else {
+            result << ",";
+        }
+        result << sexp_type_to_SEXPTYPE(*iterator);
     }
-    result << sexp_type_to_SEXPTYPE(*iterator);
-  }
-  return result.str();
+    return result.str();
 }
 
 std::string sexp_type_to_string(sexp_type s) {

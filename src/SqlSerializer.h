@@ -23,8 +23,7 @@ class SqlSerializer {
     void serialize_promise_origin(prom_id_t id, bool default_argument);
     void serialize_force_promise_entry(dyntrace_context_t *context,
                                        const prom_info_t &info, int clock_id);
-    void serialize_force_promise_exit(const prom_info_t &info,
-                                      int clock_id);
+    void serialize_force_promise_exit(const prom_info_t &info, int clock_id);
     void serialize_promise_created(const prom_basic_info_t &info);
     void serialize_promise_lookup(const prom_info_t &info, int clock_id);
     void serialize_promise_expression_lookup(const prom_info_t &info,
@@ -41,7 +40,8 @@ class SqlSerializer {
                             env_id_t environment_id);
     void serialize_variable_action(prom_id_t promise_id, var_id_t variable_id,
                                    const std::string &action);
-    void serialize_interference_information(const std::string& information);
+    void serialize_interference_information(const std::string &information);
+
   private:
     sqlite3_stmt *compile(const char *statement);
     void execute(sqlite3_stmt *statement);
@@ -52,6 +52,7 @@ class SqlSerializer {
     void create_tables(const std::string schema_path);
     void prepare_statements();
     void finalize_statements();
+    void cleanup();
     void unindent();
     void indent();
 
@@ -74,25 +75,26 @@ class SqlSerializer {
 
     sqlite3_stmt *populate_insert_argument_statement(const closure_info_t &info,
                                                      int index);
+
     bool verbose;
     int indentation;
-    sqlite3 *database = nullptr;
+    sqlite3 *database = NULL;
     std::ofstream trace;
-    sqlite3_stmt *insert_metadata_statement = nullptr;
-    sqlite3_stmt *insert_function_statement = nullptr;
-    sqlite3_stmt *insert_argument_statement = nullptr;
-    sqlite3_stmt *insert_call_statement = nullptr;
-    sqlite3_stmt *insert_promise_statement = nullptr;
-    sqlite3_stmt *insert_promise_association_statement = nullptr;
-    sqlite3_stmt *insert_promise_evaluation_statement = nullptr;
-    sqlite3_stmt *insert_promise_return_statement = nullptr;
-    sqlite3_stmt *insert_promise_lifecycle_statement = nullptr;
-    sqlite3_stmt *insert_promise_argument_type_statement = nullptr;
-    sqlite3_stmt *insert_gc_trigger_statement = nullptr;
-    sqlite3_stmt *insert_type_distribution_statement = nullptr;
-    sqlite3_stmt *insert_environment_statement = nullptr;
-    sqlite3_stmt *insert_variable_statement = nullptr;
-    sqlite3_stmt *insert_variable_action_statement = nullptr;
+    sqlite3_stmt *insert_metadata_statement = NULL;
+    sqlite3_stmt *insert_function_statement = NULL;
+    sqlite3_stmt *insert_argument_statement = NULL;
+    sqlite3_stmt *insert_call_statement = NULL;
+    sqlite3_stmt *insert_promise_statement = NULL;
+    sqlite3_stmt *insert_promise_association_statement = NULL;
+    sqlite3_stmt *insert_promise_evaluation_statement = NULL;
+    sqlite3_stmt *insert_promise_return_statement = NULL;
+    sqlite3_stmt *insert_promise_lifecycle_statement = NULL;
+    sqlite3_stmt *insert_promise_argument_type_statement = NULL;
+    sqlite3_stmt *insert_gc_trigger_statement = NULL;
+    sqlite3_stmt *insert_type_distribution_statement = NULL;
+    sqlite3_stmt *insert_environment_statement = NULL;
+    sqlite3_stmt *insert_variable_statement = NULL;
+    sqlite3_stmt *insert_variable_action_statement = NULL;
 };
 
 #endif /* __SQL_SERIALIZER_H__ */

@@ -1,5 +1,6 @@
 #include "utilities.h"
 #include "base64.h"
+#include "lookup.h"
 
 int get_file_size(std::ifstream &file) {
     int position = file.tellg();
@@ -107,7 +108,7 @@ static const char *get_filename(SEXP srcref) {
             srcref = VECTOR_ELT(srcref, 0);
         SEXP srcfile = getAttrib(srcref, R_SrcfileSymbol);
         if (TYPEOF(srcfile) == ENVSXP) {
-            SEXP filename = findVar(install("filename"), srcfile);
+            SEXP filename = find_promise_in_environment(install("filename"), srcfile);
             if (isString(filename) && Rf_length(filename)) {
                 return CHAR(STRING_ELT(filename, 0));
             }

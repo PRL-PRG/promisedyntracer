@@ -101,21 +101,22 @@ void serialize_execution_time(dyntrace_context_t *context) {
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-    serialize_execution_time(context);
-    // serialize_execution_count(context);
-    tracer_serializer(context).serialize_finish_trace();
-    tracer_serializer(context).serialize_metadatum(
-        "DYNTRACE_END_DATETIME",
-        remove_null(context->dyntracing_context->end_datetime));
+        serialize_execution_time(context);
+        // serialize_execution_count(context);
+        tracer_serializer(context).serialize_finish_trace();
+        tracer_serializer(context).serialize_metadatum(
+            "DYNTRACE_END_DATETIME",
+            remove_null(context->dyntracing_context->end_datetime));
+
     if (!tracer_state(context).fun_stack.empty()) {
-        Rprintf("Function stack is not balanced: %d remaining.\n",
-                tracer_state(context).fun_stack.size());
+        dyntrace_log_warning("Function stack is not balanced: %d remaining",
+                             tracer_state(context).fun_stack.size());
         tracer_state(context).fun_stack.clear();
     }
 
     if (!tracer_state(context).full_stack.empty()) {
-        Rprintf("Function/promise stack is not balanced: %d remaining.\n",
-                tracer_state(context).full_stack.size());
+        dyntrace_log_warning("Function/promise stack is not balanced: %d remaining",
+                             tracer_state(context).full_stack.size());
         tracer_state(context).full_stack.clear();
     }
 }

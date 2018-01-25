@@ -2,6 +2,9 @@
 #include "base64.h"
 #include "lookup.h"
 
+size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE = 1000;
+size_t SQLITE3_EXPANDED_SQL_BUFFER_SIZE = 2000;
+
 int get_file_size(std::ifstream &file) {
     int position = file.tellg();
     file.seekg(0, std::ios_base::end);
@@ -10,13 +13,7 @@ int get_file_size(std::ifstream &file) {
     return length;
 }
 
-std::string readfile(const std::string &filepath) {
-
-    std::ifstream file(filepath);
-    if (!file.good()) {
-        throw std::runtime_error(std::string("unable to open file: ") +
-                                 filepath);
-    }
+std::string readfile(std::ifstream &file) {
     std::string contents;
     file.seekg(0, std::ios::end);
     contents.reserve(file.tellg());
@@ -28,6 +25,17 @@ std::string readfile(const std::string &filepath) {
 
 bool file_exists(const std::string &filepath) {
     return std::ifstream(filepath).good();
+}
+
+char *copy_string(char *destination, const char *source, size_t buffer_size) {
+    size_t l = strlen(source);
+    if (l >= buffer_size) {
+        strncpy(destination, source, buffer_size - 1);
+        destination[buffer_size - 1] = '\0';
+    } else {
+        strcpy(destination, source);
+    }
+    return destination;
 }
 
 bool sexp_to_bool(SEXP value) { return LOGICAL(value)[0] == TRUE; }
@@ -218,7 +226,8 @@ std::string compute_hash(const char *data) {
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
     EVP_MD_CTX_free(mdctx);
 
-    return base64_encode(reinterpret_cast<const unsigned char *>(md_value), md_len);
+    return base64_encode(reinterpret_cast<const unsigned char *>(md_value),
+                         md_len);
 }
 
 const char *remove_null(const char *value) { return value ? value : ""; }

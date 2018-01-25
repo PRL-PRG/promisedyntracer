@@ -3,57 +3,93 @@
 
 SqlSerializer::SqlSerializer(const std::string &database_filepath,
                              const std::string &schema_filepath, bool truncate,
-                             bool verbose) try : verbose(verbose),
-                                                 indentation(0) {
+                             bool verbose)
+    : verbose(verbose), indentation(0) {
     open_database(database_filepath, truncate);
     open_trace(database_filepath, truncate);
     create_tables(schema_filepath);
     prepare_statements();
-} catch (const std::runtime_error &e) {
-    sqlite3_close(database);
-    throw e;
 }
 
 void SqlSerializer::open_database(const std::string database_path,
                                   bool truncate) {
-    if (truncate)
-        remove(database_path.c_str());
+    if (file_exists(database_path)) {
+        if (truncate) {
+            remove(database_path.c_str());
+        } else {
+            cleanup();
+            dyntrace_log_error(
+                "database file '%s' already exists and truncate flag is false",
+                database_path.c_str());
+        }
+    }
     if (sqlite3_open(database_path.c_str(), &database) != SQLITE_OK) {
-        throw std::runtime_error(std::string("unable to open database: ") +
-                                 std::string(sqlite3_errmsg(database)));
+        char message[SQLITE3_ERROR_MESSAGE_BUFFER_SIZE];
+        copy_string(message, sqlite3_errmsg(database),
+                    SQLITE3_ERROR_MESSAGE_BUFFER_SIZE);
+        cleanup();
+        dyntrace_log_error("unable to open database: %s", message);
     }
 }
 
 void SqlSerializer::open_trace(const std::string database_path, bool truncate) {
     size_t lastindex = database_path.find_last_of(".");
     std::string trace_path = database_path.substr(0, lastindex) + ".trace";
-    if (truncate)
-        remove(trace_path.c_str());
-    trace = std::ofstream(trace_path);
-}
-
-void SqlSerializer::close_trace() { trace.close(); }
-
-void SqlSerializer::create_tables(const std::string schema_path) {
-    // https://sqlite.org/c3ref/exec.HTML
-    std::string sql = readfile(schema_path);
-    char *errormsg = nullptr;
-    sqlite3_exec(database, sql.c_str(), nullptr, nullptr, &errormsg);
-    if (errormsg != NULL) {
-        std::string message(errormsg);
-        sqlite3_free(errormsg);
-        throw std::runtime_error(std::string("unable to create schema: ") +
-                                 message);
+    if (file_exists(trace_path)) {
+        if (truncate)
+            remove(trace_path.c_str());
+        else {
+            cleanup();
+            dyntrace_log_error(
+                "trace file '%s' already exists and truncate flag is false",
+                database_path.c_str());
+        }
+    }
+    trace.open(trace_path);
+    if (!trace.good()) {
+        cleanup();
+        dyntrace_log_error("invalid state of stream object associated with %s",
+                           trace_path.c_str());
     }
 }
 
-SqlSerializer::~SqlSerializer() {
+void SqlSerializer::create_tables(const std::string schema_path) {
+    // https://sqlite.org/c3ref/exec.HTML
+    std::ifstream schema_file(schema_path);
+    if (!schema_file.good()) {
+        cleanup();
+        dyntrace_log_error("unable to open schema file '%s'",
+                           schema_path.c_str());
+    }
+    std::string sql = readfile(schema_file);
+    schema_file.close();
+    char *errormsg = nullptr;
+    sqlite3_exec(database, sql.c_str(), nullptr, nullptr, &errormsg);
+    if (errormsg != NULL) {
+        char message[SQLITE3_ERROR_MESSAGE_BUFFER_SIZE];
+        copy_string(message, errormsg, SQLITE3_ERROR_MESSAGE_BUFFER_SIZE);
+        cleanup();
+        dyntrace_log_error("unable to create schema from %s, %s",
+                           schema_path.c_str(), message);
+    }
+}
+
+void SqlSerializer::cleanup() {
     close_database();
     close_trace();
     finalize_statements();
 }
 
-void SqlSerializer::close_database() { sqlite3_close(database); }
+SqlSerializer::~SqlSerializer() { cleanup(); }
+
+void SqlSerializer::close_database() {
+    if (database != NULL)
+        sqlite3_close(database);
+}
+void SqlSerializer::close_trace() {
+    if (trace.is_open())
+        trace.close();
+}
 
 void SqlSerializer::finalize_statements() {
     sqlite3_finalize(insert_metadata_statement);
@@ -140,9 +176,12 @@ sqlite3_stmt *SqlSerializer::compile(const char *statement) {
     sqlite3_stmt *prepared_statement;
     if (sqlite3_prepare_v2(database, statement, -1, &prepared_statement,
                            NULL) != SQLITE_OK) {
-        throw std::runtime_error(std::string("unable to prepare statement: ") +
-                                 std::string(statement) + "\n" +
-                                 sqlite3_errmsg(database));
+        char message[SQLITE3_ERROR_MESSAGE_BUFFER_SIZE];
+        copy_string(message, sqlite3_errmsg(database),
+                    SQLITE3_ERROR_MESSAGE_BUFFER_SIZE);
+        cleanup();
+        dyntrace_log_error("unable to prepare statement '%s', %s", statement,
+                           message);
     }
     return prepared_statement;
 }
@@ -161,11 +200,16 @@ void SqlSerializer::indent() { indentation++; }
 
 void SqlSerializer::execute(sqlite3_stmt *statement) {
     if (sqlite3_step(statement) != SQLITE_DONE) {
-        std::string expanded_sql(sqlite3_expanded_sql(statement));
-        finalize_statements();
-        Rf_warning((std::string("unable execute statement: '") + expanded_sql +
-                    "'\n" + sqlite3_errmsg(database))
-                       .c_str());
+        char message[SQLITE3_ERROR_MESSAGE_BUFFER_SIZE];
+        char query[SQLITE3_EXPANDED_SQL_BUFFER_SIZE];
+        char *expanded_sql = sqlite3_expanded_sql(statement);
+        copy_string(message, sqlite3_errmsg(database),
+                    SQLITE3_ERROR_MESSAGE_BUFFER_SIZE);
+        copy_string(query, expanded_sql, SQLITE3_EXPANDED_SQL_BUFFER_SIZE);
+        sqlite3_free(expanded_sql);
+        cleanup();
+        dyntrace_log_error("unable to execute statement: %s, %s", query,
+                           message);
     }
 
     if (verbose) {

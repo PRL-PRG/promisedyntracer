@@ -215,43 +215,25 @@ const char *get_ns_name(SEXP op) {
     return NULL;
 }
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-#include <string.h>
-#include <openssl/engine.h>
-
-static void *OPENSSL_zalloc(size_t num) {
-    void *ret = OPENSSL_malloc(num);
-
-    if (ret != NULL)
-        memset(ret, 0, num);
-
-    return ret;
-}
-
-EVP_MD_CTX *EVP_MD_CTX_new(void)
-{
-    return OPENSSL_zalloc(sizeof(EVP_MD_CTX));
-}
-
-void EVP_MD_CTX_free(EVP_MD_CTX *ctx)
-{
-    EVP_MD_CTX_cleanup(ctx);
-    OPENSSL_free(ctx);
-}
-#endif
-
 std::string compute_hash(const char *data) {
-    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     const EVP_MD *md = EVP_md5();
     unsigned char md_value[EVP_MAX_MD_SIZE];
     unsigned int md_len = 0;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_MD_CTX mdctx;
+    EVP_MD_CTX_init(&mdctx);
+    EVP_DigestInit_ex(&mdctx, md, NULL);
+    EVP_DigestUpdate(&mdctx, data, strlen(data));
+    EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+    EVP_MD_CTX_cleanup(&mdctx);
+#else
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     EVP_MD_CTX_init(mdctx);
     EVP_DigestInit_ex(mdctx, md, NULL);
     EVP_DigestUpdate(mdctx, data, strlen(data));
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
     EVP_MD_CTX_free(mdctx);
-
+#endif
     return base64_encode(reinterpret_cast<const unsigned char *>(md_value),
                          md_len);
 }

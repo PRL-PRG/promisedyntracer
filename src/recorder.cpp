@@ -110,16 +110,8 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
     call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(elem);
-
-    char *location = get_location(op);
-    if (location != NULL)
-        info.loc = location;
-    free(location);
-
-    char *callsite = get_callsite(1);
-    if (callsite != NULL)
-        info.callsite = callsite;
-    free(callsite);
+    info.definition_location = get_definition_location_cpp(op);
+    info.callsite_location = get_callsite_cpp(1);
 
     if (ns) {
         info.name = string(ns) + "::" + CHKSTR(name);
@@ -159,15 +151,8 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.call_id = get<0>(elem);
     info.fn_type = function_type::CLOSURE;
 
-    char *location = get_location(op);
-    if (location != NULL)
-        info.loc = location;
-    free(location);
-
-    char *callsite = get_callsite(0);
-    if (callsite != NULL)
-        info.callsite = callsite;
-    free(callsite);
+    info.definition_location = get_definition_location_cpp(op);
+    info.callsite_location = get_callsite_cpp(0);
 
     if (ns) {
         info.name = string(ns) + "::" + CHKSTR(name);
@@ -212,16 +197,8 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
     call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.parent_call_id = get<0>(elem);
 
-    char *location = get_location(op);
-    if (location != NULL) {
-        info.loc = location;
-    }
-    free(location);
-
-    char *callsite = get_callsite(0);
-    if (callsite != NULL)
-        info.callsite = callsite;
-    free(callsite);
+    info.definition_location = get_definition_location_cpp(op);
+    info.callsite_location = get_callsite_cpp(0);
 
     info.call_ptr = get_sexp_address(rho);
     info.call_id = make_funcall_id(context, op);
@@ -267,15 +244,8 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     info.parent_call_id = get<0>(parent_elem);
     info.recursion = is_recursive(context, info.fn_id);
 
-    char *location = get_location(op);
-    if (location != NULL)
-        info.loc = location;
-    free(location);
-
-    char *callsite = get_callsite(0);
-    if (callsite != NULL)
-        info.callsite = callsite;
-    free(callsite);
+    info.definition_location = get_definition_location_cpp(op);
+    info.callsite_location = get_callsite_cpp(0);
 
     tracer_state(context).full_stack.pop_back();
     get_stack_parent(info, tracer_state(context).full_stack);

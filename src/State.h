@@ -93,8 +93,8 @@ struct call_info_t {
     fn_id_t fn_id;
     fn_addr_t fn_addr; // TODO unnecessary?
     string fn_definition;
-    string loc;
-    string callsite;
+    string definition_location;
+    string callsite_location;
     bool fn_compiled;
 
     string name; // fully qualified function name, if available
@@ -104,7 +104,7 @@ struct call_info_t {
         parent_call_id; // the id of the parent call that executed this call
     prom_id_t in_prom_id;
 
-    recursion_type recursion;
+    recursion_type recursion; // TODO unnecessary?
 
     stack_event_t parent_on_stack;
 };

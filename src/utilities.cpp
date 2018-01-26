@@ -116,9 +116,16 @@ static const char *get_filename(SEXP srcref) {
             srcref = VECTOR_ELT(srcref, 0);
         SEXP srcfile = getAttrib(srcref, R_SrcfileSymbol);
         if (TYPEOF(srcfile) == ENVSXP) {
-            SEXP filename = find_promise_in_environment(install("filename"), srcfile);
-            if (isString(filename) && Rf_length(filename)) {
-                return CHAR(STRING_ELT(filename, 0));
+            lookup_result r = find_binding_in_environment(install("filename"), srcfile); // TODO we should move install("filename") to be executed only once
+            if (r.status == lookup_status::SUCCESS) {
+                SEXP filename = r.value;
+                if (isString(filename) && Rf_length(filename)) {
+                    return CHAR(STRING_ELT(filename, 0));
+                }
+            } else {
+                // Not sure what the frequency of this is. Making it an error for now, and we'll see what happens.
+                string msg = lookup_status_to_string(r.status);
+                dyntrace_log_error("%s", msg.c_str());
             }
         }
     }
@@ -126,40 +133,29 @@ static const char *get_filename(SEXP srcref) {
     return NULL;
 }
 
-char *get_callsite(int how_far_in_the_past) {
-    SEXP srcref = R_GetCurrentSrcref(how_far_in_the_past);
+inline string extract_location_information(SEXP srcref) {
     const char *filename = get_filename(srcref);
     int lineno = get_lineno(srcref);
     int colno = get_colno(srcref);
-    char *location = NULL;
 
     if (filename) {
-        if (strlen(filename) > 0) {
-            asprintf(&location, "%s:%d,%d", filename, lineno, colno);
-        } else {
-            asprintf(&location, "<console>:%d,%d", lineno, colno);
-        }
-    }
-
-    return location;
+        stringstream result;
+        result << ((strlen(filename) > 0) ? filename : "<console>")
+               << ":" << std::to_string(lineno)
+               << "," << std::to_string(colno);
+        return result.str();
+    } else
+        return "";
 }
 
-char *get_location(SEXP op) {
+string get_callsite_cpp(int how_far_in_the_past) {
+    SEXP srcref = R_GetCurrentSrcref(how_far_in_the_past);
+    return extract_location_information(srcref);
+}
+
+string get_definition_location_cpp(SEXP op) {
     SEXP srcref = getAttrib(op, R_SrcrefSymbol);
-    const char *filename = get_filename(srcref);
-    int lineno = get_lineno(srcref);
-    int colno = get_colno(srcref);
-    char *location = NULL;
-
-    if (filename) {
-        if (strlen(filename) > 0) {
-            asprintf(&location, "%s:%d,%d", filename, lineno, colno);
-        } else {
-            asprintf(&location, "<console>:%d,%d", lineno, colno);
-        }
-    }
-
-    return location;
+    return extract_location_information(srcref);
 }
 
 const char *get_call(SEXP call) {

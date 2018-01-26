@@ -29,8 +29,8 @@ std::underlying_type_t<T> to_underlying_type(const T &enum_val) {
 std::string compute_hash(const char *data);
 const char *get_ns_name(SEXP op);
 const char *get_name(SEXP call);
-char *get_location(SEXP op);
-char *get_callsite(int);
+std::string get_definition_location_cpp(SEXP op);
+std::string get_callsite_cpp(int);
 const char *get_call(SEXP call);
 int is_byte_compiled(SEXP op);
 // char *to_string(SEXP var);

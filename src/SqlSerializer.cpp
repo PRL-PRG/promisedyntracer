@@ -460,10 +460,10 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
         sqlite3_bind_text(insert_call_statement, 2, info.name.c_str(), -1,
                           SQLITE_TRANSIENT);
 
-    if (info.callsite.empty())
+    if (info.callsite_location.empty())
         sqlite3_bind_null(insert_call_statement, 3);
     else
-        sqlite3_bind_text(insert_call_statement, 3, info.callsite.c_str(), -1,
+        sqlite3_bind_text(insert_call_statement, 3, info.callsite_location.c_str(), -1,
                           SQLITE_TRANSIENT);
 
     sqlite3_bind_int(insert_call_statement, 4, info.fn_compiled ? 1 : 0);
@@ -530,10 +530,10 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
     sqlite3_bind_text(insert_function_statement, 1, info.fn_id.c_str(),
                       info.fn_id.length(), NULL);
 
-    if (info.loc.empty())
+    if (info.definition_location.empty())
         sqlite3_bind_null(insert_function_statement, 2);
     else
-        sqlite3_bind_text(insert_function_statement, 2, info.loc.c_str(), -1,
+        sqlite3_bind_text(insert_function_statement, 2, info.definition_location.c_str(), -1,
                           SQLITE_TRANSIENT);
 
     if (info.fn_definition.empty())

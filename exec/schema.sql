@@ -77,7 +77,7 @@ create table if not exists promise_associations (
 create table if not exists promise_evaluations (
     --[ data ]-----------------------------------------------------------------
     clock integer primary key autoincrement, -- imposes an order on evaluations
-    event_type integer not null, -- 0x0: lookup, 0xf: force
+    event_type integer not null, -- enumerated in promise_event enum
     --[ relations ]------------------------------------------------------------
     promise_id integer not null,
     from_call_id integer not null,
@@ -115,7 +115,7 @@ create table if not exists promise_lifecycle (
     --[ relation ]-------------------------------------------------------------
     promise_id integer not null,
     --[ data ]-----------------------------------------------------------------
-    event_type integer not null, --- 0x0: creation, -- 0x1: lookup -- 0x2: unmark
+    event_type integer not null, --- enumerated in promise_event enum
     gc_trigger_counter integer not null,
     --[ keys ]-----------------------------------------------------------------
     foreign key (promise_id) references promises,

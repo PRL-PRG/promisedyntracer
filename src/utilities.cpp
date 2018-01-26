@@ -38,6 +38,29 @@ char *copy_string(char *destination, const char *source, size_t buffer_size) {
     return destination;
 }
 
+std::string repeat(const std::string &pattern, int count) {
+    std::stringstream stream;
+    for (int index = 0; index < count; ++index) {
+        stream << pattern;
+    }
+    return stream.str();
+}
+
+std::stringstream &overwrite_suffix(std::stringstream &stream,
+                                    std::string suffix) {
+    stream.seekp(-suffix.length(), std::ios_base::end);
+    stream << suffix;
+    return stream;
+}
+
+std::string pad(const std::string &field, size_t field_width) {
+    size_t padding = field_width - field.length();
+    size_t left_padding = padding / 2;
+    size_t right_padding = padding - left_padding;
+    return std::string(left_padding, ' ') + field +
+           std::string(right_padding, ' ');
+}
+
 bool sexp_to_bool(SEXP value) { return LOGICAL(value)[0] == TRUE; }
 
 int sexp_to_int(SEXP value) { return (int)*REAL(value); }
@@ -116,7 +139,8 @@ static const char *get_filename(SEXP srcref) {
             srcref = VECTOR_ELT(srcref, 0);
         SEXP srcfile = getAttrib(srcref, R_SrcfileSymbol);
         if (TYPEOF(srcfile) == ENVSXP) {
-            SEXP filename = find_promise_in_environment(install("filename"), srcfile);
+            SEXP filename =
+                find_promise_in_environment(install("filename"), srcfile);
             if (isString(filename) && Rf_length(filename)) {
                 return CHAR(STRING_ELT(filename, 0));
             }

@@ -216,16 +216,24 @@ const char *get_ns_name(SEXP op) {
 }
 
 std::string compute_hash(const char *data) {
-    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     const EVP_MD *md = EVP_md5();
     unsigned char md_value[EVP_MAX_MD_SIZE];
     unsigned int md_len = 0;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    EVP_MD_CTX mdctx;
+    EVP_MD_CTX_init(&mdctx);
+    EVP_DigestInit_ex(&mdctx, md, NULL);
+    EVP_DigestUpdate(&mdctx, data, strlen(data));
+    EVP_DigestFinal_ex(&mdctx, md_value, &md_len);
+    EVP_MD_CTX_cleanup(&mdctx);
+#else
+    EVP_MD_CTX *mdctx = EVP_MD_CTX_new();
     EVP_MD_CTX_init(mdctx);
     EVP_DigestInit_ex(mdctx, md, NULL);
     EVP_DigestUpdate(mdctx, data, strlen(data));
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
     EVP_MD_CTX_free(mdctx);
-
+#endif
     return base64_encode(reinterpret_cast<const unsigned char *>(md_value),
                          md_len);
 }

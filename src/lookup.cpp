@@ -1,19 +1,15 @@
 #include "lookup.h"
 
 lookup_result find_binding_in_global_cache(const SEXP symbol) {
-    //dyntrace_log_error(
-    //    "my_find_in_global_cache, missing implementation, confused");
     return {lookup_status::FAIL_GLOBAL_CACHE, R_UnboundValue};
 }
 
 /*inline*/ lookup_result get_symbol_binding_value(const SEXP symbol) {
     if (IS_ACTIVE_BINDING(symbol)) {
-        //SEXP expr = LCONS(SYMVALUE(symbol), R_NilValue);
         SEXP expr = SYMVALUE(symbol);
         return {lookup_status::SUCCESS_ACTIVE_BINDING, expr};
     }
     return {lookup_status::SUCCESS, SYMVALUE(symbol)};
-    // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(SYMVALUE(s))
 }
 
 /*inline*/ lookup_result get_binding_value(const SEXP frame) {
@@ -22,7 +18,6 @@ lookup_result find_binding_in_global_cache(const SEXP symbol) {
         return {lookup_status::SUCCESS_ACTIVE_BINDING, expr};
     }
     return {lookup_status::SUCCESS, CAR(frame)};
-    // Removed: if IS_ACTIVE_BINDING(s) ? getActiveValue(CAR(s))
 }
 
 /*inline*/ lookup_result get_hash(int hashcode, SEXP symbol, SEXP table) {
@@ -44,7 +39,7 @@ lookup_result find_binding_in_single_environment(const SEXP symbol, const SEXP r
     if (rho == R_EmptyEnv)
         return {lookup_status::SUCCESS, R_UnboundValue};
 
-    if ((OBJECT(rho)) && inherits((rho), "UserDefinedDatabase")) // IS_USER_DATABASE(rho)
+    if ((OBJECT(rho)) && inherits((rho), "UserDefinedDatabase"))
         return {lookup_status::FAIL_USER_DEFINED_DATABASE, R_UnboundValue};
 
     if (HASHTAB(rho) == R_NilValue) {
@@ -80,11 +75,10 @@ lookup_result find_binding_in_environment(const SEXP symbol, const SEXP rho2) {
         return {lookup_status::FAIL_ARGUMENT_IS_NOT_AN_ENVIRONMENT, R_UnboundValue};
 
 #ifdef USE_GLOBAL_CACHE
-    while (rho != R_GlobalEnv && rho != R_EmptyEnv)
+    while (rho != R_GlobalEnv && rho != R_EmptyEnv) {
 #else
-    while (rho != R_EmptyEnv)
+    while (rho != R_EmptyEnv) {
 #endif
-    {
         lookup_result r = find_binding_in_single_environment(symbol, rho);
 
         if (r.status != lookup_status::SUCCESS)

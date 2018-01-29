@@ -3,6 +3,8 @@
 -- Do not use semicolons for anything else.
 
 pragma synchronous = off;
+pragma journal_mode = off;
+pragma page_size = 8192;
 
 create table if not exists metadata (
     --[ data ]-----------------------------------------------------------------

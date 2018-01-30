@@ -89,7 +89,8 @@ env_id_t tracer_state_t::to_environment_id(SEXP rho) {
     if (iter == environments.end()) {
         env_id_t environment_id = environment_id_counter++;
         environments[rho] =
-            std::pair<env_id_t, unordered_map<string, var_id_t>>(environment_id, {});
+            std::pair<env_id_t, unordered_map<string, var_id_t>>(environment_id,
+                                                                 {});
         return environment_id;
     } else {
         return (iter->second).first;
@@ -123,7 +124,78 @@ prom_id_t tracer_state_t::enclosing_promise_id() {
          iterator != full_stack.rend(); ++iterator) {
         auto event = *iterator;
         if (event.type == stack_type::PROMISE)
-            return event.promise_id;    
+            return event.promise_id;
     }
     return -1;
+}
+
+std::string to_string(const function_type f) {
+    switch (f) {
+        case function_type::CLOSURE:
+            return "CLOSURE";
+        case function_type::BUILTIN:
+            return "BUILTIN";
+        case function_type::SPECIAL:
+            return "SPECIAL";
+        case function_type::TRUE_BUILTIN:
+            return "TRUE BUILTIN";
+        default:
+            dyntrace_log_error("unknown function_type %d",
+                               to_underlying_type(f));
+            return "ERROR!";
+    }
+}
+
+std::string to_string(const stack_type s) {
+    switch (s) {
+        case stack_type::PROMISE:
+            return "PROMISE";
+        case stack_type::CALL:
+            return "CALL";
+        case stack_type::NONE:
+            return "NONE";
+        default:
+            dyntrace_log_error("unknown stack_type %d", to_underlying_type(s));
+            return "ERROR!";
+    }
+}
+
+std::string to_string(const promise_event event) {
+    switch (event) {
+        case promise_event::CREATE:
+            return "CREATE";
+        case promise_event::VALUE_LOOKUP:
+            return "VALUE LOOKUP";
+        case promise_event::EXPRESSION_LOOKUP:
+            return "EXPRESSION LOOKUP";
+        case promise_event::FORCE:
+            return "FORCE";
+        case promise_event::GARBAGE_COLLECTION:
+            return "GARBAGE COLLECTION";
+        default:
+            dyntrace_log_error("unknown promise_event %d",
+                               to_underlying_type(event));
+            return "ERROR!";
+    };
+}
+
+std::string to_string(const lifestyle_type l) {
+    switch (l) {
+        case lifestyle_type::VIRGIN:
+            return "VIRGIN";
+        case lifestyle_type::LOCAL:
+            return "LOCAL";
+        case lifestyle_type::BRANCH_LOCAL:
+            return "BRANCH_LOCAL";
+        case lifestyle_type::ESCAPED:
+            return "ESCAPED";
+        case lifestyle_type::IMMEDIATE_LOCAL:
+            return "IMMEDIATE_LOCAL";
+        case lifestyle_type::IMMEDIATE_BRANCH_LOCAL:
+            return "IMMEDIATE_BRANCH_LOCAL";
+        default:
+            dyntrace_log_error("unknown lifestyle_type %d",
+                               to_underlying_type(l));
+            return "ERROR!";
+    }
 }

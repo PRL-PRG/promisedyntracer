@@ -101,12 +101,12 @@ void serialize_execution_time(dyntrace_context_t *context) {
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-        serialize_execution_time(context);
-        // serialize_execution_count(context);
-        tracer_serializer(context).serialize_finish_trace();
-        tracer_serializer(context).serialize_metadatum(
-            "DYNTRACE_END_DATETIME",
-            remove_null(context->dyntracing_context->end_datetime));
+    serialize_execution_time(context);
+    // serialize_execution_count(context);
+    tracer_serializer(context).serialize_metadatum(
+        "DYNTRACE_END_DATETIME",
+        remove_null(context->dyntracing_context->end_datetime));
+    tracer_serializer(context).serialize_finish_trace();
 
     if (!tracer_state(context).fun_stack.empty()) {
         dyntrace_log_warning("Function stack is not balanced: %d remaining",
@@ -115,8 +115,9 @@ void end(dyntrace_context_t *context) {
     }
 
     if (!tracer_state(context).full_stack.empty()) {
-        dyntrace_log_warning("Function/promise stack is not balanced: %d remaining",
-                             tracer_state(context).full_stack.size());
+        dyntrace_log_warning(
+            "Function/promise stack is not balanced: %d remaining",
+            tracer_state(context).full_stack.size());
         tracer_state(context).full_stack.clear();
     }
 }
@@ -220,7 +221,8 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
     tracer_serializer(context).serialize_promise_created(info);
     if (info.prom_id >= 0) { // maybe we don't need this check
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 0, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, promise_event::CREATE,
+             tracer_state(context).gc_trigger_counter});
     }
     tracer_serializer(context).serialize_interference_information(
         std::string("cre ") + std::to_string(info.prom_id));
@@ -238,7 +240,8 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
        happened while forcing this promise */
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 1, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, promise_event::FORCE,
+             tracer_state(context).gc_trigger_counter});
     }
 }
 
@@ -260,7 +263,8 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 1, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, promise_event::VALUE_LOOKUP,
+             tracer_state(context).gc_trigger_counter});
     }
 }
 
@@ -272,7 +276,8 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom) {
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 3, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, promise_event::EXPRESSION_LOOKUP,
+             tracer_state(context).gc_trigger_counter});
     }
 }
 
@@ -283,7 +288,8 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
 
     if (id >= 0) {
         tracer_serializer(context).serialize_promise_lifecycle(
-            {id, 2, tracer_state(context).gc_trigger_counter});
+            {id, promise_event::GARBAGE_COLLECTION,
+             tracer_state(context).gc_trigger_counter});
     }
 
     auto iter = promise_origin.find(id);

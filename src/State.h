@@ -1,16 +1,20 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
-#include "stdlibs.h"
 #include "sexptypes.h"
+#include "stdlibs.h"
 
 using namespace std;
 
 #define RID_INVALID (rid_t) - 1
 
-const int RDT_SQL_LOOKUP_PROMISE = 0x0;
-const int RDT_SQL_LOOKUP_PROMISE_EXPRESSION = 0x1;
-const int RDT_SQL_FORCE_PROMISE = 0xF;
+enum class promise_event {
+    CREATE = 0,            // promise is created
+    VALUE_LOOKUP = 1,      // promise value is looked up
+    EXPRESSION_LOOKUP = 2, // promise expression is looked up
+    FORCE = 3,             // promise is forced
+    GARBAGE_COLLECTION = 4 // promise is garbage collected
+};
 
 // Typical human-readable representation
 typedef uintptr_t rid_t; // hexadecimal
@@ -28,8 +32,6 @@ typedef string fn_key_t; // pun
 typedef int env_id_t;
 typedef int var_id_t;
 typedef unsigned long int arg_id_t; // integer
-
-typedef int event_t;
 
 typedef pair<call_id_t, string> arg_key_t;
 
@@ -216,7 +218,7 @@ struct gc_info_t {
 
 struct prom_gc_info_t {
     prom_id_t promise_id;
-    event_t event;
+    promise_event event;
     int gc_trigger_counter;
 };
 
@@ -273,7 +275,6 @@ prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
                          const string &argument);
 arglist_t get_arguments(dyntrace_context_t *, call_id_t, SEXP op, SEXP rho);
-
 
 size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context);
 size_t get_no_of_ancestors_on_stack();
@@ -346,4 +347,9 @@ struct tracer_state_t {
     prom_id_t enclosing_promise_id();
     tracer_state_t();
 };
+
+std::string to_string(const function_type f);
+std::string to_string(const stack_type s);
+std::string to_string(const promise_event event);
+std::string to_string(const lifestyle_type l);
 #endif /* __STATE_H__ */

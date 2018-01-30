@@ -55,9 +55,14 @@ class SqlSerializer {
     void cleanup();
     void unindent();
     void indent();
+    void log_annotated_statement(sqlite3_stmt *statement);
+    void add_verbose_information(std::string column_name, size_t value_size,
+                                 std::string annotation = std::string());
+    void clear_verbose_information();
+    size_t verbose_information_count();
 
     sqlite3_stmt *populate_promise_evaluation_statement(const prom_info_t &info,
-                                                        const int type,
+                                                        const promise_event,
                                                         int clock_id);
 
     sqlite3_stmt *populate_call_statement(const call_info_t &info);
@@ -75,6 +80,17 @@ class SqlSerializer {
 
     sqlite3_stmt *populate_insert_argument_statement(const closure_info_t &info,
                                                      int index);
+
+    int bind_int(sqlite3_stmt *, int, int,
+                 std::string annotation = std::string(""));
+    int bind_int64(sqlite3_stmt *, int, sqlite3_int64,
+                   std::string annotation = std::string(""));
+    int bind_double(sqlite3_stmt *, int, double,
+                    std::string annotation = std::string(""));
+    int bind_null(sqlite3_stmt *, int,
+                  std::string annotation = std::string(""));
+    int bind_text(sqlite3_stmt *, int, const char *, int, void (*)(void *),
+                  std::string annotation = std::string(""));
 
     bool verbose;
     int indentation;
@@ -95,6 +111,8 @@ class SqlSerializer {
     sqlite3_stmt *insert_environment_statement = NULL;
     sqlite3_stmt *insert_variable_statement = NULL;
     sqlite3_stmt *insert_variable_action_statement = NULL;
+    std::vector<std::tuple<std::string, size_t, std::string>>
+        verbose_information;
 };
 
 #endif /* __SQL_SERIALIZER_H__ */

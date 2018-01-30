@@ -348,7 +348,7 @@ struct tracer_state_t {
     tracer_state_t();
 };
 
-std::string to_string(function_type f);
-std::string to_string(stack_type s);
-std::string to_string(promise_event event);
+std::string to_string(const function_type f);
+std::string to_string(const stack_type s);
+std::string to_string(const promise_event event);
 #endif /* __STATE_H__ */

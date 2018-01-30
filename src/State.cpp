@@ -129,53 +129,52 @@ prom_id_t tracer_state_t::enclosing_promise_id() {
     return -1;
 }
 
-std::string to_string(function_type f) {
+std::string to_string(const function_type f) {
     switch (f) {
         case function_type::CLOSURE:
-            return std::string("CLOSURE");
+            return "CLOSURE";
         case function_type::BUILTIN:
-            return std::string("BUILTIN");
+            return "BUILTIN";
         case function_type::SPECIAL:
-            return std::string("SPECIAL");
+            return "SPECIAL";
         case function_type::TRUE_BUILTIN:
-            return std::string("TRUE BUILTIN");
+            return "TRUE BUILTIN";
         default:
-            // dyntrace_log_warning("unknown function_type %d",
-            //                      to_underlying_type(f));
-            return std::string("ERROR!");
+            dyntrace_log_error("unknown function_type %d",
+                               to_underlying_type(f));
+            return "ERROR!";
     }
 }
 
-std::string to_string(stack_type s) {
+std::string to_string(const stack_type s) {
     switch (s) {
         case stack_type::PROMISE:
-            return std::string("PROMISE");
+            return "PROMISE";
         case stack_type::CALL:
-            return std::string("CALL");
+            return "CALL";
         case stack_type::NONE:
-            return std::string("NONE");
+            return "NONE";
         default:
-            // dyntrace_log_warning("unknown stack_type %d",
-            //                      to_underlying_type(s));
-            return std::string("ERROR!");
+            dyntrace_log_error("unknown stack_type %d", to_underlying_type(s));
+            return "ERROR!";
     }
 }
 
-std::string to_string(promise_event event) {
+std::string to_string(const promise_event event) {
     switch (event) {
         case promise_event::CREATE:
-            return std::string("CREATE");
+            return "CREATE";
         case promise_event::VALUE_LOOKUP:
-            return std::string("VALUE LOOKUP");
+            return "VALUE LOOKUP";
         case promise_event::EXPRESSION_LOOKUP:
-            return std::string("EXPRESSION LOOKUP");
+            return "EXPRESSION LOOKUP";
         case promise_event::FORCE:
-            return std::string("FORCE");
+            return "FORCE";
         case promise_event::GARBAGE_COLLECTION:
-            return std::string("GARBAGE COLLECTION");
+            return "GARBAGE COLLECTION";
         default:
-            dyntrace_log_warning("unknown promise_event %d",
-                                 to_underlying_type(event));
-            return std::string("ERROR!");
+            dyntrace_log_error("unknown promise_event %d",
+                               to_underlying_type(event));
+            return "ERROR!";
     };
 }

@@ -178,3 +178,24 @@ std::string to_string(const promise_event event) {
             return "ERROR!";
     };
 }
+
+std::string to_string(const lifestyle_type l) {
+    switch (l) {
+        case lifestyle_type::VIRGIN:
+            return "VIRGIN";
+        case lifestyle_type::LOCAL:
+            return "LOCAL";
+        case lifestyle_type::BRANCH_LOCAL:
+            return "BRANCH_LOCAL";
+        case lifestyle_type::ESCAPED:
+            return "ESCAPED";
+        case lifestyle_type::IMMEDIATE_LOCAL:
+            return "IMMEDIATE_LOCAL";
+        case lifestyle_type::IMMEDIATE_BRANCH_LOCAL:
+            return "IMMEDIATE_BRANCH_LOCAL";
+        default:
+            dyntrace_log_error("unknown lifestyle_type %d",
+                               to_underlying_type(l));
+            return "ERROR!";
+    }
+}

@@ -351,4 +351,5 @@ struct tracer_state_t {
 std::string to_string(const function_type f);
 std::string to_string(const stack_type s);
 std::string to_string(const promise_event event);
+std::string to_string(const lifestyle_type l);
 #endif /* __STATE_H__ */

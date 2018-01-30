@@ -381,7 +381,8 @@ sqlite3_stmt *SqlSerializer::populate_promise_evaluation_statement(
     bind_int(insert_promise_evaluation_statement, 5, info.in_call_id);
     bind_int(insert_promise_evaluation_statement, 6, info.in_prom_id);
     bind_int(insert_promise_evaluation_statement, 7,
-             to_underlying_type(info.lifestyle));
+             to_underlying_type(info.lifestyle),
+             to_string(info.lifestyle));
     bind_int(insert_promise_evaluation_statement, 8,
              info.effective_distance_from_origin);
     bind_int(insert_promise_evaluation_statement, 9,

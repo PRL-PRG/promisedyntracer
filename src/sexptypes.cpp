@@ -23,26 +23,33 @@ void infer_type_from_bytecode(SEXP bc, SEXP rho, full_sexp_type &result,
         result.push_back((sexp_type)LGLSXP);
     else if (opcode == LDFALSE_OP)
         result.push_back((sexp_type)LGLSXP);
+    /* constant (literal) values */
     else if (opcode == LDCONST_OP) {
-        /* This opcode represents constant (literal) value.
-           It only has one argument, the index of the literal in the constant
+        /* This only has one argument, the index of the literal in the constant
            pool.
            We return the type of this value by accessing it via the index. */
         int index = pc[2].i;
         SEXP consts = BCODE_CONSTS(bc);
         SEXP value = VECTOR_ELT(consts, index);
         get_full_type_inner(value, rho, result, visited);
-    } else if (opcode == GETVAR_OP || opcode == DDVAL_OP) {
-        int index = pc[2].i;
-        SEXP consts = BCODE_CONSTS(bc);
-        SEXP value = VECTOR_ELT(consts, index);
-        get_full_type_inner(value, rho, result, visited);
-    } else if (opcode == BASEGUARD_OP) {
+    }
+    /* lookup value bound to symbol in the environment */
+    else if (opcode == GETVAR_OP || opcode == DDVAL_OP) {
         int index = pc[2].i;
         SEXP consts = BCODE_CONSTS(bc);
         SEXP value = VECTOR_ELT(consts, index);
         get_full_type_inner(value, rho, result, visited);
     }
+    /* guard for inlined expression (function call) */
+    else if (opcode == BASEGUARD_OP) {
+        int index = pc[2].i;
+        SEXP consts = BCODE_CONSTS(bc);
+        SEXP value = VECTOR_ELT(consts, index);
+        get_full_type_inner(value, rho, result, visited);
+    }
+    /* looping function calls - while, repeat, etc. */
+    else if (opcode == STARTLOOPCNTXT_OP)
+        result.push_back((sexp_type)LANGSXP);
     /* call to a closure */
     else if (opcode == GETFUN_OP)
         result.push_back((sexp_type)LANGSXP);

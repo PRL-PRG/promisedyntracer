@@ -4,12 +4,14 @@
 SqlSerializer::SqlSerializer(const std::string &database_filepath,
                              const std::string &schema_filepath, bool truncate,
                              bool verbose)
-    : verbose(verbose), indentation(0) {
+    : verbose(verbose), indentation(0), database_filepath(database_filepath) {
     open_database(database_filepath, truncate);
     open_trace(database_filepath, truncate);
     create_tables(schema_filepath);
     prepare_statements();
 }
+
+std::string SqlSerializer::get_database_filepath() const { return database_filepath; }
 
 void SqlSerializer::open_database(const std::string database_path,
                                   bool truncate) {

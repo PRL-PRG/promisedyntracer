@@ -119,6 +119,17 @@ void end(dyntrace_context_t *context) {
                              tracer_state(context).full_stack.size());
         tracer_state(context).full_stack.clear();
     }
+
+    // create a file if the execution is normal.
+    // end function is only called if the execution is normal,
+    // so this file will only be created if everything goes fine.
+    std::string database_filepath = tracer_serializer(context).get_database_filepath();
+    size_t lastindex = database_filepath.find_last_of(".");
+    std::string ok_filepath = database_filepath.substr(0, lastindex) + ".OK";
+    std::ofstream ok_file(ok_filepath);
+    ok_file << "NORMAL EXIT";
+    ok_file.close();
+
 }
 
 // Triggered when entering function evaluation.

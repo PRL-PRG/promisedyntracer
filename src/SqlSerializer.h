@@ -12,6 +12,7 @@ class SqlSerializer {
                   const std::string &schema_path, bool truncate = false,
                   bool verbose = false);
     ~SqlSerializer();
+    std::string get_database_filepath() const;
     void serialize_start_trace();
     void serialize_finish_trace();
     void serialize_function_entry(dyntrace_context_t *context,
@@ -76,6 +77,7 @@ class SqlSerializer {
     sqlite3_stmt *populate_insert_argument_statement(const closure_info_t &info,
                                                      int index);
 
+    std::string database_filepath;
     bool verbose;
     int indentation;
     sqlite3 *database = NULL;

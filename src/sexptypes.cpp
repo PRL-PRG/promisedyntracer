@@ -89,101 +89,53 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
         return;
     }
 
-    // Question... are all BCODEs functions?
     if (type == sexp_type::BCODE) {
         infer_type_from_bytecode(sexp, rho, result, visited);
-        //            bool try_to_attach_symbol_value = (rho != R_NilValue) ?
-        //            isEnvironment(rho) : false;
-        //            if (!try_to_attach_symbol_value) return;
-        //
-        //            SEXP uncompiled_sexp = BODY_EXPR(sexp);
-        //            SEXP underlying_expression =
-        //            findVar(PRCODE(uncompiled_sexp),
-        //            rho);
-        //
-        //            if (underlying_expression == R_UnboundValue) return;
-        //            if (underlying_expression == R_MissingArg) return;
-        //
-        //            PROTECT(underlying_expression);
-        //            //get_full_type(underlying_expression, rho, result,
-        //            visited);
-        //           UNPROTECT(1);
-
-        // Rprintf("hi from dbg\n`");
         return;
     }
 
     if (type == sexp_type::SYM) {
         bool try_to_attach_symbol_value =
-            (rho != R_NilValue) ? isEnvironment(rho) : false;
+                (rho != R_NilValue) ? isEnvironment(rho) : false;
         if (!try_to_attach_symbol_value)
             return;
-        /* FIXME - findVar can eval an expression. This can fire another hook,
-           leading to spurious data.
-                   Reproduced below is a gdb backtrace obtained by running
-           `dplyr`.
-                   At #7, get_full_type_inner invokes `findVar` which leads to
-           `eval` on #2.
 
-           0x00000000004d4b3e in R_execClosure (call=0x94e1db0,
-           newrho=0x94e1ec8,
-           sysparent=0x1a05f80,
-           rho=0x1a05f80, arglist=0x19d6b68, op=0x9534cb0) at eval.c:1612
-           1612	    RDT_HOOK(probe_function_entry, call, op, newrho);
-           (gdb) bt
-           #0  0x00000000004d4b3e in R_execClosure (call=0x94e1db0,
-           newrho=0x94e1ec8, sysparent=0x1a05f80,
-           rho=0x1a05f80, arglist=0x19d6b68, op=0x9534cb0) at eval.c:1612
-           #1  0x00000000004d49e9 in Rf_applyClosure (call=0x94e1db0,
-           op=0x9534cb0,
-           arglist=0x19d6b68,
-           rho=0x1a05f80, suppliedvars=0x19d6b68) at eval.c:1583
-           #2  0x00000000004d2db7 in Rf_eval (e=0x94e1db0, rho=0x1a05f80) at
-           eval.c:776
-           #3  0x00000000004bf6c9 in getActiveValue (fun=0x9534cb0) at
-           envir.c:154
-           #4  0x00000000004bfa53 in R_HashGet (hashcode=0, symbol=0x54de8f8,
-           table=0x1e3a4328) at envir.c:281
-           #5  0x00000000004c1781 in Rf_findVarInFrame3 (rho=0x953dd50,
-           symbol=0x54de8f8, doGet=TRUE)
-           at envir.c:1042
-           #6  0x00000000004c1fb1 in Rf_findVar (symbol=0x54de8f8,
-           rho=0x953dd50) at
-           envir.c:1221
-           #7  0x00007f3bcb98893a in
-           recorder_t<psql_recorder_t>::get_full_type_inner (
-           this=0x7f3bcbbde159 <trace_promises<psql_recorder_t>::rec_impl>,
-           sexp=0x54de8f8, rho=0x9520500,
-           result=std::vector of length 1, capacity 1 = {...}, visited=std::set
-           with
-           1 elements = {...})
-           at
-           /home/aviral/projects/aviral-r-dyntrace/rdt-plugins/promises/src/recorder.h:332
-           #8  0x00007f3bcb98542f in recorder_t<psql_recorder_t>::get_full_type
-           (
-           this=0x7f3bcbbde159 <trace_promises<psql_recorder_t>::rec_impl>,
-           promise=0x94e1d78, rho=0x9520500,
-           result=std::vector of length 1, capacity 1 = {...})
-           at
-           /home/aviral/projects/aviral-r-dyntrace/rdt-plugins/promises/src/recorder.h:289
-           #9  0x00007f3bcb980aeb in
-           recorder_t<psql_recorder_t>::create_promise_get_info (
-           this=0x7f3bcbbde159 <trace_promises<psql_recorder_t>::rec_impl>,
-           promise=0x94e1d78, rho=0x9520500)
-           at
-           /home/aviral/projects/aviral-r-dyntrace/rdt-plugins/promises/src/recorder.h:352
-         */
-        SEXP symbol_points_to = find_promise_in_environment(sexp, rho);
+        lookup_result r = find_binding_in_environment(sexp, rho);
 
-        if (symbol_points_to == R_UnboundValue)
-            return;
-        if (symbol_points_to == R_MissingArg)
-            return;
-        // if (TYPEOF(symbol_points_to) == SYMSXP) return;
+        switch (r.status) {
+            case lookup_status::SUCCESS: {
+                SEXP symbol_points_to = r.value;
+                if (symbol_points_to == R_UnboundValue
+                    || symbol_points_to == R_MissingArg)
+                    return;
 
-        get_full_type_inner(symbol_points_to, rho, result, visited);
+                get_full_type_inner(symbol_points_to, rho, result, visited);
 
-        return;
+                return;
+            }
+
+            case lookup_status::SUCCESS_ACTIVE_BINDING: {
+                result.push_back(sexp_type::ACTIVE_BINDING);
+
+                SEXP symbol_points_to = r.value;
+                if (symbol_points_to == R_UnboundValue
+                    || symbol_points_to == R_MissingArg)
+                    return;
+
+                /* TODO in order to proceed to explore active bindings,
+                   we'd need the environment in which it's defined */
+                // get_full_type_inner(symbol_points_to, rho, result, visited);
+                result.push_back(static_cast<sexp_type>(TYPEOF(r.value)));
+                return;
+            }
+
+            default: {
+                string msg = lookup_status_to_string(r.status);
+                dyntrace_log_warning("%s", msg.c_str());
+                result.push_back(sexp_type::OMEGA);
+                return;
+            }
+        }
     }
 }
 

@@ -134,33 +134,35 @@ enum {
 };
 
 enum class sexp_type {
+  // Canonical
   NIL = 0,
-    SYM = 1,
-    LIST = 2,
-    CLOS = 3,
-    ENV = 4,
-    PROM = 5,
-    LANG = 6,
-    SPECIAL = 7,
-    BUILTIN = 8,
-    CHAR = 9,
-    LGL = 10,
-    INT = 13,
-    REAL = 14,
-    CPLX = 15,
-    STR = 16,
-    DOT = 17,
-    ANY = 18,
-    VEC = 19,
-    EXPR = 20,
-    BCODE = 21,
-    EXTPTR = 22,
-    WEAKREF = 23,
-    RAW = 24,
-    S4 = 25,
+  SYM = 1,
+  LIST = 2,
+  CLOS = 3,
+  ENV = 4,
+  PROM = 5,
+  LANG = 6,
+  SPECIAL = 7,
+  BUILTIN = 8,
+  CHAR = 9,
+  LGL = 10,
+  INT = 13,
+  REAL = 14,
+  CPLX = 15,
+  STR = 16,
+  DOT = 17,
+  ANY = 18,
+  VEC = 19,
+  EXPR = 20,
+  BCODE = 21,
+  EXTPTR = 22,
+  WEAKREF = 23,
+  RAW = 24,
+  S4 = 25,
 
   // I made these up:
-    OMEGA = 69
+  OMEGA = 69,
+  ACTIVE_BINDING = 42
 };
 
 typedef std::vector<sexp_type> full_sexp_type;

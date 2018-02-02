@@ -182,7 +182,16 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
             promise_expression = argument_expression;
         }
         else if (TYPEOF(argument_expression) == SYMSXP) {
-            promise_expression = find_promise_in_environment(argument_expression, rho);
+            lookup_result r = find_binding_in_environment(argument_expression, rho);
+            if (r.status == lookup_status::SUCCESS)
+                promise_expression = r.value;
+            else {
+                // So... since this is a function, then I assume we shouldn't get
+                // any arguments that are active bindings or anything like that.
+                // If we do, then we should fail here and re-think our life choices.
+                string msg = lookup_status_to_string(r.status);
+                dyntrace_log_error("%s", msg.c_str());
+            }
         }
         bool default_argument;
         if (TYPEOF(promise_expression) == DOTSXP) {

@@ -202,14 +202,6 @@ string DebugSerializer::log_line(const type_gc_info_t &info) {
     return line.str();
 }
 
-std::string DebugSerializer::log_line(const prom_creat_info_t &info) {
-    stringstream line;
-    line << "prom_creat"
-         << " prom_id=" << info.prom_id
-         << " default_argument=" << info.default_argument;
-    return line.str();
-}
-
 void DebugSerializer::indent() {
     indentation++;
 }
@@ -285,10 +277,7 @@ void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
                                                       bool default_argument) {
-    prom_creat_info_t info;
-    info.prom_id = prom_id;
-    info.default_argument = default_argument;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << "prom_creat prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,

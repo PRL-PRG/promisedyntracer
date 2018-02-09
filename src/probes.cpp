@@ -137,6 +137,7 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
                     const SEXP rho) {
     closure_info_t info = function_entry_get_info(context, call, op, rho);
 
+
     // Push function ID on function stack
     tracer_state(context).fun_stack.push_back(
         make_tuple(info.call_id, info.fn_id, info.fn_type));

@@ -64,7 +64,6 @@ private:
     std::string log_line(const gc_info_t&);
     std::string log_line(const prom_gc_info_t&);
     std::string log_line(const type_gc_info_t&);
-    std::string log_line(const prom_creat_info_t&);
 };
 
 #endif //PROMISEDYNTRACER_DEBUG_SERIALIZER_H

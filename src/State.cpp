@@ -24,7 +24,7 @@ void tracer_state_t::finish_pass() {
 void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
     env_addr_t call_addr;
 
-    while (!full_stack.empty() && (call_addr = curr_env_stack.top()) && get_sexp_address(rho) != call_addr) {
+    while (!full_stack.empty() && (call_addr = curr_env_stack.top())) {
         stack_event_t event_from_fullstack = full_stack.back();
         if (event_from_fullstack.type == stack_type::CALL) {
             // Make sure stacks are in synch.
@@ -32,6 +32,9 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
             if (get<0>(call_from_funstack) != event_from_fullstack.call_id) {
                 cerr << "ERROR: call from fun stack != call from full stack" << endl; // FIXME
             }
+
+            if (get_sexp_address(rho) == call_addr)
+                break;
 
             // Remove call from all three stacks.
             full_stack.pop_back();

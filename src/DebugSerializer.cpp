@@ -81,9 +81,9 @@ string DebugSerializer::log_line(const sexp_type &type) {
 string DebugSerializer::log_line(const full_sexp_type &type) {
     stringstream line;
     for (auto i = type.begin(); i != type.end(); ++i) {
-        line << log_line(*i);
-        if (i != type.end())
+        if (i != type.begin())
             line << "->";
+        line << log_line(*i);
     }
     return line.str();
 }
@@ -136,7 +136,7 @@ string DebugSerializer::log_line(const prom_basic_info_t &info) {
 string DebugSerializer::log_line(const prom_info_t &info) {
     stringstream line;
     line << "promise"
-         << " name=" << info.name
+      // << " name=" << info.name // TODO is this ever set?
          << " prom_id=" << info.prom_id
          << " prom_type=" << log_line(info.prom_type)
          << " return_type=" << log_line(info.return_type)
@@ -154,23 +154,20 @@ string DebugSerializer::log_line(const prom_info_t &info) {
 
 string DebugSerializer::log_line(const unwind_info_t &info) {
     stringstream line;
-    line << "unwind "
+    line << "unwind"
          << " unwound_promises=[";
     for (auto i = info.unwound_promises.begin(); i != info.unwound_promises.end(); ++i) {
-        line << (*i);
-        if (i != info.unwound_promises.end())
+        if (i != info.unwound_promises.begin())
             line << " ";
-        else
-            line << "]";
+        line << (*i);
     }
-    line << " unwound_calls=[";
+    line << "] unwound_calls=[";
     for (auto i = info.unwound_calls.begin(); i != info.unwound_calls.end(); ++i) {
-        line << (*i);
-        if (i != info.unwound_calls.end())
+        if (i != info.unwound_calls.begin())
             line << " ";
-        else
-            line << "]";
+        line << (*i);
     }
+    line << "]";
     return line.str();
 }
 
@@ -225,15 +222,15 @@ string DebugSerializer::prefix() {
 }
 
 void DebugSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
-    cerr << prefix() << log_line(info) << endl;
+    //cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_gc_exit(const gc_info_t &info) {
-    cerr << prefix() << log_line(info) << endl;
+    //cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_vector_alloc(const type_gc_info_t &info) {
-    cerr << prefix() << log_line(info) << endl;
+    //cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_expression_lookup(const prom_info_t &info) {
@@ -272,43 +269,42 @@ void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
 }
 
 void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
-    cerr << prefix() << "create " << log_line(info) << endl;
+    //cerr << prefix() << "create " << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
                                                       bool default_argument) {
-    cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
+    //cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,
                                               const fn_id_t fun_id) {
-    cerr << prefix() << "new_environment env_id=" << env_id << " fun_id=" << fun_id << endl; // TODO
+    //cerr << prefix() << "new_environment env_id=" << env_id << " fun_id=" << fun_id << endl; // TODO
 }
 
 void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
-    cerr << prefix() << log_line(info);
+    cerr << prefix() << log_line(info) << endl;
     size_t unwindings = info.unwound_calls.size() + info.unwound_promises.size();
     for (size_t i = 1; i <= unwindings; ++i) {
-        cerr << unindent();
+        cerr << unindent() << endl;
     }
-    cerr << endl;
 }
 
 void DebugSerializer::serialize_variable(var_id_t variable_id,
                                          const std::string &name,
                                          env_id_t environment_id) {
-    cerr << prefix() << "variable var_id=" << variable_id << " name=" << name << " env_id=" << environment_id << endl; // TODO
+    //cerr << prefix() << "variable var_id=" << variable_id << " name=" << name << " env_id=" << environment_id << endl; // TODO
 }
 
 void DebugSerializer::serialize_variable_action(prom_id_t promise_id,
                                               var_id_t variable_id,
                                               const std::string &action) {
-    cerr << prefix() << "variable action=" << action << " var_id=" << variable_id << " prom_id=" << promise_id << endl; // TODO
+    //cerr << prefix() << "variable action=" << action << " var_id=" << variable_id << " prom_id=" << promise_id << endl; // TODO
 }
 
 void DebugSerializer::serialize_interference_information(
         const std::string &info) {
-    cerr << prefix() << "interference " << info << std::endl; // TODO
+    //cerr << prefix() << "interference " << info << std::endl; // TODO
 }
 
 void DebugSerializer::serialize_start_trace() {

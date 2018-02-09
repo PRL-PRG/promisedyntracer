@@ -29,9 +29,9 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
         if (event_from_fullstack.type == stack_type::CALL) {
             // Make sure stacks are in synch.
             auto call_from_funstack = (fun_stack.back());
-            if (get<0>(call_from_funstack) != event_from_fullstack.call_id) {
-                cerr << "ERROR: call from fun stack != call from full stack" << endl; // FIXME
-            }
+            if (get<0>(call_from_funstack) != event_from_fullstack.call_id)
+                dyntrace_log_error("Disagreement between tracer stack: %s",
+                                "top of function stack != top of full stack");
 
             if (get_sexp_address(rho) == call_addr)
                 break;
@@ -50,7 +50,7 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
             // Register that a promise was unwound in the info object.
             info.unwound_promises.push_back(event_from_fullstack.promise_id);
         } else /* if (event_from_fullstack.type == stack_type::NONE) */ {
-            cerr << "ERROR: NONE on stack, not sure what to do with it" <<endl; // FIXME
+            dyntrace_log_error("NONE object found on tracer's full stack.");
         }
     }
 }

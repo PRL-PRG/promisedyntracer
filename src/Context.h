@@ -4,6 +4,7 @@
 #include "SqlSerializer.h"
 #include "State.h"
 #include <string>
+#include "DebugSerializer.h"
 
 #define tracer_state(context)                                                  \
     ((static_cast<Context *>(context->dyntracer_context))->get_state())

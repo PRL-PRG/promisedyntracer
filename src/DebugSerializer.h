@@ -1,5 +1,5 @@
-#ifndef PROMISEDYNTRACER_VERBOSE_H
-#define PROMISEDYNTRACER_VERBOSE_H
+#ifndef PROMISEDYNTRACER_DEBUG_SERIALIZER_H
+#define PROMISEDYNTRACER_DEBUG_SERIALIZER_H
 #include <string>
 #include "State.h"
 
@@ -67,4 +67,4 @@ private:
     std::string log_line(const prom_creat_info_t&);
 };
 
-#endif //PROMISEDYNTRACER_VERBOSE_H
+#endif //PROMISEDYNTRACER_DEBUG_SERIALIZER_H

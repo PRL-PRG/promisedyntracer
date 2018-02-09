@@ -1,4 +1,4 @@
-#include "verbose.h"
+#include "DebugSerializer.h"
 #include <string>
 #include <sstream>
 
@@ -25,6 +25,7 @@ string DebugSerializer::log_line(const function_type &type) {
         case function_type::SPECIAL: return "special";
         case function_type::TRUE_BUILTIN: return "true built-in";
     }
+    return nullptr;
 }
 
 string DebugSerializer::log_line(const arglist_t &arguments) {
@@ -74,6 +75,7 @@ string DebugSerializer::log_line(const sexp_type &type) {
         case sexp_type::VEC: return "VEC";
         case sexp_type::WEAKREF: return "WEAKREF";
     }
+    return nullptr;
 }
 
 string DebugSerializer::log_line(const full_sexp_type &type) {

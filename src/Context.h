@@ -11,7 +11,9 @@
 #define tracer_serializer(context)                                             \
     ((static_cast<Context *>(context->dyntracer_context))->get_serializer())
 #define debug_serializer(context)                                              \
-    ((static_cast<Context *>(context->dyntracer_context))->get_debug+serializer())
+    ((static_cast<Context *>(context->dyntracer_context))->get_debug_serializer())
+
+
 
 class Context {
   public:
@@ -24,7 +26,7 @@ class Context {
   private:
     tracer_state_t *state;
     SqlSerializer *serializer;
-    DebugSerializer *debug_serializer;
+    DebugSerializer *debugger;
 };
 
 #endif /* __CONTEXT_H__ */

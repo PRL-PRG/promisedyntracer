@@ -33,14 +33,14 @@ string DebugSerializer::log_line(const arglist_t &arguments) {
     line << "[";
     auto all = arguments.all();
     for (auto i = all.begin(); i != all.end(); ++i) {
+        if (i != all.begin())
+            line << " ";
+
         const arg_t argument = ((*i).get());
-        line << "{"
-             << " name=" << get<0>(argument)
+        line << "{name=" << get<0>(argument)
              << " arg_id=" << get<1>(argument)
              << " prom_id=" << get<2>(argument)
              << "}";
-        if (i != all.end())
-            line << " ";
     }
     line << "]";
     return line.str();
@@ -245,8 +245,8 @@ void DebugSerializer::serialize_promise_lookup(const prom_info_t &info) {
 }
 
 void DebugSerializer::serialize_function_entry(const closure_info_t &info) {
-    indent();
     cerr << prefix() << log_line(info) << endl;
+    indent();
 }
 
 void DebugSerializer::serialize_function_exit(const closure_info_t &info) {
@@ -254,8 +254,8 @@ void DebugSerializer::serialize_function_exit(const closure_info_t &info) {
 }
 
 void DebugSerializer::serialize_builtin_entry(const builtin_info_t &info) {
-    indent();
     cerr << prefix() << log_line(info) << endl;
+    indent();
 }
 
 void DebugSerializer::serialize_builtin_exit(const builtin_info_t &info) {
@@ -263,8 +263,8 @@ void DebugSerializer::serialize_builtin_exit(const builtin_info_t &info) {
 }
 
 void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
+    cerr << prefix() << "force " << log_line(info) << endl;
     indent();
-    cerr << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
@@ -272,12 +272,12 @@ void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
 }
 
 void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << "create " << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
                                                       bool default_argument) {
-    cerr << prefix() << "prom_creat prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
+    cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,
@@ -309,4 +309,18 @@ void DebugSerializer::serialize_variable_action(prom_id_t promise_id,
 void DebugSerializer::serialize_interference_information(
         const std::string &info) {
     cerr << prefix() << "interference " << info << std::endl; // TODO
+}
+
+void DebugSerializer::serialize_start_trace() {
+    indent();
+    cerr << prefix() << "begin" << endl;
+    indent();
+}
+
+void DebugSerializer::serialize_metadatum(const string &key, const string &value) {}
+
+void DebugSerializer::serialize_finish_trace() {
+    unindent();
+    cerr << prefix() << "end" << endl;
+    unindent();
 }

@@ -109,7 +109,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                     || symbol_points_to == R_MissingArg)
                     return;
 
-                get_full_type_inner(symbol_points_to, rho, result, visited);
+                get_full_type_inner(symbol_points_to, r.environment, result, visited);
 
                 return;
             }

@@ -95,11 +95,6 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
     }
 
     if (type == sexp_type::SYM) {
-        bool try_to_attach_symbol_value =
-                (rho != R_NilValue) ? isEnvironment(rho) : false;
-        //if (!try_to_attach_symbol_value)
-        //    return;
-
         lookup_result r = find_binding_in_environment(sexp, rho);
 
         switch (r.status) {

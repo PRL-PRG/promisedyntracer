@@ -260,21 +260,21 @@ void DebugSerializer::serialize_builtin_exit(const builtin_info_t &info) {
 }
 
 void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
-    cerr << prefix() << "force " << log_line(info) << endl;
+    cerr << prefix() << ">> force " << log_line(info) << endl;
     indent();
 }
 
 void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
-    cerr << unindent() << endl;
+    cerr << unindent() << "<< force " << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
-    //cerr << prefix() << "create " << log_line(info) << endl;
+    cerr << prefix() << "create " << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
                                                       bool default_argument) {
-    //cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
+    cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,

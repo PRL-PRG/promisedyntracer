@@ -124,6 +124,10 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                 return;
             }
 
+            case lookup_status::FAIL_ENVIRONMENT_IS_NIL:
+                /* ignore this */
+                return;
+
             default: {
                 string msg = lookup_status_to_string(r.status);
                 dyntrace_log_warning("%s", msg.c_str());

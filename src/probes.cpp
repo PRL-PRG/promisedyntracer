@@ -101,12 +101,12 @@ void serialize_execution_time(dyntrace_context_t *context) {
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-        serialize_execution_time(context);
-        // serialize_execution_count(context);
-        tracer_serializer(context).serialize_finish_trace();
-        tracer_serializer(context).serialize_metadatum(
-            "DYNTRACE_END_DATETIME",
-            remove_null(context->dyntracing_context->end_datetime));
+    serialize_execution_time(context);
+    // serialize_execution_count(context);
+    tracer_serializer(context).serialize_finish_trace();
+    tracer_serializer(context).serialize_metadatum(
+        "DYNTRACE_END_DATETIME",
+        remove_null(context->dyntracing_context->end_datetime));
 
     if (!tracer_state(context).fun_stack.empty()) {
         dyntrace_log_warning("Function stack is not balanced: %d remaining",
@@ -115,21 +115,22 @@ void end(dyntrace_context_t *context) {
     }
 
     if (!tracer_state(context).full_stack.empty()) {
-        dyntrace_log_warning("Function/promise stack is not balanced: %d remaining",
-                             tracer_state(context).full_stack.size());
+        dyntrace_log_warning(
+            "Function/promise stack is not balanced: %d remaining",
+            tracer_state(context).full_stack.size());
         tracer_state(context).full_stack.clear();
     }
 
     // create a file if the execution is normal.
     // end function is only called if the execution is normal,
     // so this file will only be created if everything goes fine.
-    std::string database_filepath = tracer_serializer(context).get_database_filepath();
+    std::string database_filepath =
+        tracer_serializer(context).get_database_filepath();
     size_t lastindex = database_filepath.find_last_of(".");
     std::string ok_filepath = database_filepath.substr(0, lastindex) + ".OK";
     std::ofstream ok_file(ok_filepath);
     ok_file << "NORMAL EXIT";
     ok_file.close();
-
 }
 
 // Triggered when entering function evaluation.

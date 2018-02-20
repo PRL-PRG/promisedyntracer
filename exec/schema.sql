@@ -29,6 +29,7 @@ create table if not exists arguments (
     --[ data ]-----------------------------------------------------------------
     name text not null,
     position integer not null,
+    formal_parameter_position integer not null,
     --[ relations ]------------------------------------------------------------
     call_id integer not null,
     --[ keys ]-----------------------------------------------------------------

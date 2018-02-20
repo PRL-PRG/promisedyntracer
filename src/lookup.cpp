@@ -20,7 +20,8 @@ lookup_result find_binding_in_global_cache(const SEXP symbol) {
     return {lookup_status::SUCCESS, rho, CAR(frame)};
 }
 
-/*inline*/ lookup_result get_hash(int hashcode, const SEXP symbol, const SEXP table, const SEXP rho) {
+/*inline*/ lookup_result get_hash(int hashcode, const SEXP symbol, const SEXP rho) {
+    const SEXP table = HASHTAB(rho);
     for (SEXP chain = VECTOR_ELT(table, hashcode); chain != R_NilValue;
          chain = CDR(chain)) {
         if (TAG(chain) == symbol)
@@ -58,8 +59,8 @@ lookup_result find_binding_in_single_environment(const SEXP symbol, const SEXP r
         int hashcode =
             (!HASHASH(print_name))
                 ? (newhashpjw(CHAR(print_name)) % LENGTH(HASHTAB(rho)))
-                : (HASHVALUE(print_name) % LENGTH(HASHTAB(rho)));
-        return get_hash(hashcode, symbol, HASHTAB(rho), rho);
+                : (HASHVALUE(print_name) % LENGTH(Hgit aASHTAB(rho)));
+        return get_hash(hashcode, symbol, rho);
     }
 
     return {lookup_status::SUCCESS, rho, R_UnboundValue};

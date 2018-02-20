@@ -35,8 +35,8 @@ typedef pair<call_id_t, string> arg_key_t;
 
 rid_t get_sexp_address(SEXP e);
 
-typedef tuple<string, arg_id_t, prom_id_t, bool> arg_t;
-typedef tuple<arg_id_t, prom_id_t, bool> anon_arg_t;
+typedef tuple<string, arg_id_t, prom_id_t, bool, int> arg_t;
+typedef tuple<arg_id_t, prom_id_t, bool, int> anon_arg_t;
 
 enum class function_type {
     CLOSURE = 0,

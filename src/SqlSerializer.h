@@ -75,7 +75,7 @@ class SqlSerializer {
     sqlite3_stmt *populate_function_statement(const call_info_t &info);
 
     sqlite3_stmt *populate_insert_argument_statement(const closure_info_t &info,
-                                                     int index);
+                                                     int actual_parameter_position);
 
     std::string database_filepath;
     bool verbose;

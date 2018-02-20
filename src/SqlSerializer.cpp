@@ -11,7 +11,9 @@ SqlSerializer::SqlSerializer(const std::string &database_filepath,
     prepare_statements();
 }
 
-std::string SqlSerializer::get_database_filepath() const { return database_filepath; }
+std::string SqlSerializer::get_database_filepath() const {
+    return database_filepath;
+}
 
 void SqlSerializer::open_database(const std::string database_path,
                                   bool truncate) {
@@ -120,7 +122,7 @@ void SqlSerializer::prepare_statements() {
         compile("insert into calls values (?,?,?,?,?,?,?,?,?);");
 
     insert_argument_statement =
-        compile("insert into arguments values (?,?,?,?);");
+        compile("insert into arguments values (?,?,?,?,?);");
 
     insert_promise_statement =
         compile("insert into promises values (?,?,?,?,?,?,?);");
@@ -465,8 +467,8 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
     if (info.callsite_location.empty())
         sqlite3_bind_null(insert_call_statement, 3);
     else
-        sqlite3_bind_text(insert_call_statement, 3, info.callsite_location.c_str(), -1,
-                          SQLITE_TRANSIENT);
+        sqlite3_bind_text(insert_call_statement, 3,
+                          info.callsite_location.c_str(), -1, SQLITE_TRANSIENT);
 
     sqlite3_bind_int(insert_call_statement, 4, info.fn_compiled ? 1 : 0);
     sqlite3_bind_text(insert_call_statement, 5, info.fn_id.c_str(),
@@ -535,7 +537,8 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
     if (info.definition_location.empty())
         sqlite3_bind_null(insert_function_statement, 2);
     else
-        sqlite3_bind_text(insert_function_statement, 2, info.definition_location.c_str(), -1,
+        sqlite3_bind_text(insert_function_statement, 2,
+                          info.definition_location.c_str(), -1,
                           SQLITE_TRANSIENT);
 
     if (info.fn_definition.empty())
@@ -552,15 +555,17 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
     return insert_function_statement;
 }
 
-sqlite3_stmt *
-SqlSerializer::populate_insert_argument_statement(const closure_info_t &info,
-                                                  int index) {
-    const arg_t &argument = info.arguments.all()[index].get();
+sqlite3_stmt *SqlSerializer::populate_insert_argument_statement(
+    const closure_info_t &info, int actual_parameter_position) {
+    const arg_t &argument =
+        info.arguments.all()[actual_parameter_position].get();
     sqlite3_bind_int(insert_argument_statement, 1, get<1>(argument));
     sqlite3_bind_text(insert_argument_statement, 2, get<0>(argument).c_str(),
                       -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(insert_argument_statement, 3,
-                     index); // FIXME broken or unnecessary (pick one)
-    sqlite3_bind_int(insert_argument_statement, 4, info.call_id);
+    sqlite3_bind_int(
+        insert_argument_statement, 3,
+        actual_parameter_position); // FIXME broken or unnecessary (pick one)
+    sqlite3_bind_int(insert_argument_statement, 4, get<4>(argument));
+    sqlite3_bind_int(insert_argument_statement, 5, info.call_id);
     return insert_argument_statement;
 }

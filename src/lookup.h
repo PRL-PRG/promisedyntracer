@@ -18,6 +18,7 @@ std::string lookup_status_to_string(lookup_status);
 
 struct lookup_result {
     lookup_status status;
+    SEXP environment;
     SEXP value;
 };
 

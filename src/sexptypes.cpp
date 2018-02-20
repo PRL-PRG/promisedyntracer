@@ -77,7 +77,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
     sexp_type type = static_cast<sexp_type>(TYPEOF(sexp));
     result.push_back(type);
 
-    if (visited.find(sexp) != visited.end()) {
+    if (type == sexp_type::PROM && visited.find(sexp) != visited.end()) {
         result.push_back(sexp_type::OMEGA);
         return;
     } else {
@@ -95,11 +95,6 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
     }
 
     if (type == sexp_type::SYM) {
-        bool try_to_attach_symbol_value =
-                (rho != R_NilValue) ? isEnvironment(rho) : false;
-        if (!try_to_attach_symbol_value)
-            return;
-
         lookup_result r = find_binding_in_environment(sexp, rho);
 
         switch (r.status) {
@@ -109,7 +104,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                     || symbol_points_to == R_MissingArg)
                     return;
 
-                get_full_type_inner(symbol_points_to, rho, result, visited);
+                get_full_type_inner(symbol_points_to, r.environment, result, visited);
 
                 return;
             }
@@ -129,10 +124,14 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                 return;
             }
 
+            case lookup_status::FAIL_ENVIRONMENT_IS_NIL:
+                /* ignore this */
+                return;
+
             default: {
                 string msg = lookup_status_to_string(r.status);
                 dyntrace_log_warning("%s", msg.c_str());
-                result.push_back(sexp_type::OMEGA);
+                //result.push_back(sexp_type::OMEGA);
                 return;
             }
         }

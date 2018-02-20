@@ -63,6 +63,8 @@ class SqlSerializer {
 
     sqlite3_stmt *populate_call_statement(const call_info_t &info);
 
+    sqlite3_stmt *populate_call_return_statement(const call_info_t &info);
+
     sqlite3_stmt *
     populate_insert_promise_statement(const prom_basic_info_t &info);
 
@@ -74,8 +76,9 @@ class SqlSerializer {
                                               const string value);
     sqlite3_stmt *populate_function_statement(const call_info_t &info);
 
-    sqlite3_stmt *populate_insert_argument_statement(const closure_info_t &info,
-                                                     int actual_parameter_position);
+    sqlite3_stmt *
+    populate_insert_argument_statement(const closure_info_t &info,
+                                       int actual_parameter_position);
 
     std::string database_filepath;
     bool verbose;
@@ -86,6 +89,7 @@ class SqlSerializer {
     sqlite3_stmt *insert_function_statement = NULL;
     sqlite3_stmt *insert_argument_statement = NULL;
     sqlite3_stmt *insert_call_statement = NULL;
+    sqlite3_stmt *insert_call_return_statement = NULL;
     sqlite3_stmt *insert_promise_statement = NULL;
     sqlite3_stmt *insert_promise_association_statement = NULL;
     sqlite3_stmt *insert_promise_evaluation_statement = NULL;

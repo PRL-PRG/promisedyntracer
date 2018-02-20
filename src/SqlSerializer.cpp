@@ -121,6 +121,9 @@ void SqlSerializer::prepare_statements() {
     insert_call_statement =
         compile("insert into calls values (?,?,?,?,?,?,?,?,?);");
 
+    insert_call_return_statement =
+        compile("insert into call_returns values (?,?);");
+
     insert_argument_statement =
         compile("insert into arguments values (?,?,?,?,?);");
 
@@ -327,6 +330,7 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
 
 void SqlSerializer::serialize_function_exit(const closure_info_t &info) {
     unindent();
+    execute(populate_call_return_statement(info));
 }
 
 void SqlSerializer::serialize_builtin_entry(dyntrace_context_t *context,
@@ -343,6 +347,7 @@ void SqlSerializer::serialize_builtin_entry(dyntrace_context_t *context,
 
 void SqlSerializer::serialize_builtin_exit(const builtin_info_t &info) {
     unindent();
+    execute(populate_call_return_statement(info));
 }
 
 void SqlSerializer::serialize_force_promise_entry(dyntrace_context_t *context,
@@ -493,6 +498,14 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
     }
 
     return insert_call_statement;
+}
+
+sqlite3_stmt *
+SqlSerializer::populate_call_return_statement(const call_info_t &info) {
+    sqlite3_bind_int(insert_call_return_statement, 1, (int)info.call_id);
+    sqlite3_bind_int(insert_call_return_statement, 2,
+                     (int)info.return_value_type);
+    return insert_call_return_statement;
 }
 
 sqlite3_stmt *SqlSerializer::populate_promise_association_statement(

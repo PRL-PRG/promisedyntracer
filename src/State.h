@@ -1,8 +1,8 @@
 #ifndef __STATE_H__
 #define __STATE_H__
 
-#include "stdlibs.h"
 #include "sexptypes.h"
+#include "stdlibs.h"
 
 using namespace std;
 
@@ -107,6 +107,7 @@ struct call_info_t {
     recursion_type recursion; // TODO unnecessary?
 
     stack_event_t parent_on_stack;
+    sexp_type return_value_type;
 };
 
 class arglist_t {
@@ -273,7 +274,6 @@ prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
                          const string &argument);
 arglist_t get_arguments(dyntrace_context_t *, call_id_t, SEXP op, SEXP rho);
-
 
 size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context);
 size_t get_no_of_ancestors_on_stack();

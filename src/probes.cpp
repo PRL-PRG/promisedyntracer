@@ -5,6 +5,8 @@ void begin(dyntrace_context_t *context, const SEXP prom) {
     tracer_serializer(context).serialize_start_trace();
     environment_variables_t environment_variables =
         context->dyntracing_context->environment_variables;
+    tracer_serializer(context).serialize_metadatum("GIT_COMMIT_INFO",
+                                                   GIT_COMMIT_INFO);
     tracer_serializer(context).serialize_metadatum(
         "DYNTRACE_BEGIN_DATETIME",
         remove_null(context->dyntracing_context->begin_datetime));

@@ -59,7 +59,7 @@ lookup_result find_binding_in_single_environment(const SEXP symbol, const SEXP r
         int hashcode =
             (!HASHASH(print_name))
                 ? (newhashpjw(CHAR(print_name)) % LENGTH(HASHTAB(rho)))
-                : (HASHVALUE(print_name) % LENGTH(Hgit aASHTAB(rho)));
+                : (HASHVALUE(print_name) % LENGTH(HASHTAB(rho)));
         return get_hash(hashcode, symbol, rho);
     }
 

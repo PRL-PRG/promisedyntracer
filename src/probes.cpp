@@ -168,22 +168,12 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
 void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                    const SEXP rho, const SEXP retval) {
-    closure_info_t info = function_exit_get_info(context, call, op, rho);
+    closure_info_t info =
+        function_exit_get_info(context, call, op, rho, retval);
     tracer_serializer(context).serialize_function_exit(info);
 
     // Current function ID is popped in function_exit_get_info
     tracer_state(context).curr_env_stack.pop();
-}
-
-void print_entry_info(dyntrace_context_t *context, const SEXP call,
-                      const SEXP op, const SEXP rho, function_type fn_type) {
-    builtin_info_t info =
-        builtin_entry_get_info(context, call, op, rho, fn_type);
-    tracer_serializer(context).serialize_builtin_entry(context, info);
-
-    tracer_state(context).fun_stack.push_back(
-        make_tuple(info.call_id, info.fn_id, info.fn_type));
-    tracer_state(context).curr_env_stack.push(info.call_ptr | 1);
 }
 
 void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
@@ -197,21 +187,6 @@ void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     print_entry_info(context, call, op, rho, fn_type);
 }
 
-void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
-                      const SEXP op, const SEXP rho) {
-    print_entry_info(context, call, op, rho, function_type::SPECIAL);
-}
-
-void print_exit_info(dyntrace_context_t *context, const SEXP call,
-                     const SEXP op, const SEXP rho, function_type fn_type) {
-    builtin_info_t info =
-        builtin_exit_get_info(context, call, op, rho, fn_type);
-    tracer_serializer(context).serialize_builtin_exit(info);
-
-    tracer_state(context).fun_stack.pop_back();
-    tracer_state(context).curr_env_stack.pop();
-}
-
 void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                   const SEXP rho, const SEXP retval) {
     function_type fn_type;
@@ -220,12 +195,39 @@ void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                                           : function_type::BUILTIN;
     else
         fn_type = function_type::TRUE_BUILTIN;
-    print_exit_info(context, call, op, rho, fn_type);
+    print_exit_info(context, call, op, rho, fn_type, retval);
+}
+
+void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
+                      const SEXP op, const SEXP rho) {
+    print_entry_info(context, call, op, rho, function_type::SPECIAL);
 }
 
 void specialsxp_exit(dyntrace_context_t *context, const SEXP call,
                      const SEXP op, const SEXP rho, const SEXP retval) {
-    print_exit_info(context, call, op, rho, function_type::SPECIAL);
+    print_exit_info(context, call, op, rho, function_type::SPECIAL, retval);
+}
+
+void print_entry_info(dyntrace_context_t *context, const SEXP call,
+                      const SEXP op, const SEXP rho, function_type fn_type) {
+    builtin_info_t info =
+        builtin_entry_get_info(context, call, op, rho, fn_type);
+    tracer_serializer(context).serialize_builtin_entry(context, info);
+
+    tracer_state(context).fun_stack.push_back(
+        make_tuple(info.call_id, info.fn_id, info.fn_type));
+    tracer_state(context).curr_env_stack.push(info.call_ptr | 1);
+}
+
+void print_exit_info(dyntrace_context_t *context, const SEXP call,
+                     const SEXP op, const SEXP rho, function_type fn_type,
+                     const SEXP retval) {
+    builtin_info_t info =
+        builtin_exit_get_info(context, call, op, rho, fn_type, retval);
+    tracer_serializer(context).serialize_builtin_exit(info);
+
+    tracer_state(context).fun_stack.pop_back();
+    tracer_state(context).curr_env_stack.pop();
 }
 
 void promise_created(dyntrace_context_t *context, const SEXP prom,

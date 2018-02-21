@@ -55,6 +55,15 @@ create table if not exists calls (
     foreign key (parent_id) references calls
 );
 
+create table if not exists call_returns (
+    --[ relations ]------------------------------------------------------------
+    call_id integer not null,
+    --[ data ]-----------------------------------------------------------------
+    return_value_type integer not null,
+    --[ keys ]-----------------------------------------------------------------
+    foreign key (call_id) references calls
+);
+
 create table if not exists promises (
     --[ identity ]-------------------------------------------------------------
     id integer primary key, -- equal to promise pointer SEXP

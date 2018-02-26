@@ -10,7 +10,7 @@ class SqlSerializer {
   public:
     SqlSerializer(const std::string &database_path,
                   const std::string &schema_path, bool truncate = false,
-                  bool verbose = false);
+                  int verbose = 0);
     ~SqlSerializer();
     std::string get_database_filepath() const;
     void serialize_start_trace();
@@ -81,7 +81,7 @@ class SqlSerializer {
                                        int actual_parameter_position);
 
     std::string database_filepath;
-    bool verbose;
+    int verbose;
     int indentation;
     sqlite3 *database = NULL;
     std::ofstream trace;

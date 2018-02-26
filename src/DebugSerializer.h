@@ -15,7 +15,7 @@ std::string log_line(const type_gc_info_t&);*/
 
 class DebugSerializer {
 public:
-    DebugSerializer();
+    DebugSerializer(int verbose = 0);
     ~DebugSerializer();
 
     void serialize_start_trace();
@@ -46,6 +46,7 @@ public:
 
 private:
     int indentation;
+    int verbose;
     std::string prefix();
     void indent();
     std::string unindent();

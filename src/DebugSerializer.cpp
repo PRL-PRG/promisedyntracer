@@ -4,7 +4,7 @@
 
 using namespace std;
 
-DebugSerializer::DebugSerializer() : indentation(0) {}
+DebugSerializer::DebugSerializer(int verbose) : indentation(0), verbose(verbose) {}
 
 string DebugSerializer::log_line(const stack_event_t &event) {
     stringstream line;
@@ -222,69 +222,98 @@ string DebugSerializer::prefix() {
 }
 
 void DebugSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
-    //cerr << prefix() << log_line(info) << endl;
+    if (!(verbose > 1)) return;
+    cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_gc_exit(const gc_info_t &info) {
-    //cerr << prefix() << log_line(info) << endl;
+    if (!(verbose > 1)) return;
+    cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_vector_alloc(const type_gc_info_t &info) {
-    //cerr << prefix() << log_line(info) << endl;
+    if (!(verbose > 1)) return;
+    cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_expression_lookup(const prom_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_promise_lookup(const prom_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << prefix() << log_line(info) << endl;
 }
 
 void DebugSerializer::serialize_function_entry(const closure_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << prefix() << log_line(info) << endl;
     indent();
 }
 
 void DebugSerializer::serialize_function_exit(const closure_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << unindent() << endl;
 }
 
 void DebugSerializer::serialize_builtin_entry(const builtin_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << prefix() << log_line(info) << endl;
     indent();
 }
 
 void DebugSerializer::serialize_builtin_exit(const builtin_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << unindent() << endl;
 }
 
 void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
-    cerr << prefix() << ">> force " << log_line(info) << endl;
+    if (!(verbose > 0)) return;
+    cerr << prefix()
+         << ">> force " << log_line(info)
+         << endl;
     indent();
 }
 
 void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
-    cerr << unindent() << "<< force " << log_line(info) << endl;
+    if (!(verbose > 0)) return;
+    cerr << unindent()
+         << "<< force "
+         << log_line(info)
+         << endl;
 }
 
 void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
-    cerr << prefix() << "create " << log_line(info) << endl;
+    if (!(verbose > 0)) return;
+    cerr << prefix()
+         << "create " << log_line(info)
+         << endl;
 }
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
                                                       bool default_argument) {
-    cerr << prefix() << "prom_arg_type prom_id=" << prom_id << " default_argument=" << default_argument << endl; // TODO
+    if (!(verbose > 1)) return;
+    cerr << prefix()
+         << "prom_arg_type prom_id=" << prom_id
+         << " default_argument=" << default_argument
+         << endl;
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,
                                               const fn_id_t fun_id) {
-    //cerr << prefix() << "new_environment env_id=" << env_id << " fun_id=" << fun_id << endl; // TODO
+    if (!(verbose > 1)) return;
+    cerr << prefix()
+         << "new_environment env_id=" << env_id
+         << " fun_id=" << fun_id
+         << endl;
 }
 
 void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
+    if (!(verbose > 0)) return;
     cerr << prefix() << log_line(info) << endl;
-    size_t unwindings = info.unwound_calls.size() + info.unwound_promises.size();
+    size_t unwindings = info.unwound_calls.size()
+                        + info.unwound_promises.size();
     for (size_t i = 1; i <= unwindings; ++i) {
         cerr << unindent() << endl;
     }
@@ -293,21 +322,35 @@ void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
 void DebugSerializer::serialize_variable(var_id_t variable_id,
                                          const std::string &name,
                                          env_id_t environment_id) {
-    //cerr << prefix() << "variable var_id=" << variable_id << " name=" << name << " env_id=" << environment_id << endl; // TODO
+    if (!(verbose > 1)) return;
+    cerr << prefix()
+         << "variable var_id=" << variable_id
+         << " name=" << name
+         << " env_id=" << environment_id
+         << endl;
 }
 
 void DebugSerializer::serialize_variable_action(prom_id_t promise_id,
                                               var_id_t variable_id,
                                               const std::string &action) {
-    //cerr << prefix() << "variable action=" << action << " var_id=" << variable_id << " prom_id=" << promise_id << endl; // TODO
+    if (!(verbose > 1)) return;
+    cerr << prefix()
+         << "variable action=" << action
+         << " var_id=" << variable_id
+         << " prom_id=" << promise_id
+         << endl;
 }
 
 void DebugSerializer::serialize_interference_information(
         const std::string &info) {
-    //cerr << prefix() << "interference " << info << std::endl; // TODO
+    if (!(verbose > 1)) return;
+    cerr << prefix()
+         << "interference " << info
+         << endl;
 }
 
 void DebugSerializer::serialize_start_trace() {
+    if (!(verbose > 0)) return;
     indent();
     cerr << prefix() << "begin" << endl;
     indent();
@@ -316,6 +359,7 @@ void DebugSerializer::serialize_start_trace() {
 void DebugSerializer::serialize_metadatum(const string &key, const string &value) {}
 
 void DebugSerializer::serialize_finish_trace() {
+    if (!(verbose > 0)) return;
     unindent();
     cerr << prefix() << "end" << endl;
     unindent();

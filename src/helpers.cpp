@@ -167,9 +167,11 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
 arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op,
                         SEXP rho) {
     arglist_t arguments;
-
-    for (SEXP formals = FORMALS(op); formals != R_NilValue;
-         formals = CDR(formals)) {
+    int formal_parameter_position;
+    SEXP formals;
+    for (formal_parameter_position = 0, formals = FORMALS(op);
+         formals != R_NilValue;
+         formals = CDR(formals), formal_parameter_position++) {
         // Retrieve the argument name.
         SEXP argument_expression = TAG(formals);
         SEXP promise_expression = R_NilValue;
@@ -205,7 +207,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
                     arguments.push_back(std::make_tuple(
                         get_argument_id(context, call_id, to_string(i++)),
                         get_promise_id(context, ddd_promise_expression),
-                        default_argument)); // ...
+                        default_argument, formal_parameter_position)); // ...
                                             // argument
                                             // without a
                                             // name
@@ -216,7 +218,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
                             ddd_arg_name,
                             get_argument_id(context, call_id, ddd_arg_name),
                             get_promise_id(context, ddd_promise_expression),
-                            default_argument),
+                            default_argument, formal_parameter_position),
                         true); // this flag says we're inserting a ... argument
                 }
             }
@@ -230,7 +232,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
 
             arguments.push_back(std::make_tuple(
                 arg_name, get_argument_id(context, call_id, arg_name),
-                prom_id, default_argument));
+                prom_id, default_argument, formal_parameter_position));
         }
     }
 

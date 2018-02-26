@@ -22,22 +22,71 @@ void tracer_state_t::finish_pass() {
 }
 
 void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
-    call_id_t call_id;
     env_addr_t call_addr;
 
-    // XXX remnant of RDT_CALL_ID
-    //(call_id = fun_stack.top()) && get_sexp_address(rho) != call_id
+    while (!full_stack.empty() && (call_addr = curr_env_stack.top())) {
+        stack_event_t event_from_fullstack = full_stack.back();
+        if (event_from_fullstack.type == stack_type::CALL) {
+            // Make sure stacks are in synch.
+            auto call_from_funstack = (fun_stack.back());
+            if (get<0>(call_from_funstack) != event_from_fullstack.call_id)
+                dyntrace_log_error("Disagreement between tracer stack: %s",
+                                "top of function stack != top of full stack");
 
+            if (get_sexp_address(rho) == call_addr)
+                break;
+
+            // Remove call from all three stacks.
+            full_stack.pop_back();
+            fun_stack.pop_back();
+            curr_env_stack.pop();
+
+            // Register that a call was unwound in the info object.
+            info.unwound_calls.push_back(event_from_fullstack.call_id);
+        } else if (event_from_fullstack.type == stack_type::PROMISE) {
+            // Remove only from full stack, because there are no promises on either fun_stack or curr_env_stack.
+            full_stack.pop_back();
+
+            // Register that a promise was unwound in the info object.
+            info.unwound_promises.push_back(event_from_fullstack.promise_id);
+        } else /* if (event_from_fullstack.type == stack_type::NONE) */ {
+            dyntrace_log_error("NONE object found on tracer's full stack.");
+        }
+    }
+}
+
+
+// XXX remnant of RDT_CALL_ID
+//(call_id = fun_stack.top()) && get_sexp_address(rho) != call_id
+/*
     while (!fun_stack.empty() && (call_addr = curr_env_stack.top()) &&
            get_sexp_address(rho) != call_addr) {
-        auto elem = (fun_stack.back());
+        //auto elem = (fun_stack.back());
+        //call_id = get<0>(elem);
+        curr_env_stack.pop();
+        fun_stack.pop_back();
+    }
+
+    while (!full_stack.empty() && (call_addr = curr_env_stack.top()) &&
+            get_sexp_address(rho) != call_addr) {
+
+        auto event = full_stack.back();
+        if (event.type == stack_type::CALL) {
+            if (event.call_id == call_id)
+                goto outside_promise_loop;
+        } else {
+            info.unwound_promises.push_back(event.promise_id);
+        }
+
+        auto elem = (full_stack.back());
         call_id = get<0>(elem);
         curr_env_stack.pop();
         fun_stack.pop_back();
 
+
         info.unwound_calls.push_back(call_id);
 
-        while (!full_stack.empty()) {
+
             auto event = full_stack.back();
             full_stack.pop_back();
 
@@ -50,7 +99,7 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
         }
     outside_promise_loop:;
     }
-}
+}*/
 
 // void tracer_state_t::adjust_prom_stack(SEXP rho, vector<prom_id_t> &
 // unwound_promises) {

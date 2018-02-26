@@ -29,6 +29,7 @@ create table if not exists arguments (
     --[ data ]-----------------------------------------------------------------
     name text not null,
     position integer not null,
+    formal_parameter_position integer not null,
     --[ relations ]------------------------------------------------------------
     call_id integer not null,
     --[ keys ]-----------------------------------------------------------------
@@ -52,6 +53,15 @@ create table if not exists calls (
     --[ keys ]-----------------------------------------------------------------
     foreign key (function_id) references functions,
     foreign key (parent_id) references calls
+);
+
+create table if not exists call_returns (
+    --[ relations ]------------------------------------------------------------
+    call_id integer not null,
+    --[ data ]-----------------------------------------------------------------
+    return_value_type integer not null,
+    --[ keys ]-----------------------------------------------------------------
+    foreign key (call_id) references calls
 );
 
 create table if not exists promises (

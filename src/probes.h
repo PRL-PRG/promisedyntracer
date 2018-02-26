@@ -20,7 +20,8 @@ void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
 void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
                       const SEXP op, const SEXP rho);
 void print_exit_info(dyntrace_context_t *context, const SEXP call,
-                     const SEXP op, const SEXP rho, function_type fn_type);
+                     const SEXP op, const SEXP rho, function_type fn_type,
+                     const SEXP retval);
 void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                   const SEXP rho, const SEXP retval);
 void specialsxp_exit(dyntrace_context_t *context, const SEXP call,

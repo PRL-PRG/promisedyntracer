@@ -6,6 +6,8 @@ void begin(dyntrace_context_t *context, const SEXP prom) {
     tracer_serializer(context).serialize_start_trace();
     environment_variables_t environment_variables =
         context->dyntracing_context->environment_variables;
+    tracer_serializer(context).serialize_metadatum("GIT_COMMIT_INFO",
+                                                   GIT_COMMIT_INFO);
     tracer_serializer(context).serialize_metadatum(
         "DYNTRACE_BEGIN_DATETIME",
         remove_null(context->dyntracing_context->begin_datetime));
@@ -102,14 +104,13 @@ void serialize_execution_time(dyntrace_context_t *context) {
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-        serialize_execution_time(context);
-        // serialize_execution_count(context);
-        debug_serializer(context).serialize_finish_trace();
-        tracer_serializer(context).serialize_finish_trace();
-        tracer_serializer(context).serialize_metadatum(
-            "DYNTRACE_END_DATETIME",
-            remove_null(context->dyntracing_context->end_datetime));
-
+    serialize_execution_time(context);
+    // serialize_execution_count(context);
+    debug_serializer(context).serialize_finish_trace();
+    tracer_serializer(context).serialize_finish_trace();
+    tracer_serializer(context).serialize_metadatum(
+        "DYNTRACE_END_DATETIME",
+        remove_null(context->dyntracing_context->end_datetime));
 
     if (!tracer_state(context).fun_stack.empty()) {
         dyntrace_log_warning("Function stack is not balanced: %d remaining",
@@ -118,21 +119,22 @@ void end(dyntrace_context_t *context) {
     }
 
     if (!tracer_state(context).full_stack.empty()) {
-        dyntrace_log_warning("Function/promise stack is not balanced: %d remaining",
-                             tracer_state(context).full_stack.size());
+        dyntrace_log_warning(
+            "Function/promise stack is not balanced: %d remaining",
+            tracer_state(context).full_stack.size());
         tracer_state(context).full_stack.clear();
     }
 
     // create a file if the execution is normal.
     // end function is only called if the execution is normal,
     // so this file will only be created if everything goes fine.
-    std::string database_filepath = tracer_serializer(context).get_database_filepath();
+    std::string database_filepath =
+        tracer_serializer(context).get_database_filepath();
     size_t lastindex = database_filepath.find_last_of(".");
     std::string ok_filepath = database_filepath.substr(0, lastindex) + ".OK";
     std::ofstream ok_file(ok_filepath);
     ok_file << "NORMAL EXIT";
     ok_file.close();
-
 }
 
 // Triggered when entering function evaluation.
@@ -172,12 +174,46 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
 void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                    const SEXP rho, const SEXP retval) {
-    closure_info_t info = function_exit_get_info(context, call, op, rho);
+    closure_info_t info =
+        function_exit_get_info(context, call, op, rho, retval);
     debug_serializer(context).serialize_function_exit(info);
     tracer_serializer(context).serialize_function_exit(info);
 
     // Current function ID is popped in function_exit_get_info
     tracer_state(context).curr_env_stack.pop();
+}
+
+void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
+                   const SEXP rho) {
+    function_type fn_type;
+    if (TYPEOF(op) == BUILTINSXP)
+        fn_type = (PRIMINTERNAL(op) == 0) ? function_type::TRUE_BUILTIN
+                                          : function_type::BUILTIN;
+    else /*the weird case of NewBuiltin2 , where op is a language expression*/
+        fn_type = function_type::TRUE_BUILTIN;
+    print_entry_info(context, call, op, rho, fn_type);
+}
+
+void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
+                  const SEXP rho, const SEXP retval) {
+    function_type fn_type;
+    if (TYPEOF(op) == BUILTINSXP)
+        fn_type = (PRIMINTERNAL(op) == 0) ? function_type::TRUE_BUILTIN
+                                          : function_type::BUILTIN;
+    else
+        fn_type = function_type::TRUE_BUILTIN;
+    print_exit_info(context, call, op, rho, fn_type, retval);
+}
+
+
+void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
+                      const SEXP op, const SEXP rho) {
+    print_entry_info(context, call, op, rho, function_type::SPECIAL);
+}
+
+void specialsxp_exit(dyntrace_context_t *context, const SEXP call,
+                     const SEXP op, const SEXP rho, const SEXP retval) {
+    print_exit_info(context, call, op, rho, function_type::SPECIAL, retval);
 }
 
 void print_entry_info(dyntrace_context_t *context, const SEXP call,
@@ -192,47 +228,16 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     tracer_state(context).curr_env_stack.push(info.call_ptr | 1);
 }
 
-void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
-                   const SEXP rho) {
-    function_type fn_type;
-    if (TYPEOF(op) == BUILTINSXP)
-        fn_type = (PRIMINTERNAL(op) == 0) ? function_type::TRUE_BUILTIN
-                                          : function_type::BUILTIN;
-    else /*the weird case of NewBuiltin2 , where op is a language expression*/
-        fn_type = function_type::TRUE_BUILTIN;
-    print_entry_info(context, call, op, rho, fn_type);
-}
-
-void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
-                      const SEXP op, const SEXP rho) {
-    print_entry_info(context, call, op, rho, function_type::SPECIAL);
-}
-
 void print_exit_info(dyntrace_context_t *context, const SEXP call,
-                     const SEXP op, const SEXP rho, function_type fn_type) {
+                     const SEXP op, const SEXP rho, function_type fn_type,
+                     const SEXP retval) {
     builtin_info_t info =
-        builtin_exit_get_info(context, call, op, rho, fn_type);
+        builtin_exit_get_info(context, call, op, rho, fn_type, retval);
     debug_serializer(context).serialize_builtin_exit(info);
     tracer_serializer(context).serialize_builtin_exit(info);
 
     tracer_state(context).fun_stack.pop_back();
     tracer_state(context).curr_env_stack.pop();
-}
-
-void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
-                  const SEXP rho, const SEXP retval) {
-    function_type fn_type;
-    if (TYPEOF(op) == BUILTINSXP)
-        fn_type = (PRIMINTERNAL(op) == 0) ? function_type::TRUE_BUILTIN
-                                          : function_type::BUILTIN;
-    else
-        fn_type = function_type::TRUE_BUILTIN;
-    print_exit_info(context, call, op, rho, fn_type);
-}
-
-void specialsxp_exit(dyntrace_context_t *context, const SEXP call,
-                     const SEXP op, const SEXP rho, const SEXP retval) {
-    print_exit_info(context, call, op, rho, function_type::SPECIAL);
 }
 
 void promise_created(dyntrace_context_t *context, const SEXP prom,

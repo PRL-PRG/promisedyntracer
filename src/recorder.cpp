@@ -42,26 +42,25 @@ judge_promise_lifestyle(dyntrace_context_t *context, call_id_t from_call_id) {
             if (effective_distance == 0) {
                 if (actual_distance == 0) {
                     return tuple<lifestyle_type, int, int>(
-                            lifestyle_type::IMMEDIATE_LOCAL, effective_distance,
-                            actual_distance);
+                        lifestyle_type::IMMEDIATE_LOCAL, effective_distance,
+                        actual_distance);
                 } else {
                     return tuple<lifestyle_type, int, int>(
-                            lifestyle_type::LOCAL, effective_distance,
-                            actual_distance);
+                        lifestyle_type::LOCAL, effective_distance,
+                        actual_distance);
                 }
             } else {
                 if (effective_distance == 1) {
                     return tuple<lifestyle_type, int, int>(
-                            lifestyle_type::IMMEDIATE_BRANCH_LOCAL,
-                            effective_distance, actual_distance);
+                        lifestyle_type::IMMEDIATE_BRANCH_LOCAL,
+                        effective_distance, actual_distance);
                 } else {
                     return tuple<lifestyle_type, int, int>(
-                            lifestyle_type::BRANCH_LOCAL, effective_distance,
-                            actual_distance);
+                        lifestyle_type::BRANCH_LOCAL, effective_distance,
+                        actual_distance);
                 }
             }
         }
-
 
         if (cursor == 0) {
             return tuple<lifestyle_type, int, int>(
@@ -138,7 +137,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
 closure_info_t function_exit_get_info(dyntrace_context_t *context,
                                       const SEXP call, const SEXP op,
-                                      const SEXP rho) {
+                                      const SEXP rho, const SEXP retval) {
     closure_info_t info;
 
     const char *name = get_name(call);
@@ -160,7 +159,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
         if (name != NULL)
             info.name = name;
     }
-    
+
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 
@@ -173,7 +172,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     tracer_state(context).full_stack.pop_back();
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-
+    info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
     return info;
 }
 
@@ -224,7 +223,8 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
 
 builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
                                      const SEXP call, const SEXP op,
-                                     const SEXP rho, function_type fn_type) {
+                                     const SEXP rho, function_type fn_type,
+                                     const SEXP retval) {
     builtin_info_t info;
 
     const char *name = get_name(call);
@@ -250,6 +250,7 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     tracer_state(context).full_stack.pop_back();
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
+    info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
 
     return info;
 }
@@ -286,7 +287,8 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
 
     info.prom_id = get_promise_id(context, promise);
 
-    call_stack_elem_t call_stack_elem = (tracer_state(context).fun_stack.back());
+    call_stack_elem_t call_stack_elem =
+        (tracer_state(context).fun_stack.back());
     info.in_call_id = get<0>(call_stack_elem);
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 

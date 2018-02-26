@@ -11,7 +11,7 @@ string DebugSerializer::log_line(const stack_event_t &event) {
     line << "{type=";
     switch (event.type) {
         case stack_type::PROMISE: line << "promise id=" << event.promise_id; break;
-        case stack_type::CALL: line << "call id" << event.call_id; break;
+        case stack_type::CALL: line << "call id=" << event.call_id; break;
         case stack_type ::NONE: line << "none"; break;
     }
     line << "}";

@@ -255,14 +255,6 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     return info;
 }
 
-gc_info_t gc_exit_get_info(int gc_count, double vcells, double ncells) {
-    gc_info_t info;
-    info.vcells = vcells;
-    info.ncells = ncells;
-    info.counter = gc_count;
-    return info;
-}
-
 prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
                                           const SEXP promise, const SEXP rho) {
     prom_basic_info_t info;

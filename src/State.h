@@ -213,12 +213,18 @@ struct gc_info_t {
     int counter;
     double ncells;
     double vcells;
+    int builtin_calls;
+    int special_calls;
+    int closure_calls;
 };
 
-struct prom_gc_info_t {
+struct prom_lifecycle_info_t {
     prom_id_t promise_id;
     event_t event;
     int gc_trigger_counter;
+    int builtin_counter;
+    int special_counter;
+    int closure_counter;
 };
 
 struct type_gc_info_t {
@@ -331,6 +337,10 @@ struct tracer_state_t {
                                            // (unless overwrite is true)
     int gc_trigger_counter; // Incremented each time there is a gc_entry
 
+    int builtin_counter;       // Increment each time a builtin is called
+    int special_counter;       // Increment each time a special is called
+    int closure_counter;       // Increment each time a closure is called
+
     unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
         environments;
     void start_pass(dyntrace_context_t *context, const SEXP prom);
@@ -344,6 +354,21 @@ struct tracer_state_t {
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();
+
+    void increment_closure_counter();
+    void increment_special_counter();
+    void increment_builtin_counter();
+    void increment_gc_trigger_counter();
+
+    int get_closure_counter() const;
+    int get_special_counter() const;
+    int get_builtin_counter() const;
+    int get_gc_trigger_counter() const;
+
+    int get_closure_calls();
+    int get_special_calls();
+    int get_builtin_calls();
+
     tracer_state_t();
 };
 #endif /* __STATE_H__ */

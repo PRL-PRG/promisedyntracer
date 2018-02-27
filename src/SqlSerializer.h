@@ -29,7 +29,7 @@ class SqlSerializer {
     void serialize_promise_lookup(const prom_info_t &info, int clock_id);
     void serialize_promise_expression_lookup(const prom_info_t &info,
                                              int clock_id);
-    void serialize_promise_lifecycle(const prom_gc_info_t &info);
+    void serialize_promise_lifecycle(const prom_lifecycle_info_t &info);
     void serialize_promise_argument_type(const prom_id_t prom_id,
                                          bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &info);

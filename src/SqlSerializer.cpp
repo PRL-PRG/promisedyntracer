@@ -141,13 +141,13 @@ void SqlSerializer::prepare_statements() {
         compile("insert into promise_returns values (?,?,?);");
 
     insert_promise_lifecycle_statement =
-        compile("insert into promise_lifecycle values (?,?,?);");
+        compile("insert into promise_lifecycle values (?,?,?,?,?,?);");
 
     insert_promise_argument_type_statement =
         compile("insert into promise_argument_types values (?,?);");
 
     insert_gc_trigger_statement =
-        compile("insert into gc_trigger values (?,?,?);");
+        compile("insert into gc_trigger values (?,?,?,?,?,?);");
 
     insert_type_distribution_statement =
         compile("insert into type_distribution values (?,?,?,?);");
@@ -231,11 +231,19 @@ void SqlSerializer::execute(sqlite3_stmt *statement) {
     sqlite3_reset(statement);
 }
 
-void SqlSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
+void SqlSerializer::serialize_promise_lifecycle(
+    const prom_lifecycle_info_t &info) {
     sqlite3_bind_int(insert_promise_lifecycle_statement, 1, info.promise_id);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 2, info.event);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 3,
                      info.gc_trigger_counter);
+    sqlite3_bind_int(insert_promise_lifecycle_statement, 4,
+                     info.builtin_counter);
+    sqlite3_bind_int(insert_promise_lifecycle_statement, 5,
+                     info.special_counter);
+    sqlite3_bind_int(insert_promise_lifecycle_statement, 6,
+                     info.closure_counter);
+
     execute(insert_promise_lifecycle_statement);
 }
 
@@ -243,6 +251,9 @@ void SqlSerializer::serialize_gc_exit(const gc_info_t &info) {
     sqlite3_bind_int(insert_gc_trigger_statement, 1, info.counter);
     sqlite3_bind_double(insert_gc_trigger_statement, 2, info.ncells);
     sqlite3_bind_double(insert_gc_trigger_statement, 3, info.vcells);
+    sqlite3_bind_int(insert_gc_trigger_statement, 4, info.builtin_calls);
+    sqlite3_bind_int(insert_gc_trigger_statement, 5, info.special_calls);
+    sqlite3_bind_int(insert_gc_trigger_statement, 6, info.closure_calls);
     execute(insert_gc_trigger_statement);
 }
 

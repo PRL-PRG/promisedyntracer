@@ -138,6 +138,7 @@ void end(dyntrace_context_t *context) {
 // Triggered when entering function evaluation.
 void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
                     const SEXP rho) {
+    tracer_state(context).increment_closure_counter();
     closure_info_t info = function_entry_get_info(context, call, op, rho);
 
     // Push function ID on function stack
@@ -178,6 +179,7 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
 void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
                    const SEXP rho) {
+    tracer_state(context).increment_builtin_counter();
     function_type fn_type;
     if (TYPEOF(op) == BUILTINSXP)
         fn_type = (PRIMINTERNAL(op) == 0) ? function_type::TRUE_BUILTIN
@@ -200,6 +202,7 @@ void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
 void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
                       const SEXP op, const SEXP rho) {
+    tracer_state(context).increment_special_counter();
     print_entry_info(context, call, op, rho, function_type::SPECIAL);
 }
 
@@ -236,7 +239,10 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
     tracer_serializer(context).serialize_promise_created(info);
     if (info.prom_id >= 0) { // maybe we don't need this check
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 0, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, 0, tracer_state(context).get_gc_trigger_counter(),
+             tracer_state(context).get_builtin_counter(),
+             tracer_state(context).get_special_counter(),
+             tracer_state(context).get_closure_counter()});
     }
     tracer_serializer(context).serialize_interference_information(
         std::string("cre ") + std::to_string(info.prom_id));
@@ -254,7 +260,10 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
        happened while forcing this promise */
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 1, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, 1, tracer_state(context).get_gc_trigger_counter(),
+             tracer_state(context).get_builtin_counter(),
+             tracer_state(context).get_special_counter(),
+             tracer_state(context).get_closure_counter()});
     }
 }
 
@@ -276,7 +285,7 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 1, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, 1, tracer_state(context).get_gc_trigger_counter()});
     }
 }
 
@@ -288,7 +297,10 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom) {
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
         tracer_serializer(context).serialize_promise_lifecycle(
-            {info.prom_id, 3, tracer_state(context).gc_trigger_counter});
+            {info.prom_id, 3, tracer_state(context).get_gc_trigger_counter(),
+             tracer_state(context).get_builtin_counter(),
+             tracer_state(context).get_special_counter(),
+             tracer_state(context).get_closure_counter()});
     }
 }
 
@@ -299,7 +311,10 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
 
     if (id >= 0) {
         tracer_serializer(context).serialize_promise_lifecycle(
-            {id, 2, tracer_state(context).gc_trigger_counter});
+            {id, 2, tracer_state(context).get_gc_trigger_counter(),
+             tracer_state(context).get_builtin_counter(),
+             tracer_state(context).get_special_counter(),
+             tracer_state(context).get_closure_counter()});
     }
 
     auto iter = promise_origin.find(id);
@@ -318,21 +333,25 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
 }
 
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed) {
-    tracer_state(context).gc_trigger_counter =
-        1 + tracer_state(context).gc_trigger_counter;
+    tracer_state(context).increment_gc_trigger_counter();
 }
 
 void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
              double ncells) {
-    gc_info_t info = gc_exit_get_info(gc_count, vcells, ncells);
-    info.counter = tracer_state(context).gc_trigger_counter;
+    gc_info_t info;
+    info.vcells = vcells;
+    info.ncells = ncells;
+    info.counter = tracer_state(context).get_gc_trigger_counter();
+    info.builtin_calls = tracer_state(context).get_builtin_calls();
+    info.special_calls = tracer_state(context).get_special_calls();
+    info.closure_calls = tracer_state(context).get_closure_calls();
     tracer_serializer(context).serialize_gc_exit(info);
 }
 
 void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref) {
-    type_gc_info_t info{tracer_state(context).gc_trigger_counter, sexptype,
-                        length, bytes};
+    type_gc_info_t info{tracer_state(context).get_gc_trigger_counter(),
+                        sexptype, length, bytes};
     tracer_serializer(context).serialize_vector_alloc(info);
 }
 

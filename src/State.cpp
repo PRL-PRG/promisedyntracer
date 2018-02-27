@@ -30,8 +30,9 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
             // Make sure stacks are in synch.
             auto call_from_funstack = (fun_stack.back());
             if (get<0>(call_from_funstack) != event_from_fullstack.call_id)
-                dyntrace_log_error("Disagreement between tracer stack: %s",
-                                "top of function stack != top of full stack");
+                dyntrace_log_error(
+                    "Disagreement between tracer stack: %s",
+                    "top of function stack != top of full stack");
 
             if (get_sexp_address(rho) == call_addr)
                 break;
@@ -44,7 +45,8 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
             // Register that a call was unwound in the info object.
             info.unwound_calls.push_back(event_from_fullstack.call_id);
         } else if (event_from_fullstack.type == stack_type::PROMISE) {
-            // Remove only from full stack, because there are no promises on either fun_stack or curr_env_stack.
+            // Remove only from full stack, because there are no promises on
+            // either fun_stack or curr_env_stack.
             full_stack.pop_back();
 
             // Register that a promise was unwound in the info object.
@@ -54,7 +56,6 @@ void tracer_state_t::adjust_stacks(SEXP rho, unwind_info_t &info) {
         }
     }
 }
-
 
 // XXX remnant of RDT_CALL_ID
 //(call_id = fun_stack.top()) && get_sexp_address(rho) != call_id
@@ -129,8 +130,47 @@ tracer_state_t::tracer_state_t() {
     prom_neg_id_counter = 0;
     argument_id_sequence = 0;
     gc_trigger_counter = 0;
+    closure_counter = 0;
+    special_counter = 0;
+    builtin_counter = 0;
     environment_id_counter = 0;
     variable_id_counter = 0;
+}
+
+void tracer_state_t::increment_closure_counter() { closure_counter++; }
+
+void tracer_state_t::increment_special_counter() { special_counter++; }
+
+void tracer_state_t::increment_builtin_counter() { builtin_counter++; }
+
+void tracer_state_t::increment_gc_trigger_counter() { gc_trigger_counter++; }
+
+int tracer_state_t::get_closure_counter() const { return closure_counter; }
+
+int tracer_state_t::get_special_counter() const { return special_counter; }
+
+int tracer_state_t::get_builtin_counter() const { return builtin_counter; }
+
+int tracer_state_t::get_gc_trigger_counter() const {
+    return gc_trigger_counter;
+}
+
+int tracer_state_t::get_closure_calls() {
+    int calls = closure_counter;
+    closure_counter = 0;
+    return calls;
+}
+
+int tracer_state_t::get_special_calls() {
+    int calls = special_counter;
+    special_counter = 0;
+    return calls;
+}
+
+int tracer_state_t::get_builtin_calls() {
+    int calls = builtin_counter;
+    builtin_counter = 0;
+    return calls;
 }
 
 env_id_t tracer_state_t::to_environment_id(SEXP rho) {
@@ -138,7 +178,8 @@ env_id_t tracer_state_t::to_environment_id(SEXP rho) {
     if (iter == environments.end()) {
         env_id_t environment_id = environment_id_counter++;
         environments[rho] =
-            std::pair<env_id_t, unordered_map<string, var_id_t>>(environment_id, {});
+            std::pair<env_id_t, unordered_map<string, var_id_t>>(environment_id,
+                                                                 {});
         return environment_id;
     } else {
         return (iter->second).first;
@@ -172,7 +213,7 @@ prom_id_t tracer_state_t::enclosing_promise_id() {
          iterator != full_stack.rend(); ++iterator) {
         auto event = *iterator;
         if (event.type == stack_type::PROMISE)
-            return event.promise_id;    
+            return event.promise_id;
     }
     return -1;
 }

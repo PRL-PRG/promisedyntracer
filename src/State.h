@@ -108,6 +108,7 @@ struct call_info_t {
 
     stack_event_t parent_on_stack;
     sexp_type return_value_type;
+    string call_expression;
 };
 
 class arglist_t {
@@ -185,13 +186,13 @@ struct builtin_info_t : call_info_t {};
 // FIXME would it make sense to add type of action here?
 struct prom_basic_info_t {
     prom_id_t prom_id;
-
     sexp_type prom_type;
     full_sexp_type full_type;
 
     prom_id_t in_prom_id;
     stack_event_t parent_on_stack;
     int depth;
+    std::string expression;
 };
 
 struct prom_info_t : prom_basic_info_t {
@@ -337,9 +338,9 @@ struct tracer_state_t {
                                            // (unless overwrite is true)
     int gc_trigger_counter; // Incremented each time there is a gc_entry
 
-    int builtin_counter;       // Increment each time a builtin is called
-    int special_counter;       // Increment each time a special is called
-    int closure_counter;       // Increment each time a closure is called
+    int builtin_counter; // Increment each time a builtin is called
+    int special_counter; // Increment each time a special is called
+    int closure_counter; // Increment each time a closure is called
 
     unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
         environments;

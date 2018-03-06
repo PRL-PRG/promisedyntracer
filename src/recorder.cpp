@@ -111,7 +111,11 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     info.parent_call_id = get<0>(elem);
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(1);
-
+    void (*probe)(dyntrace_context_t *, SEXP);
+    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.call_expression = get_expression(call);
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     if (ns) {
         info.name = string(ns) + "::" + CHKSTR(name);
     } else {
@@ -191,6 +195,11 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
     info.fn_compiled = is_byte_compiled(op);
     info.fn_definition = get_expression(op);
 
+    void (*probe)(dyntrace_context_t *, SEXP);
+    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.call_expression = get_expression(call);
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     // R_FunTab[PRIMOFFSET(op)].eval % 100 )/10 ==
 
     call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
@@ -268,7 +277,11 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
-
+    void (*probe)(dyntrace_context_t *, SEXP);
+    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.expression = get_expression(PRCODE(promise));
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     return info;
 }
 

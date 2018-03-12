@@ -1,10 +1,15 @@
 #include "DebugSerializer.h"
 #include <string>
 #include <sstream>
+#include "Context.h"
 
 using namespace std;
 
-DebugSerializer::DebugSerializer(int verbose) : indentation(0), verbose(verbose) {}
+DebugSerializer::DebugSerializer(int verbose)
+        : indentation(0),
+          verbose(verbose),
+          state(nullptr),
+          has_state(false) {}
 
 string DebugSerializer::log_line(const stack_event_t &event) {
     stringstream line;
@@ -212,9 +217,27 @@ string DebugSerializer::unindent() {
     return line.str();
 }
 
+string DebugSerializer::print_stack() {
+    stringstream line;
+
+    line << " FUN=[[";
+    for (auto fun : state.fun_stack)
+        line << " " << get<0>(fun);
+    line << " ]]";
+
+    line << " FULL=[[";
+    for (auto event : state.full_stack)
+        line << " " << event.call_id;
+    line << " ]]";
+
+    return line.str();
+}
+
 string DebugSerializer::prefix() {
     stringstream line;
-    for (int i = 1; i < indentation; ++i)
+    if (indentation > 10)
+        line << "|[" << (indentation / 10) << "]  ";
+    for (int i = 1; i < indentation%10; ++i)
         line << "│  ";
     if (indentation > 0)
         line << "├─ ";
@@ -223,32 +246,32 @@ string DebugSerializer::prefix() {
 
 void DebugSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
     if (!(verbose > 1)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_gc_exit(const gc_info_t &info) {
     if (!(verbose > 1)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_vector_alloc(const type_gc_info_t &info) {
     if (!(verbose > 1)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_promise_expression_lookup(const prom_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_promise_lookup(const prom_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_function_entry(const closure_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
     indent();
 }
 
@@ -259,7 +282,7 @@ void DebugSerializer::serialize_function_exit(const closure_info_t &info) {
 
 void DebugSerializer::serialize_builtin_entry(const builtin_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
     indent();
 }
 
@@ -272,6 +295,7 @@ void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << prefix()
          << ">> force " << log_line(info)
+         << print_stack()
          << endl;
     indent();
 }
@@ -281,6 +305,7 @@ void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
     cerr << unindent()
          << "<< force "
          << log_line(info)
+         << print_stack()
          << endl;
 }
 
@@ -288,6 +313,7 @@ void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << prefix()
          << "create " << log_line(info)
+         << print_stack()
          << endl;
 }
 
@@ -297,6 +323,7 @@ void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
     cerr << prefix()
          << "prom_arg_type prom_id=" << prom_id
          << " default_argument=" << default_argument
+         << print_stack()
          << endl;
 }
 
@@ -306,12 +333,13 @@ void DebugSerializer::serialize_new_environment(const env_id_t env_id,
     cerr << prefix()
          << "new_environment env_id=" << env_id
          << " fun_id=" << fun_id
+         << print_stack()
          << endl;
 }
 
 void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << endl;
+    cerr << prefix() << log_line(info) << print_stack() << endl;
     size_t unwindings = info.unwound_calls.size()
                         + info.unwound_promises.size();
     for (size_t i = 1; i <= unwindings; ++i) {
@@ -327,6 +355,7 @@ void DebugSerializer::serialize_variable(var_id_t variable_id,
          << "variable var_id=" << variable_id
          << " name=" << name
          << " env_id=" << environment_id
+         << print_stack()
          << endl;
 }
 
@@ -338,6 +367,7 @@ void DebugSerializer::serialize_variable_action(prom_id_t promise_id,
          << "variable action=" << action
          << " var_id=" << variable_id
          << " prom_id=" << promise_id
+         << print_stack()
          << endl;
 }
 
@@ -345,14 +375,14 @@ void DebugSerializer::serialize_interference_information(
         const std::string &info) {
     if (!(verbose > 1)) return;
     cerr << prefix()
-         << "interference " << info
+         << "interference " << print_stack() << info
          << endl;
 }
 
 void DebugSerializer::serialize_start_trace() {
     if (!(verbose > 0)) return;
     indent();
-    cerr << prefix() << "begin" << endl;
+    cerr << prefix() << "begin" << print_stack() << endl;
     indent();
 }
 
@@ -361,6 +391,15 @@ void DebugSerializer::serialize_metadatum(const string &key, const string &value
 void DebugSerializer::serialize_finish_trace() {
     if (!(verbose > 0)) return;
     unindent();
-    cerr << prefix() << "end" << endl;
+    cerr << prefix() << "end" << print_stack() << endl;
     unindent();
+}
+
+void DebugSerializer::setState(tracer_state_t & state) {
+    this->state = state;
+    this->has_state = true;
+}
+
+bool DebugSerializer::needsState() {
+    return this->has_state;
 }

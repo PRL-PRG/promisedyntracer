@@ -8,4 +8,8 @@ Context::Context(std::string database, std::string schema, bool truncate,
 
 tracer_state_t &Context::get_state() { return *state; }
 SqlSerializer &Context::get_serializer() { return *serializer; }
-DebugSerializer &Context::get_debug_serializer() { return *debugger; }
+DebugSerializer &Context::get_debug_serializer() {
+    if(debugger->needsState())
+        debugger->setState(get_state());
+    return *debugger;
+}

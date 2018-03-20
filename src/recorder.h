@@ -29,5 +29,6 @@ prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
                                     const SEXP promise);
 prom_info_t promise_expression_lookup_get_info(dyntrace_context_t *context,
                                                const SEXP prom);
+gc_info_t gc_exit_get_info(int gc_count, double vcells, double ncells);
 
 #endif /* __RECORDER_H__ */

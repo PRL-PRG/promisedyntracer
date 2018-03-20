@@ -3,7 +3,7 @@
 
 SqlSerializer::SqlSerializer(const std::string &database_filepath,
                              const std::string &schema_filepath, bool truncate,
-                             bool verbose)
+                             int verbose)
     : verbose(verbose), indentation(0), database_filepath(database_filepath) {
     open_database(database_filepath, truncate);
     open_trace(database_filepath, truncate);
@@ -194,7 +194,7 @@ sqlite3_stmt *SqlSerializer::compile(const char *statement) {
 }
 
 void SqlSerializer::unindent() {
-    if (verbose) {
+    if (verbose < 0) {
         for (int i = 1; i < indentation; ++i) {
             std::cerr << "│  ";
         }
@@ -219,7 +219,7 @@ void SqlSerializer::execute(sqlite3_stmt *statement) {
                            message);
     }
 
-    if (verbose) {
+    if (verbose < 0) {
         for (int i = 1; i < indentation; ++i) {
             std::cerr << "│  ";
         }

@@ -61,19 +61,37 @@ enum class lifestyle_type {
     IMMEDIATE_BRANCH_LOCAL = 5
 };
 
-enum class stack_type { PROMISE = 1, CALL = 2, NONE = 0 };
+enum class stack_type { PROMISE = 1, CALL = 2, CONTEXT = 3, NONE = 0 };
 
 struct stack_event_t {
     stack_type type;
     union {
         prom_id_t promise_id;
         call_id_t call_id;
+        rid_t context_id;
     };
+    env_addr_t enclosing_environment;
+    // Only initialized for type == CALL
+    struct {
+        fn_id_t function_id;
+        function_type type;
+    } function_info;
 };
 
 typedef map<std::string, std::string> metadata_t;
 
-typedef tuple<call_id_t, fn_id_t, function_type> call_stack_elem_t;
+struct call_stack_elem_t {
+    call_id_t call_id;
+    fn_id_t function_id;
+    function_type type;
+    env_addr_t enclosing_environment;
+};
+
+struct context_t {
+    rid_t context;
+    env_addr_t environment;
+};
+
 // typedef pair<prom_id_t, call_id_t> prom_stack_elem_t;
 typedef tuple<prom_id_t, unsigned int, unsigned int> prom_key_t;
 
@@ -186,6 +204,7 @@ struct builtin_info_t : call_info_t {};
 // FIXME would it make sense to add type of action here?
 struct prom_basic_info_t {
     prom_id_t prom_id;
+
     sexp_type prom_type;
     full_sexp_type full_type;
 
@@ -206,8 +225,13 @@ struct prom_info_t : prom_basic_info_t {
 };
 
 struct unwind_info_t {
+    env_addr_t  jump_target;
+    rid_t  jump_context;
+    // TODO do we need all of these?
+    vector<env_addr_t> unwound_environments;
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
+    vector<rid_t> unwound_contexts;
 };
 
 struct gc_info_t {
@@ -238,7 +262,8 @@ struct type_gc_info_t {
 prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise);
 prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
                           bool negative = false);
-call_id_t make_funcall_id(dyntrace_context_t *context, SEXP fn_env);
+call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
+//call_id_t get_funcall_id(dyntrace_context_t *context, SEXP);
 fn_id_t get_function_id(dyntrace_context_t *context, SEXP func,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);
@@ -274,8 +299,40 @@ void get_stack_parent(T &info, vector<stack_event_t> &stack) {
         }
     } else {
         info.parent_on_stack.type = stack_type::NONE;
+        info.parent_on_stack.call_id = 0;
     }
 }
+
+template <typename T>
+void get_stack_parent2(T &info, vector<stack_event_t> &stack) {
+    // put the body here
+    static_assert(std::is_base_of<prom_basic_info_t, T>::value ||
+                  std::is_base_of<prom_info_t, T>::value ||
+                  std::is_base_of<call_info_t, T>::value,
+                  "get_stack_parent is only applicable for arguments of types: "
+                          "prom_basic_info_t,  prom_info_t, or call_info_t.");
+
+    if (stack.size() > 1) {
+        stack_event_t stack_elem = stack.rbegin()[1];
+        info.parent_on_stack.type = stack_elem.type;
+        switch (info.parent_on_stack.type) {
+            case stack_type::PROMISE:
+                info.parent_on_stack.promise_id = stack_elem.call_id;
+                break;
+            case stack_type::CALL:
+                info.parent_on_stack.call_id = stack_elem.promise_id;
+                break;
+            case stack_type::NONE:
+                break;
+        }
+    } else {
+        info.parent_on_stack.type = stack_type::NONE;
+        info.parent_on_stack.call_id = 0;
+    }
+}
+
+stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack, stack_type type);
+stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack, stack_type type, int rposition);
 
 prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
@@ -297,8 +354,7 @@ struct tracer_state_t {
     // function_exit probe)
     vector<call_stack_elem_t> fun_stack; // Should be reset on each tracer pass
     vector<stack_event_t> full_stack;    // Should be reset on each tracer pass
-    stack<env_addr_t, vector<env_addr_t>>
-        curr_env_stack; // Should be reset on each tracer pass
+    //vector<context_t> curr_env_stack;  // Should be reset on each tracer pass
 
     // Map from promise IDs to call IDs
     unordered_map<prom_id_t, call_id_t>
@@ -350,7 +406,7 @@ struct tracer_state_t {
     // target environment
     // and unwinds function call stack until that environment is on top. It also
     // fixes indentation.
-    void adjust_stacks(SEXP rho, unwind_info_t &info);
+    void adjust_stacks(unwind_info_t &info);
     //    void adjust_prom_stack(SEXP rho, vector<prom_id_t> & unwound_prom);
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);

@@ -15,6 +15,7 @@
 
 #include <config.h>
 #include <stdint.h>
+#define R_USE_SIGNALS 1
 #define HAVE_DECL_SIZE_MAX 1
 extern "C" {
 #include <Defn.h>

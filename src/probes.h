@@ -5,6 +5,9 @@
 #include "recorder.h"
 #include "utilities.h"
 
+#define R_USE_SIGNALS 1
+#include "Defn.h"
+
 extern "C" {
 
 void begin(dyntrace_context_t *context, const SEXP prom);
@@ -39,7 +42,9 @@ void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
 void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref);
 void new_environment(dyntrace_context_t *context, const SEXP rho);
-void jump_ctxt(dyntrace_context_t *context, const SEXP rho, const SEXP val);
+void begin_ctxt(dyntrace_context_t *context, const RCNTXT *);
+void jump_ctxt(dyntrace_context_t *context,  const RCNTXT *);
+void end_ctxt(dyntrace_context_t *context, const RCNTXT *);
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho);
 void environment_assign_var(dyntrace_context_t *context, const SEXP symbol,

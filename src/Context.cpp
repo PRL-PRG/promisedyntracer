@@ -10,6 +10,6 @@ tracer_state_t &Context::get_state() { return *state; }
 SqlSerializer &Context::get_serializer() { return *serializer; }
 DebugSerializer &Context::get_debug_serializer() {
     if(debugger->needsState())
-        debugger->setState(get_state());
+        debugger->setState(&get_state());
     return *debugger;
 }

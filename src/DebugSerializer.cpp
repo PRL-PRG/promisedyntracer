@@ -17,9 +17,11 @@ string DebugSerializer::log_line(const stack_event_t &event) {
     switch (event.type) {
         case stack_type::PROMISE: line << "promise id=" << event.promise_id; break;
         case stack_type::CALL: line << "call id=" << event.call_id; break;
+        case stack_type::CONTEXT: line << "context id=" << event.context_id; break;
         case stack_type ::NONE: line << "none"; break;
     }
-    line << "}";
+    line // << " env=" << event.enclosing_environment
+         << "}";
     return line.str();
 }
 
@@ -99,6 +101,7 @@ string DebugSerializer::log_line(const builtin_info_t &info) {
          << " name=" << info.name
          << " fn_id=" << info.fn_id
          << " call_id=" << info.call_id
+         << " env_ptr=" << info.call_ptr
          << " parent=" << log_line(info.parent_on_stack)
          << " parent_call_id=" << info.parent_call_id
          << " parent_prom_id=" << info.in_prom_id
@@ -115,6 +118,7 @@ string DebugSerializer::log_line(const closure_info_t &info) {
          << " name=" << info.name
          << " fn_id=" << info.fn_id
          << " call_id=" << info.call_id
+         << " env_ptr=" << info.call_ptr
          << " args=" << log_line(info.arguments)
          << " parent=" << log_line(info.parent_on_stack)
          << " parent_call_id=" << info.parent_call_id
@@ -157,9 +161,16 @@ string DebugSerializer::log_line(const prom_info_t &info) {
     return line.str();
 }
 
+string DebugSerializer::log_line(const RCNTXT *cptr) {
+    stringstream line;
+    line << "context " << ((rid_t) cptr); // << " cloenv="<< ((rid_t) cptr->cloenv);
+    return line.str();
+}
+
 string DebugSerializer::log_line(const unwind_info_t &info) {
     stringstream line;
     line << "unwind"
+         << " target=" << info.jump_context
          << " unwound_promises=[";
     for (auto i = info.unwound_promises.begin(); i != info.unwound_promises.end(); ++i) {
         if (i != info.unwound_promises.begin())
@@ -169,6 +180,12 @@ string DebugSerializer::log_line(const unwind_info_t &info) {
     line << "] unwound_calls=[";
     for (auto i = info.unwound_calls.begin(); i != info.unwound_calls.end(); ++i) {
         if (i != info.unwound_calls.begin())
+            line << " ";
+        line << (*i);
+    }
+    line << "] unwound_contexts=[";
+    for (auto i = info.unwound_contexts.begin(); i != info.unwound_contexts.end(); ++i) {
+        if (i != info.unwound_contexts.begin())
             line << " ";
         line << (*i);
     }
@@ -210,30 +227,56 @@ void DebugSerializer::indent() {
 
 string DebugSerializer::unindent() {
     stringstream line;
-    for (int i = 1; i < indentation; ++i)
-        line << "│  ";
-    line << "┴";
+//    if (indentation > 10)
+//        line << "|[" << (indentation / 10) << "]  ";
+//    for (int i = 1; i < indentation%10; ++i)
+//        line << "│  ";
+//    line << "┴";
     indentation--;
     return line.str();
 }
 
 string DebugSerializer::print_stack() {
+    if (!has_state) {
+        return "*";
+    }
+
     stringstream line;
 
-    line << " FUN=[[";
-    for (auto fun : state.fun_stack)
-        line << " " << get<0>(fun);
-    line << " ]]";
+//    line << " \n    FUN=[[";
+    //int i = 0;
+   // int fun_threshold = state->fun_stack.size() - 10 - 1;
+    //fun_threshold = fun_threshold < 0 ? 0 : fun_threshold;
+    //if (state->fun_stack.size() > 10)
+        //line << "..";
+//    for (auto fun : state->fun_stack) {
+//        //if (i > fun_threshold)
+//            line << "("
+//                 << " F" << fun.call_id
+//                 << " cloenv="
+//                 << fun.enclosing_environment
+//                 << ")";
+//        //i++;
+//    }
+//    line << " ]] (" << state->fun_stack.size() << ")";
 
-    line << " FULL=[[";
-    for (auto event : state.full_stack)
-        line << " " << event.call_id;
-    line << " ]]";
-
-    return line.str();
+    line << " \n   [[";
+    for (auto event : state->full_stack) {
+        //if (i > full_threshold)
+            line << " "
+                 << (event.type == stack_type::PROMISE ? "P" :
+                     (event.type == stack_type::CALL ? "F" : "C"))
+                 << event.call_id;
+                 //<< " cloenv="
+                 //<< event.enclosing_environment
+                 //<< ")";
+    }
+    line << " ]] (" << state->full_stack.size() << ")";
+   return line.str();
 }
 
 string DebugSerializer::prefix() {
+    return "";
     stringstream line;
     if (indentation > 10)
         line << "|[" << (indentation / 10) << "]  ";
@@ -271,30 +314,30 @@ void DebugSerializer::serialize_promise_lookup(const prom_info_t &info) {
 
 void DebugSerializer::serialize_function_entry(const closure_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << print_stack() << endl;
+    cerr << prefix() << ">>> " << log_line(info) << print_stack() << endl;
     indent();
 }
 
 void DebugSerializer::serialize_function_exit(const closure_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << unindent() << endl;
+    cerr << unindent() << "<<< " << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_builtin_entry(const builtin_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << print_stack() << endl;
+    cerr << prefix() << ">>> " << log_line(info) << print_stack() << endl;
     indent();
 }
 
 void DebugSerializer::serialize_builtin_exit(const builtin_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << unindent() << endl;
+    cerr << unindent() << "<<< " << log_line(info) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << prefix()
-         << ">> force " << log_line(info)
+         << ">>> force " << log_line(info)
          << print_stack()
          << endl;
     indent();
@@ -303,7 +346,7 @@ void DebugSerializer::serialize_force_promise_entry(const prom_info_t &info) {
 void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << unindent()
-         << "<< force "
+         << "<<< force "
          << log_line(info)
          << print_stack()
          << endl;
@@ -312,7 +355,7 @@ void DebugSerializer::serialize_force_promise_exit(const prom_info_t &info) {
 void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << prefix()
-         << "create " << log_line(info)
+         << "=== create " << log_line(info)
          << print_stack()
          << endl;
 }
@@ -337,14 +380,26 @@ void DebugSerializer::serialize_new_environment(const env_id_t env_id,
          << endl;
 }
 
+void DebugSerializer::serialize_begin_ctxt(const RCNTXT * cptr) {
+    if (!(verbose > 0)) return;
+    indent();
+    cerr << prefix() << ">>> " << log_line(cptr) << print_stack() << endl;
+}
+
 void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
     if (!(verbose > 0)) return;
-    cerr << prefix() << log_line(info) << print_stack() << endl;
+    cerr << prefix() << "=== " << log_line(info) << print_stack() << endl;
     size_t unwindings = info.unwound_calls.size()
                         + info.unwound_promises.size();
-    for (size_t i = 1; i <= unwindings; ++i) {
-        cerr << unindent() << endl;
-    }
+    //for (size_t i = 1; i <= unwindings; ++i) {
+    //    cerr << unindent() << endl;
+    //}
+}
+
+void DebugSerializer::serialize_end_ctxt(const RCNTXT * cptr) {
+    if (!(verbose > 0)) return;
+    unindent();
+    cerr << prefix() << "<<< " << log_line(cptr) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_variable(var_id_t variable_id,
@@ -395,11 +450,11 @@ void DebugSerializer::serialize_finish_trace() {
     unindent();
 }
 
-void DebugSerializer::setState(tracer_state_t & state) {
+void DebugSerializer::setState(tracer_state_t * state) {
     this->state = state;
     this->has_state = true;
 }
 
 bool DebugSerializer::needsState() {
-    return this->has_state;
+    return !(this->has_state);
 }

@@ -35,7 +35,9 @@ public:
                                          bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &);
     void serialize_gc_exit(const gc_info_t &);
+    void serialize_begin_ctxt(const RCNTXT *);
     void serialize_unwind(const unwind_info_t &);
+    void serialize_end_ctxt(const RCNTXT *);
     void serialize_new_environment(const env_id_t env_id, const fn_id_t fun_id);
     void serialize_metadatum(const std::string &key, const std::string &value);
     void serialize_variable(var_id_t variable_id, const std::string &name,
@@ -44,18 +46,20 @@ public:
                                    const std::string &action);
     void serialize_interference_information(const std::string &information);
 
-    void setState(tracer_state_t &);
+    void setState(tracer_state_t *);
 
     bool needsState();
 
 private:
-    tracer_state_t & state;
+    tracer_state_t * state;
     bool has_state;
     int indentation;
     int verbose;
     std::string prefix();
     void indent();
     std::string unindent();
+
+    std::string log_line(const RCNTXT * cptr);
 
     std::string log_line(const stack_event_t &event);
     std::string log_line(const function_type &type);

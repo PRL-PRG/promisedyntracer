@@ -103,12 +103,10 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     info.fn_addr = get_function_addr(op);
     info.call_ptr = get_sexp_address(rho);
     info.call_id = make_funcall_id(context, op);
-    // info.call_id = make_funcall_id(rho);
 
     stack_event_t event = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
-    //call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
-
     info.parent_call_id = event.type == stack_type::NONE ? 0: event.call_id;
+
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(1);
     void (*probe)(dyntrace_context_t *, SEXP);
@@ -125,17 +123,10 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
-
     info.recursion = is_recursive(context, info.fn_id);
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-
-    //stack_event_t stack_elem;
-    //stack_elem.type = stack_type::CALL;
-    //stack_elem.call_id = info.call_id;
-    //stack_elem.enclosing_environment = info.call_ptr;
-    //tracer_state(context).full_stack.push_back(stack_elem);
 
     return info;
 }
@@ -155,7 +146,6 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     stack_event_t call_event = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
     info.call_id = call_event.type == stack_type::NONE ? 0 : call_event.call_id;
     info.fn_type = function_type::CLOSURE;
-
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
 
@@ -169,22 +159,9 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.arguments = get_arguments(context, info.call_id, op, rho);
     info.fn_definition = get_expression(op);
 
-
     stack_event_t parent_call = get_from_back_of_stack_by_type(tracer_state(context).full_stack, stack_type::CALL, 1);
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
-
     info.recursion = is_recursive(context, info.fn_id);
-
-// FIXME always passes?
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::CALL
-        || thing_on_stack.call_id != info.call_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be closure with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.call_id, info.call_id);
-    }
-
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
@@ -208,28 +185,14 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
 
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
     info.parent_call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
-
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
-
     info.call_ptr = get_sexp_address(rho);
     info.call_id = make_funcall_id(context, op);
-
-    // XXX This is a remnant of an RDT_CALL_ID ifdef
-    // Builtins have no environment of their own
-    // we take the parent env rho and add 1 to it to create a new pseudo-address
-    // it will be unique because real pointers are aligned (no odd addresses)
-    // info.call_id = make_funcall_id(rho) | 1;
-
     info.recursion = is_recursive(context, info.fn_id);
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-
-    //stack_event_t stack_elem;
-    //stack_elem.type = stack_type::CALL;
-    //stack_elem.call_id = info.call_id;
-    //tracer_state(context).full_stack.push_back(stack_elem);
 
     return info;
 }
@@ -247,30 +210,15 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     info.fn_addr = get_function_addr(op);
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
 
-    //call_stack_elem_t elem = (tracer_state(context).fun_stack.back());
     info.call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
     if (name != NULL)
         info.name = name;
     info.fn_type = fn_type;
     info.fn_compiled = is_byte_compiled(op);
     info.fn_definition = get_expression(op);
-
-    //call_stack_elem_t parent_elem = (tracer_state(context).fun_stack.back());
-    //info.parent_call_id = get<0>(parent_elem);
     info.recursion = is_recursive(context, info.fn_id);
-
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
-
-// FIXME always passes?
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::CALL
-        || thing_on_stack.call_id != info.call_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be built-in with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.call_id, info.call_id);
-    }
 
     stack_event_t parent_call = get_from_back_of_stack_by_type(tracer_state(context).full_stack, stack_type::CALL, 1);
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
@@ -306,8 +254,6 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
 prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
                                          const SEXP promise) {
     prom_info_t info;
-    info.name = "DONT_CARE"; // FIXME WTF is this?!
-
     info.prom_id = get_promise_id(context, promise);
 
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
@@ -319,15 +265,9 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
     info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
     info.return_type = sexp_type::OMEGA;
-
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
-
-    //stack_event_t stack_elem;
-    //stack_elem.type = stack_type::PROMISE;
-    //stack_elem.promise_id = info.prom_id;
-    //tracer_state(context).full_stack.push_back(stack_elem);
 
     return info;
 }
@@ -335,8 +275,6 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
 prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
                                         const SEXP promise) {
     prom_info_t info;
-    info.name = "DONT_CARE";
-
     info.prom_id = get_promise_id(context, promise);
 
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
@@ -349,15 +287,6 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
     get_full_type(promise, info.full_type);
     info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
 
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::PROMISE
-        || thing_on_stack.promise_id != info.prom_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be promise with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.promise_id, info.prom_id);
-    }
-
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
@@ -368,9 +297,6 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
 prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
                                     const SEXP promise) {
     prom_info_t info;
-
-    info.name = "DONT_CARE";
-
     info.prom_id = get_promise_id(context, promise);
 
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);

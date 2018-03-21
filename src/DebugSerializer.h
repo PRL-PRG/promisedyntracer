@@ -3,16 +3,6 @@
 #include <string>
 #include "State.h"
 
-/*std::string log_line(const builtin_info_t&);
-std::string log_line(const closure_info_t&);
-std::string log_line(const closure_info_t&);
-std::string log_line(const prom_basic_info_t&);
-std::string log_line(const prom_info_t&);
-std::string log_line(const unwind_info_t&);
-std::string log_line(const gc_info_t&);
-std::string log_line(const prom_gc_info_t&);
-std::string log_line(const type_gc_info_t&);*/
-
 class DebugSerializer {
 public:
     DebugSerializer(int verbose = 0);
@@ -30,7 +20,7 @@ public:
     void serialize_promise_created(const prom_basic_info_t &);
     void serialize_promise_lookup(const prom_info_t &);
     void serialize_promise_expression_lookup(const prom_info_t &);
-    void serialize_promise_lifecycle(const prom_gc_info_t &);
+    void serialize_promise_lifecycle(const prom_lifecycle_info_t &);
     void serialize_promise_argument_type(const prom_id_t prom_id,
                                          bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &);
@@ -60,20 +50,18 @@ private:
     std::string unindent();
 
     std::string log_line(const RCNTXT * cptr);
-
     std::string log_line(const stack_event_t &event);
     std::string log_line(const function_type &type);
     std::string log_line(const arglist_t &arguments);
     std::string log_line(const sexp_type &type);
     std::string log_line(const full_sexp_type &type);
-
     std::string log_line(const builtin_info_t&);
     std::string log_line(const closure_info_t&);
     std::string log_line(const prom_basic_info_t&);
     std::string log_line(const prom_info_t&);
     std::string log_line(const unwind_info_t&);
     std::string log_line(const gc_info_t&);
-    std::string log_line(const prom_gc_info_t&);
+    std::string log_line(const prom_lifecycle_info_t&);
     std::string log_line(const type_gc_info_t&);
 
     std::string print_stack();

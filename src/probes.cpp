@@ -113,12 +113,6 @@ void end(dyntrace_context_t *context) {
         "DYNTRACE_END_DATETIME",
         remove_null(context->dyntracing_context->end_datetime));
 
-//    if (!tracer_state(context).fun_stack.empty()) {
-//        dyntrace_log_warning("Function stack is not balanced: %d remaining",
-//                             tracer_state(context).fun_stack.size());
-//        tracer_state(context).fun_stack.clear();
-//    }
-
     if (!tracer_state(context).full_stack.empty()) {
         dyntrace_log_warning(
             "Function/promise stack is not balanced: %d remaining",
@@ -149,15 +143,6 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     stack_elem.call_id = info.call_id;
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
-
-    // Push function ID on function stack
-//    call_stack_elem_t e;
-//    e.call_id = info.call_id;
-//    e.function_id = info.fn_id;
-//    e.type = info.fn_type;
-//    e.enclosing_environment = info.call_ptr;
-//    tracer_state(context).fun_stack.push_back(e);
-    //tracer_state(context).curr_env_stack.push(info.call_ptr);
 
     debug_serializer(context).serialize_function_entry(info);
     tracer_serializer(context).serialize_function_entry(context, info);
@@ -191,14 +176,18 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     closure_info_t info =
         function_exit_get_info(context, call, op, rho, retval);
 
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::CALL
+        || thing_on_stack.call_id != info.call_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be closure with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.call_id, info.call_id);
+    }
     tracer_state(context).full_stack.pop_back();
 
     debug_serializer(context).serialize_function_exit(info);
     tracer_serializer(context).serialize_function_exit(info);
-
-    // Current function ID is popped in function_exit_get_info
-    // tracer_state(context).curr_env_stack.pop();
-    // Moved to its own hook.
 
     tracer_serializer(context).serialize_interference_information(
         std::string("cle ") + std::to_string(info.call_id));
@@ -249,18 +238,8 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
 
-    //call_stack_elem_t e;
-    //e.call_id = info.call_id;
-    //e.function_id = info.fn_id;
-    //e.type = info.fn_type;
-    //e.enclosing_environment = info.call_ptr;
-//    tracer_state(context).fun_stack.push_back(e);
-
     debug_serializer(context).serialize_builtin_entry(info);
     tracer_serializer(context).serialize_builtin_entry(context, info);
-
-    // Moved to its own hook.
-    // tracer_state(context).curr_env_stack.push(info.call_ptr | 1);
 
     std::string command = info.fn_type == function_type::SPECIAL ? "spb " : "bub ";
     tracer_serializer(context).serialize_interference_information(
@@ -273,7 +252,15 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
     builtin_info_t info =
         builtin_exit_get_info(context, call, op, rho, fn_type, retval);
 
-    tracer_state(context).full_stack.pop_back(); // TODO add check
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::CALL
+        || thing_on_stack.call_id != info.call_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be built-in with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.call_id, info.call_id);
+    }
+    tracer_state(context).full_stack.pop_back();
 
     debug_serializer(context).serialize_builtin_exit(info);
     tracer_serializer(context).serialize_builtin_exit(info);
@@ -281,9 +268,6 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
     std::string command = info.fn_type == function_type::SPECIAL ? "spe " : "bue ";
     tracer_serializer(context).serialize_interference_information(
         command + std::to_string(info.call_id));
-
-    // Moved to its own hook.
-    // tracer_state(context).curr_env_stack.pop();
 }
 
 void promise_created(dyntrace_context_t *context, const SEXP prom,
@@ -292,7 +276,7 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
     debug_serializer(context).serialize_promise_created(info);
     tracer_serializer(context).serialize_promise_created(info);
     if (info.prom_id >= 0) { // maybe we don't need this check
-        prom_gc_info_t prom_gc_info = {info.prom_id, 0, 
+        prom_lifecycle_info_t prom_gc_info = {info.prom_id, 0,
              tracer_state(context).get_gc_trigger_counter(),
              tracer_state(context).get_builtin_counter(),
              tracer_state(context).get_special_counter(),
@@ -325,7 +309,7 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
     /* reset number of environment bindings. We want to know how many bindings
        happened while forcing this promise */
     if (info.prom_id >= 0) {
-      prom_lifestyle_info_t prom_gc_info = {info.prom_id, 1, 
+      prom_lifecycle_info_t prom_gc_info = {info.prom_id, 1,
              tracer_state(context).get_gc_trigger_counter(),
              tracer_state(context).get_builtin_counter(),
              tracer_state(context).get_special_counter(),
@@ -338,6 +322,14 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
 void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     prom_info_t info = force_promise_exit_get_info(context, promise);
 
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::PROMISE
+        || thing_on_stack.promise_id != info.prom_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be promise with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.promise_id, info.prom_id);
+    }
     tracer_state(context).full_stack.pop_back();
 
     std::string ext_id = std::string("ext ") + std::to_string(info.prom_id);
@@ -359,7 +351,7 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
         tracer_serializer(context).serialize_promise_lookup(
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
-        prom_gc_info_t prom_gc_info {info.prom_id, 1, tracer_state(context).gc_trigger_counter};
+        prom_lifecycle_info_t prom_gc_info {info.prom_id, 1, tracer_state(context).gc_trigger_counter};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
     }
@@ -372,7 +364,7 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom) {
         tracer_serializer(context).serialize_promise_expression_lookup(
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
-        prom_lifestyle_info_t prom_gc_info = {info.prom_id, 3, 
+        prom_lifecycle_info_t prom_gc_info = {info.prom_id, 3,
              tracer_state(context).get_gc_trigger_counter(),
              tracer_state(context).get_builtin_counter(),
              tracer_state(context).get_special_counter(),
@@ -388,7 +380,7 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
     auto &promise_origin = tracer_state(context).promise_origin;
 
     if (id >= 0) {
-        prom_lifestyle_info_t prom_gc_info = {id, 2, 
+        prom_lifecycle_info_t prom_gc_info = {id, 2,
              tracer_state(context).get_gc_trigger_counter(),
              tracer_state(context).get_builtin_counter(),
              tracer_state(context).get_special_counter(),
@@ -402,7 +394,6 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
         // If this is one of our traced promises,
         // delete it from origin map because it is ready to be GCed
         promise_origin.erase(iter);
-        // Rprintf("Promise %#x deleted.\n", id);
     }
 
     unsigned int prom_type = TYPEOF(PRCODE(promise));
@@ -450,16 +441,10 @@ void new_environment(dyntrace_context_t *context, const SEXP rho) {
 }
 
 void begin_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
-//    context_t ctx;
-//    ctx.environment = (env_addr_t) cptr->cloenv;
-//    ctx.context = (rid_t) cptr;
-//    tracer_state(context).curr_env_stack.push_back(ctx);
-
     stack_event_t event;
     event.context_id = (rid_t) cptr;
     event.type = stack_type::CONTEXT;
     tracer_state(context).full_stack.push_back(event);
-
     debug_serializer(context).serialize_begin_ctxt(cptr);
 }
 
@@ -467,22 +452,13 @@ void jump_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
     unwind_info_t info;
-    info.jump_target = ((env_addr_t) cptr->cloenv); // FIXME unnecessary
     info.jump_context = ((rid_t) cptr);
-
     tracer_state(context).adjust_stacks(info);
-
     debug_serializer(context).serialize_unwind(info);
     tracer_serializer(context).serialize_unwind(info);
 }
 
 void end_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
-//    if (((rid_t)cptr->cloenv) == tracer_state(context).curr_env_stack.back().environment)
-//        tracer_state(context).curr_env_stack.pop_back();
-//    else
-//        dyntrace_log_warning("Context trying to remove environment %d from stack, but %d is on top of stack.",
-//                            ((rid_t) cptr->cloenv), tracer_state(context).curr_env_stack.back());
-
     stack_event_t event = tracer_state(context).full_stack.back();
     if (event.type == stack_type::CONTEXT && ((rid_t) cptr) == event.context_id)
         tracer_state(context).full_stack.pop_back();

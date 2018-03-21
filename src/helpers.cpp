@@ -83,12 +83,8 @@ fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
 bool register_inserted_function(dyntrace_context_t *context, fn_id_t id) {
     auto &already_inserted_functions =
         tracer_state(context).already_inserted_functions;
-    //    bool exists = already_inserted_functions.count(id) > 0;
-    //    if (exists)
-    //        return false;
     auto result = already_inserted_functions.insert(id);
     return result.second;
-    //        return true
 }
 
 bool negative_promise_already_inserted(dyntrace_context_t *context,
@@ -113,12 +109,6 @@ call_id_t make_funcall_id(dyntrace_context_t *context, SEXP function) {
     return ++tracer_state(context).call_id_counter;
 }
 
-// XXX This is a remnant of the RDT_CALL_ID format
-// call_id_t make_funcall_id(SEXP fn_env) {
-//    assert(fn_env != NULL);
-//    return get_sexp_address(fn_env);
-//}
-
 // FIXME use general parent function by type instead.
 prom_id_t get_parent_promise(dyntrace_context_t *context) {
     for (std::vector<stack_event_t>::reverse_iterator iterator =
@@ -140,28 +130,9 @@ size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context) {
     return result;
 }
 
-//size_t get_no_of_ancestors_on_stack(dyntrace_context_t *context) {
-//    return tracer_state(context).full_stack.size();
-//}
-//
-//size_t get_no_of_ancestor_calls_on_stack(dyntrace_context_t *context) {
-//    return tracer_state(context).fun_stack.size();
-//}
-
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
-                         const string &argument) { // FIXME this is
-                                                   // overcomplicated. A simple
-                                                   // sequence should be enough,
-                                                   // i think.
-    // arg_key_t key = make_pair(call_id, argument);
-    // auto iterator = tracer_state(context).argument_ids).find(key);
-
-    // if (iterator != tracer_state(context).argument_ids).end()) {
-    //    return iterator->second;
-    //}
-
+                         const string &argument) {
     arg_id_t argument_id = ++tracer_state(context).argument_id_sequence;
-    // tracer_state(context).argument_ids[key] = argument_id;
     return argument_id;
 }
 

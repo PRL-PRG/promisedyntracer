@@ -215,7 +215,6 @@ struct prom_basic_info_t {
 };
 
 struct prom_info_t : prom_basic_info_t {
-    string name;
     call_id_t in_call_id;
     call_id_t from_call_id;
     lifestyle_type lifestyle;
@@ -225,10 +224,7 @@ struct prom_info_t : prom_basic_info_t {
 };
 
 struct unwind_info_t {
-    env_addr_t  jump_target;
     rid_t  jump_context;
-    // TODO do we need all of these?
-    vector<env_addr_t> unwound_environments;
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
     vector<rid_t> unwound_contexts;
@@ -263,7 +259,6 @@ prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise);
 prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
                           bool negative = false);
 call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
-//call_id_t get_funcall_id(dyntrace_context_t *context, SEXP);
 fn_id_t get_function_id(dyntrace_context_t *context, SEXP func,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);
@@ -347,14 +342,7 @@ string recursive_type_to_string(recursion_type);
 
 struct tracer_state_t {
     int clock_id; // Should be kept across Rdt calls (unless overwrite is true)
-    // Function call stack (may be useful)
-    // Whenever R makes a function call, we generate a function ID and store
-    // that ID on top of the stack
-    // so that we know where we are (e.g. when printing function ID at
-    // function_exit probe)
-    vector<call_stack_elem_t> fun_stack; // Should be reset on each tracer pass
     vector<stack_event_t> full_stack;    // Should be reset on each tracer pass
-    //vector<context_t> curr_env_stack;  // Should be reset on each tracer pass
 
     // Map from promise IDs to call IDs
     unordered_map<prom_id_t, call_id_t>
@@ -403,11 +391,9 @@ struct tracer_state_t {
     void start_pass(dyntrace_context_t *context, const SEXP prom);
     void finish_pass();
     // When doing longjump (exception thrown, etc.) this function gets the
-    // target environment
-    // and unwinds function call stack until that environment is on top. It also
-    // fixes indentation.
+    // target environment and unwinds function call stack until that
+    // environment is on top.
     void adjust_stacks(unwind_info_t &info);
-    //    void adjust_prom_stack(SEXP rho, vector<prom_id_t> & unwound_prom);
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();

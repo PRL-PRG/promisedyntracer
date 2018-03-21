@@ -394,10 +394,10 @@ void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
 
 void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref) {
-    type_gc_info_t info{tracer_state(context).get_gc_trigger_counter(),
-                        sexptype, length, bytes};
-    debug_serializer(context).serialize_vector_alloc(info);
-    tracer_serializer(context).serialize_vector_alloc(info);
+    //type_gc_info_t info{tracer_state(context).get_gc_trigger_counter(),
+    //                    sexptype, length, bytes};
+    //debug_serializer(context).serialize_vector_alloc(info);
+    //tracer_serializer(context).serialize_vector_alloc(info);
 }
 
 void new_environment(dyntrace_context_t *context, const SEXP rho) {

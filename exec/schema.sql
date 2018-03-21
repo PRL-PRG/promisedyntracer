@@ -127,7 +127,7 @@ create table if not exists promise_lifecycle (
     --[ relation ]-------------------------------------------------------------
     promise_id integer not null,
     --[ data ]-----------------------------------------------------------------
-    event_type integer not null, --- 0x0: creation, -- 0x1: lookup -- 0x2: unmark
+    event_type integer not null, --- 0: creation, -- 1: lookup/force -- 2: unmark --3: expression lookup
     gc_trigger_counter integer not null,
     --[ keys ]-----------------------------------------------------------------
     foreign key (promise_id) references promises,

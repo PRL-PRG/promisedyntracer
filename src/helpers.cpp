@@ -113,12 +113,6 @@ call_id_t make_funcall_id(dyntrace_context_t *context, SEXP function) {
     return ++tracer_state(context).call_id_counter;
 }
 
-// XXX This is a remnant of the RDT_CALL_ID format
-// call_id_t make_funcall_id(SEXP fn_env) {
-//    assert(fn_env != NULL);
-//    return get_sexp_address(fn_env);
-//}
-
 // FIXME use general parent function by type instead.
 prom_id_t get_parent_promise(dyntrace_context_t *context) {
     for (std::vector<stack_event_t>::reverse_iterator iterator =
@@ -140,28 +134,9 @@ size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context) {
     return result;
 }
 
-//size_t get_no_of_ancestors_on_stack(dyntrace_context_t *context) {
-//    return tracer_state(context).full_stack.size();
-//}
-//
-//size_t get_no_of_ancestor_calls_on_stack(dyntrace_context_t *context) {
-//    return tracer_state(context).fun_stack.size();
-//}
-
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
-                         const string &argument) { // FIXME this is
-                                                   // overcomplicated. A simple
-                                                   // sequence should be enough,
-                                                   // i think.
-    // arg_key_t key = make_pair(call_id, argument);
-    // auto iterator = tracer_state(context).argument_ids).find(key);
-
-    // if (iterator != tracer_state(context).argument_ids).end()) {
-    //    return iterator->second;
-    //}
-
+                         const string &argument) {
     arg_id_t argument_id = ++tracer_state(context).argument_id_sequence;
-    // tracer_state(context).argument_ids[key] = argument_id;
     return argument_id;
 }
 
@@ -183,15 +158,16 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
         */
         if (TYPEOF(argument_expression) == PROMSXP) {
             promise_expression = argument_expression;
-        }
-        else if (TYPEOF(argument_expression) == SYMSXP) {
-            lookup_result r = find_binding_in_environment(argument_expression, rho);
+        } else if (TYPEOF(argument_expression) == SYMSXP) {
+            lookup_result r =
+                find_binding_in_environment(argument_expression, rho);
             if (r.status == lookup_status::SUCCESS)
                 promise_expression = r.value;
             else {
-                // So... since this is a function, then I assume we shouldn't get
-                // any arguments that are active bindings or anything like that.
-                // If we do, then we should fail here and re-think our life choices.
+                // So... since this is a function, then I assume we shouldn't
+                // get any arguments that are active bindings or anything like
+                // that. If we do, then we should fail here and re-think our
+                // life choices.
                 string msg = lookup_status_to_string(r.status);
                 dyntrace_log_error("%s", msg.c_str());
             }
@@ -209,9 +185,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
                         get_argument_id(context, call_id, to_string(i++)),
                         get_promise_id(context, ddd_promise_expression),
                         default_argument, formal_parameter_position)); // ...
-                                            // argument
-                                            // without a
-                                            // name
+                    // argument without a name
                 } else {
                     string ddd_arg_name = get_name(ddd_argument_expression);
                     arguments.push_back(
@@ -233,8 +207,8 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
             default_argument = (PRENV(promise_expression) == rho);
 
             arguments.push_back(std::make_tuple(
-                arg_name, get_argument_id(context, call_id, arg_name),
-                prom_id, default_argument, formal_parameter_position));
+                arg_name, get_argument_id(context, call_id, arg_name), prom_id,
+                default_argument, formal_parameter_position));
         }
     }
 

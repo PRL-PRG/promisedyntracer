@@ -3,16 +3,6 @@
 #include <string>
 #include "State.h"
 
-/*std::string log_line(const builtin_info_t&);
-std::string log_line(const closure_info_t&);
-std::string log_line(const closure_info_t&);
-std::string log_line(const prom_basic_info_t&);
-std::string log_line(const prom_info_t&);
-std::string log_line(const unwind_info_t&);
-std::string log_line(const gc_info_t&);
-std::string log_line(const prom_gc_info_t&);
-std::string log_line(const type_gc_info_t&);*/
-
 class DebugSerializer {
 public:
     DebugSerializer(int verbose = 0);
@@ -60,13 +50,11 @@ private:
     std::string unindent();
 
     std::string log_line(const RCNTXT * cptr);
-
     std::string log_line(const stack_event_t &event);
     std::string log_line(const function_type &type);
     std::string log_line(const arglist_t &arguments);
     std::string log_line(const sexp_type &type);
     std::string log_line(const full_sexp_type &type);
-
     std::string log_line(const builtin_info_t&);
     std::string log_line(const closure_info_t&);
     std::string log_line(const prom_basic_info_t&);

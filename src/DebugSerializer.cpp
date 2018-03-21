@@ -101,7 +101,7 @@ string DebugSerializer::log_line(const builtin_info_t &info) {
          << " name=" << info.name
          << " fn_id=" << info.fn_id
          << " call_id=" << info.call_id
-         << " env_ptr=" << info.call_ptr
+         //<< " env_ptr=" << info.call_ptr
          << " parent=" << log_line(info.parent_on_stack)
          << " parent_call_id=" << info.parent_call_id
          << " parent_prom_id=" << info.in_prom_id
@@ -118,7 +118,7 @@ string DebugSerializer::log_line(const closure_info_t &info) {
          << " name=" << info.name
          << " fn_id=" << info.fn_id
          << " call_id=" << info.call_id
-         << " env_ptr=" << info.call_ptr
+         //<< " env_ptr=" << info.call_ptr
          << " args=" << log_line(info.arguments)
          << " parent=" << log_line(info.parent_on_stack)
          << " parent_call_id=" << info.parent_call_id
@@ -163,7 +163,8 @@ string DebugSerializer::log_line(const prom_info_t &info) {
 
 string DebugSerializer::log_line(const RCNTXT *cptr) {
     stringstream line;
-    line << "context " << ((rid_t) cptr); // << " cloenv="<< ((rid_t) cptr->cloenv);
+    line << "context " << ((rid_t) cptr);
+      // << " cloenv="<< ((rid_t) cptr->cloenv);
     return line.str();
 }
 
@@ -227,6 +228,7 @@ void DebugSerializer::indent() {
 
 string DebugSerializer::unindent() {
     stringstream line;
+// TODO make optional
 //    if (indentation > 10)
 //        line << "|[" << (indentation / 10) << "]  ";
 //    for (int i = 1; i < indentation%10; ++i)
@@ -237,39 +239,16 @@ string DebugSerializer::unindent() {
 }
 
 string DebugSerializer::print_stack() {
-    if (!has_state) {
+    if (!has_state)
         return "*";
-    }
 
     stringstream line;
-
-//    line << " \n    FUN=[[";
-    //int i = 0;
-   // int fun_threshold = state->fun_stack.size() - 10 - 1;
-    //fun_threshold = fun_threshold < 0 ? 0 : fun_threshold;
-    //if (state->fun_stack.size() > 10)
-        //line << "..";
-//    for (auto fun : state->fun_stack) {
-//        //if (i > fun_threshold)
-//            line << "("
-//                 << " F" << fun.call_id
-//                 << " cloenv="
-//                 << fun.enclosing_environment
-//                 << ")";
-//        //i++;
-//    }
-//    line << " ]] (" << state->fun_stack.size() << ")";
-
     line << " \n   [[";
     for (auto event : state->full_stack) {
-        //if (i > full_threshold)
-            line << " "
-                 << (event.type == stack_type::PROMISE ? "P" :
-                     (event.type == stack_type::CALL ? "F" : "C"))
-                 << event.call_id;
-                 //<< " cloenv="
-                 //<< event.enclosing_environment
-                 //<< ")";
+        line << " "
+             << (event.type == stack_type::PROMISE ? "P" :
+                (event.type == stack_type::CALL ? "F" : "C"))
+             << event.call_id;
     }
     line << " ]] (" << state->full_stack.size() << ")";
    return line.str();
@@ -277,14 +256,15 @@ string DebugSerializer::print_stack() {
 
 string DebugSerializer::prefix() {
     return "";
-    stringstream line;
-    if (indentation > 10)
-        line << "|[" << (indentation / 10) << "]  ";
-    for (int i = 1; i < indentation%10; ++i)
-        line << "│  ";
-    if (indentation > 0)
-        line << "├─ ";
-    return line.str();
+// TODO make optional
+//    stringstream line;
+//    if (indentation > 10)
+//        line << "|[" << (indentation / 10) << "]  ";
+//    for (int i = 1; i < indentation%10; ++i)
+//        line << "│  ";
+//    if (indentation > 0)
+//        line << "├─ ";
+//    return line.str();
 }
 
 void DebugSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
@@ -389,8 +369,7 @@ void DebugSerializer::serialize_begin_ctxt(const RCNTXT * cptr) {
 void DebugSerializer::serialize_unwind(const unwind_info_t &info) {
     if (!(verbose > 0)) return;
     cerr << prefix() << "=== " << log_line(info) << print_stack() << endl;
-    size_t unwindings = info.unwound_calls.size()
-                        + info.unwound_promises.size();
+    //size_t unwindings = info.unwound_calls.size() + info.unwound_promises.size() + info.unwound_contexts;
     //for (size_t i = 1; i <= unwindings; ++i) {
     //    cerr << unindent() << endl;
     //}

@@ -160,8 +160,6 @@ string get_definition_location_cpp(SEXP op) {
 
 const char *get_call(SEXP call) {
     return serialize_sexp(call);
-    // return CHAR(STRING_ELT(deparse1s(call), 0)); // we don't use this in the
-    // promise tracer.
 }
 
 int is_byte_compiled(SEXP op) {

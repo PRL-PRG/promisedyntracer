@@ -159,15 +159,6 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
     info.recursion = is_recursive(context, info.fn_id);
 
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::CALL
-        || thing_on_stack.call_id != info.call_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be closure with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.call_id, info.call_id);
-    }
-
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
@@ -225,15 +216,6 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     info.recursion = is_recursive(context, info.fn_id);
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
-
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::CALL
-        || thing_on_stack.call_id != info.call_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be built-in with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.call_id, info.call_id);
-    }
 
     stack_event_t parent_call = get_from_back_of_stack_by_type(tracer_state(context).full_stack, stack_type::CALL, 1);
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
@@ -296,15 +278,6 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
     info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
     info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
-
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::PROMISE
-        || thing_on_stack.promise_id != info.prom_id) {
-        dyntrace_log_warning("Object on stack was %s with id %d,"
-                                   " but was expected to be promise with id %d",
-                           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-                           thing_on_stack.promise_id, info.prom_id);
-    }
 
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);

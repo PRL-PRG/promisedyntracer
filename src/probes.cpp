@@ -173,6 +173,14 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     closure_info_t info =
         function_exit_get_info(context, call, op, rho, retval);
 
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::CALL
+        || thing_on_stack.call_id != info.call_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be closure with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.call_id, info.call_id);
+    }
     tracer_state(context).full_stack.pop_back();
 
     debug_serializer(context).serialize_function_exit(info);
@@ -236,7 +244,15 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
     builtin_info_t info =
         builtin_exit_get_info(context, call, op, rho, fn_type, retval);
 
-    tracer_state(context).full_stack.pop_back(); // TODO add check
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::CALL
+        || thing_on_stack.call_id != info.call_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be built-in with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.call_id, info.call_id);
+    }
+    tracer_state(context).full_stack.pop_back();
 
     debug_serializer(context).serialize_builtin_exit(info);
     tracer_serializer(context).serialize_builtin_exit(info);
@@ -295,6 +311,14 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
 void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     prom_info_t info = force_promise_exit_get_info(context, promise);
 
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::PROMISE
+        || thing_on_stack.promise_id != info.prom_id) {
+        dyntrace_log_warning("Object on stack was %s with id %d,"
+                                     " but was expected to be promise with id %d",
+                             thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+                             thing_on_stack.promise_id, info.prom_id);
+    }
     tracer_state(context).full_stack.pop_back();
 
     std::string ext_id = std::string("ext ") + std::to_string(info.prom_id);

@@ -3,7 +3,6 @@
 
 #include "sexptypes.h"
 #include "stdlibs.h"
-#include <map>
 
 using namespace std;
 
@@ -277,6 +276,7 @@ void get_stack_parent(T &info, vector<stack_event_t> &stack) {
 
     if (!stack.empty()) {
         stack_event_t stack_elem = stack.back();
+        // parent type
         info.parent_on_stack.type = stack_elem.type;
         switch (info.parent_on_stack.type) {
             case stack_type::PROMISE:

@@ -165,7 +165,7 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
     return argument_id;
 }
 
-arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op,
+arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
                         SEXP rho) {
     arglist_t arguments;
     int formal_parameter_position;
@@ -229,6 +229,7 @@ arglist_t get_arguments(dyntrace_context_t *context, call_id_t  call_id, SEXP op
             // value, we need to search the environment.
             string arg_name = get_name(argument_expression);
             prom_id_t prom_id = get_promise_id(context, promise_expression);
+
             default_argument = (PRENV(promise_expression) == rho);
 
             arguments.push_back(std::make_tuple(

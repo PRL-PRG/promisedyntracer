@@ -143,12 +143,18 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
                     const SEXP rho) {
     closure_info_t info = function_entry_get_info(context, call, op, rho);
 
+    stack_event_t stack_elem;
+    stack_elem.type = stack_type::CALL;
+    stack_elem.call_id = info.call_id;
+    stack_elem.enclosing_environment = info.call_ptr;
+    tracer_state(context).full_stack.push_back(stack_elem);
+
     // Push function ID on function stack
-    call_stack_elem_t e;
-    e.call_id = info.call_id;
-    e.function_id = info.fn_id;
-    e.type = info.fn_type;
-    e.enclosing_environment = info.call_ptr;
+//    call_stack_elem_t e;
+//    e.call_id = info.call_id;
+//    e.function_id = info.fn_id;
+//    e.type = info.fn_type;
+//    e.enclosing_environment = info.call_ptr;
 //    tracer_state(context).fun_stack.push_back(e);
     //tracer_state(context).curr_env_stack.push(info.call_ptr);
 
@@ -212,7 +218,6 @@ void builtin_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
         fn_type = function_type::TRUE_BUILTIN;
     print_exit_info(context, call, op, rho, fn_type, retval);
 }
-
 
 void specialsxp_entry(dyntrace_context_t *context, const SEXP call,
                       const SEXP op, const SEXP rho) {
@@ -389,8 +394,8 @@ void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
 
 void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref) {
-    type_gc_info_t info{tracer_state(context).gc_trigger_counter, sexptype,
-                        length, bytes};
+    type_gc_info_t info{tracer_state(context).get_gc_trigger_counter(),
+                        sexptype, length, bytes};
     debug_serializer(context).serialize_vector_alloc(info);
     tracer_serializer(context).serialize_vector_alloc(info);
 }

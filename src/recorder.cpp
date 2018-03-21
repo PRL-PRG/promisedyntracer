@@ -124,14 +124,8 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
     info.recursion = is_recursive(context, info.fn_id);
 
-    get_stack_parent(info, tracer_state(context).full_stack); // OK
+    get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-
-    stack_event_t stack_elem;
-    stack_elem.type = stack_type::CALL;
-    stack_elem.call_id = info.call_id;
-    stack_elem.enclosing_environment = info.call_ptr;
-    tracer_state(context).full_stack.push_back(stack_elem);
 
     return info;
 }
@@ -216,9 +210,9 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
     // it will be unique because real pointers are aligned (no odd addresses)
     // info.call_id = make_funcall_id(rho) | 1;
 
-    //info.recursion = is_recursive(context, info.fn_id);
+    info.recursion = is_recursive(context, info.fn_id);
 
-    get_stack_parent(info, tracer_state(context).full_stack); // OK
+    get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
 
     return info;

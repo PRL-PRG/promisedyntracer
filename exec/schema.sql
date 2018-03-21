@@ -129,6 +129,9 @@ create table if not exists promise_lifecycle (
     --[ data ]-----------------------------------------------------------------
     event_type integer not null, --- 0: creation, -- 1: lookup/force -- 2: unmark --3: expression lookup
     gc_trigger_counter integer not null,
+    builtin_counter integer not null,
+    special_counter integer not null,
+    closure_counter integer not null,
     --[ keys ]-----------------------------------------------------------------
     foreign key (promise_id) references promises,
     foreign key (gc_trigger_counter) references gc_trigger
@@ -147,7 +150,10 @@ create table if not exists gc_trigger (
     counter integer primary key,
     --[ data ]-----------------------------------------------------------------
     ncells real not null,
-    vcells real not null
+    vcells real not null,
+    builtin_calls integer not null,
+    special_calls integer not null,
+    closure_calls integer not null
 );
 
 create table if not exists type_distribution (

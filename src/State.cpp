@@ -40,8 +40,47 @@ tracer_state_t::tracer_state_t() {
     prom_neg_id_counter = 0;
     argument_id_sequence = 0;
     gc_trigger_counter = 0;
+    closure_counter = 0;
+    special_counter = 0;
+    builtin_counter = 0;
     environment_id_counter = 0;
     variable_id_counter = 0;
+}
+
+void tracer_state_t::increment_closure_counter() { closure_counter++; }
+
+void tracer_state_t::increment_special_counter() { special_counter++; }
+
+void tracer_state_t::increment_builtin_counter() { builtin_counter++; }
+
+void tracer_state_t::increment_gc_trigger_counter() { gc_trigger_counter++; }
+
+int tracer_state_t::get_closure_counter() const { return closure_counter; }
+
+int tracer_state_t::get_special_counter() const { return special_counter; }
+
+int tracer_state_t::get_builtin_counter() const { return builtin_counter; }
+
+int tracer_state_t::get_gc_trigger_counter() const {
+    return gc_trigger_counter;
+}
+
+int tracer_state_t::get_closure_calls() {
+    int calls = closure_counter;
+    closure_counter = 0;
+    return calls;
+}
+
+int tracer_state_t::get_special_calls() {
+    int calls = special_counter;
+    special_counter = 0;
+    return calls;
+}
+
+int tracer_state_t::get_builtin_calls() {
+    int calls = builtin_counter;
+    builtin_counter = 0;
+    return calls;
 }
 
 env_id_t tracer_state_t::to_environment_id(SEXP rho) {

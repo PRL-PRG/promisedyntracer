@@ -99,12 +99,15 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
 
         switch (r.status) {
             case lookup_status::SUCCESS: {
-                SEXP symbol_points_to = r.value;
-                if (symbol_points_to == R_UnboundValue
-                    || symbol_points_to == R_MissingArg)
+                if (r.value == R_UnboundValue || r.value == R_MissingArg)
                     return;
 
-                get_full_type_inner(symbol_points_to, r.environment, result, visited);
+                if (r.value == sexp && r.environment == rho) {
+                    result.push_back(sexp_type::OMEGA);
+                    return;
+                }
+
+                get_full_type_inner(r.value, r.environment, result, visited);
 
                 return;
             }

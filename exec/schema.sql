@@ -50,6 +50,7 @@ create table if not exists calls (
     in_prom_id integer not null, -- ID of promise in which the call is executed
     parent_on_stack_type integer not null, -- promise = 1, call = 2, none = 0
     parent_on_stack_id integer null,
+    call_expression text not null,
     --[ keys ]-----------------------------------------------------------------
     foreign key (function_id) references functions,
     foreign key (parent_id) references calls
@@ -72,7 +73,8 @@ create table if not exists promises (
     in_prom_id integer not null, -- ID of promise in which the promise is executed
     parent_on_stack_type integer not null, -- promise = 1, call = 2, none = 0
     parent_on_stack_id integer null,
-    promise_stack_depth integer not null
+    promise_stack_depth integer not null,
+    expression text not null
 );
 
 create table if not exists promise_associations (

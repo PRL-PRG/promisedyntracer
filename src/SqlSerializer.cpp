@@ -119,7 +119,7 @@ void SqlSerializer::prepare_statements() {
         compile("insert into functions values (?,?,?,?,?);");
 
     insert_call_statement =
-        compile("insert into calls values (?,?,?,?,?,?,?,?,?);");
+        compile("insert into calls values (?,?,?,?,?,?,?,?,?,?);");
 
     insert_call_return_statement =
         compile("insert into call_returns values (?,?);");
@@ -128,7 +128,7 @@ void SqlSerializer::prepare_statements() {
         compile("insert into arguments values (?,?,?,?,?);");
 
     insert_promise_statement =
-        compile("insert into promises values (?,?,?,?,?,?,?);");
+        compile("insert into promises values (?,?,?,?,?,?,?,?);");
 
     insert_promise_association_statement =
         compile("insert into promise_associations values (?,?,?);");
@@ -469,6 +469,8 @@ sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
             break;
     }
     sqlite3_bind_int(insert_promise_statement, 7, info.depth);
+    sqlite3_bind_text(insert_promise_statement, 8, info.expression.c_str(), -1,
+                      SQLITE_TRANSIENT);
     return insert_promise_statement;
 }
 
@@ -507,7 +509,8 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
                              (int)info.parent_on_stack.promise_id);
             break;
     }
-
+    sqlite3_bind_text(insert_call_statement, 10, info.call_expression.c_str(),
+                      -1, SQLITE_TRANSIENT);
     return insert_call_statement;
 }
 

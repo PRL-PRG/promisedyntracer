@@ -126,6 +126,7 @@ struct call_info_t {
 
     stack_event_t parent_on_stack;
     sexp_type return_value_type;
+    string call_expression;
 };
 
 class arglist_t {
@@ -210,6 +211,7 @@ struct prom_basic_info_t {
     prom_id_t in_prom_id;
     stack_event_t parent_on_stack;
     int depth;
+    std::string expression;
 };
 
 struct prom_info_t : prom_basic_info_t {

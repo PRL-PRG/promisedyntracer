@@ -162,6 +162,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     stack_event_t parent_call = get_from_back_of_stack_by_type(tracer_state(context).full_stack, stack_type::CALL, 1);
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
     info.recursion = is_recursive(context, info.fn_id);
+
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));

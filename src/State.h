@@ -215,7 +215,6 @@ struct prom_basic_info_t {
 };
 
 struct prom_info_t : prom_basic_info_t {
-    string name;
     call_id_t in_call_id;
     call_id_t from_call_id;
     lifestyle_type lifestyle;
@@ -225,9 +224,7 @@ struct prom_info_t : prom_basic_info_t {
 };
 
 struct unwind_info_t {
-    env_addr_t  jump_target;
     rid_t  jump_context;
-    vector<env_addr_t> unwound_environments;
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
     vector<rid_t> unwound_contexts;

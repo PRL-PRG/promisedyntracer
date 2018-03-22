@@ -83,12 +83,8 @@ fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
 bool register_inserted_function(dyntrace_context_t *context, fn_id_t id) {
     auto &already_inserted_functions =
         tracer_state(context).already_inserted_functions;
-    //    bool exists = already_inserted_functions.count(id) > 0;
-    //    if (exists)
-    //        return false;
     auto result = already_inserted_functions.insert(id);
     return result.second;
-    //        return true
 }
 
 bool negative_promise_already_inserted(dyntrace_context_t *context,

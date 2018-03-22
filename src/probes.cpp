@@ -166,6 +166,9 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
             fresh_promises.erase(it);
         }
     }
+
+    tracer_serializer(context).serialize_interference_information(
+        std::string("clb ") + std::to_string(info.call_id));
 }
 
 void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
@@ -186,6 +189,8 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     debug_serializer(context).serialize_function_exit(info);
     tracer_serializer(context).serialize_function_exit(info);
 
+    tracer_serializer(context).serialize_interference_information(
+        std::string("cle ") + std::to_string(info.call_id));
 }
 
 void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
@@ -236,6 +241,9 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     debug_serializer(context).serialize_builtin_entry(info);
     tracer_serializer(context).serialize_builtin_entry(context, info);
 
+    std::string command = info.fn_type == function_type::SPECIAL ? "spb " : "bub ";
+    tracer_serializer(context).serialize_interference_information(
+        command + std::to_string(info.call_id));
 }
 
 void print_exit_info(dyntrace_context_t *context, const SEXP call,
@@ -257,6 +265,9 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
     debug_serializer(context).serialize_builtin_exit(info);
     tracer_serializer(context).serialize_builtin_exit(info);
 
+    std::string command = info.fn_type == function_type::SPECIAL ? "spe " : "bue ";
+    tracer_serializer(context).serialize_interference_information(
+        command + std::to_string(info.call_id));
 }
 
 void promise_created(dyntrace_context_t *context, const SEXP prom,

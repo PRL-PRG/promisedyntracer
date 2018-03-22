@@ -203,7 +203,7 @@ string DebugSerializer::log_line(const gc_info_t &info) {
     return line.str();
 }
 
-string DebugSerializer::log_line(const prom_gc_info_t &info) {
+string DebugSerializer::log_line(const prom_lifecycle_info_t &info) {
     stringstream line;
     line << "prom_gc"
          << " promise_id=" << info.promise_id
@@ -267,7 +267,7 @@ string DebugSerializer::prefix() {
 //    return line.str();
 }
 
-void DebugSerializer::serialize_promise_lifecycle(const prom_gc_info_t &info) {
+void DebugSerializer::serialize_promise_lifecycle(const prom_lifecycle_info_t &info) {
     if (!(verbose > 1)) return;
     cerr << prefix() << log_line(info) << print_stack() << endl;
 }

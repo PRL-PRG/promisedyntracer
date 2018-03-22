@@ -20,7 +20,7 @@ public:
     void serialize_promise_created(const prom_basic_info_t &);
     void serialize_promise_lookup(const prom_info_t &);
     void serialize_promise_expression_lookup(const prom_info_t &);
-    void serialize_promise_lifecycle(const prom_gc_info_t &);
+    void serialize_promise_lifecycle(const prom_lifecycle_info_t &);
     void serialize_promise_argument_type(const prom_id_t prom_id,
                                          bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &);
@@ -61,7 +61,7 @@ private:
     std::string log_line(const prom_info_t&);
     std::string log_line(const unwind_info_t&);
     std::string log_line(const gc_info_t&);
-    std::string log_line(const prom_gc_info_t&);
+    std::string log_line(const prom_lifecycle_info_t&);
     std::string log_line(const type_gc_info_t&);
 
     std::string print_stack();

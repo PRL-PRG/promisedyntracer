@@ -432,9 +432,29 @@ void SqlSerializer::serialize_variable_action(prom_id_t promise_id,
     execute(insert_variable_action_statement);
 }
 
-void SqlSerializer::serialize_interference_information(
-    const std::string &info) {
-    trace << info << std::endl;
+void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1) {
+
+    trace << opcode << " " << id_1 << std::endl;
+}
+
+void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
+                                    const int id_2) {
+
+    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+}
+
+void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
+                                    const int id_2,
+                                    const std::string sexptype) {
+
+    trace << opcode << " " << id_1 << " " << id_2 << " " << sexptype
+          << std::endl;
+}
+
+void SqlSerializer::serialize_trace(const std::string &opcode,
+                                    const fn_id_t &id_1, const int id_2,
+                                    const int id_3) {
+    trace << opcode << " " << id_1 << " " << id_2 << " " << id_3 << std::endl;
 }
 
 sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
@@ -589,9 +609,9 @@ sqlite3_stmt *SqlSerializer::populate_insert_argument_statement(
     sqlite3_bind_int(insert_argument_statement, 1, get<1>(argument));
     sqlite3_bind_text(insert_argument_statement, 2, get<0>(argument).c_str(),
                       -1, SQLITE_TRANSIENT);
-    sqlite3_bind_int(
-        insert_argument_statement, 3,
-        actual_parameter_position); // FIXME broken or unnecessary (pick one)
+    sqlite3_bind_int(insert_argument_statement, 3,
+                     actual_parameter_position); // FIXME broken or
+                                                 // unnecessary (pick one)
     sqlite3_bind_int(insert_argument_statement, 4, get<4>(argument));
     sqlite3_bind_int(insert_argument_statement, 5, info.call_id);
     return insert_argument_statement;

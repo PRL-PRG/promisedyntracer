@@ -7,13 +7,32 @@
 extern size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE;
 extern size_t SQLITE3_EXPANDED_SQL_BUFFER_SIZE;
 
+extern const std::string OPCODE_CLOSURE_BEGIN;
+extern const std::string OPCODE_CLOSURE_FINISH;
+extern const std::string OPCODE_BUILTIN_BEGIN;
+extern const std::string OPCODE_BUILTIN_FINISH;
+extern const std::string OPCODE_SPECIAL_BEGIN;
+extern const std::string OPCODE_SPECIAL_FINISH;
+extern const std::string OPCODE_FUNCTION_CONTEXT_JUMP;
+extern const std::string OPCODE_PROMISE_CREATE;
+extern const std::string OPCODE_PROMISE_BEGIN;
+extern const std::string OPCODE_PROMISE_FINISH;
+extern const std::string OPCODE_PROMISE_VALUE;
+extern const std::string OPCODE_PROMISE_CONTEXT_JUMP;
+extern const std::string OPCODE_PROMISE_EXPRESSION;
+extern const std::string OPCODE_ENVIRONMENT_CREATE;
+extern const std::string OPCODE_ENVIRONMENT_ASSIGN;
+extern const std::string OPCODE_ENVIRONMENT_REMOVE;
+extern const std::string OPCODE_ENVIRONMENT_DEFINE;
+extern const std::string OPCODE_ENVIRONMENT_LOOKUP;
+
 int get_file_size(std::ifstream &file);
 
 std::string readfile(std::ifstream &file);
 
 bool file_exists(const std::string &filepath);
 
-char * copy_string(char * destination, const char * source, size_t buffer_size);
+char *copy_string(char *destination, const char *source, size_t buffer_size);
 
 bool sexp_to_bool(SEXP value);
 
@@ -35,6 +54,6 @@ const char *get_call(SEXP call);
 int is_byte_compiled(SEXP op);
 // char *to_string(SEXP var);
 std::string get_expression(SEXP e);
-const char * remove_null(const char * value);
+const char *remove_null(const char *value);
 std::string clock_ticks_to_string(clock_t ticks);
 #endif /* __UTILITIES_H__ */

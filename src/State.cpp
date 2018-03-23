@@ -10,28 +10,6 @@ void tracer_state_t::finish_pass() {
     promise_origin.clear();
 }
 
-void tracer_state_t::adjust_stacks(unwind_info_t &info) {
-    while (!full_stack.empty()) {
-        stack_event_t event_from_fullstack = (full_stack.back());
-
-        //if (info.jump_target == event_from_fullstack.enclosing_environment)
-        //    break;
-        if (event_from_fullstack.type == stack_type::CONTEXT)
-            if (info.jump_context == event_from_fullstack.context_id)
-                break;
-            else
-                info.unwound_contexts.push_back(event_from_fullstack.context_id);
-        else if (event_from_fullstack.type == stack_type::CALL)
-            info.unwound_calls.push_back(event_from_fullstack.call_id);
-        else if (event_from_fullstack.type == stack_type::PROMISE)
-            info.unwound_promises.push_back(event_from_fullstack.promise_id);
-        else /* if (event_from_fullstack.type == stack_type::NONE) */
-            dyntrace_log_error("NONE object found on tracer's full stack.");
-
-        full_stack.pop_back();
-    }
-}
-
 tracer_state_t::tracer_state_t() {
     clock_id = 0;
     call_id_counter = 0;

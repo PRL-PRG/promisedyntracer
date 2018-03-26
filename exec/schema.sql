@@ -74,7 +74,8 @@ create table if not exists promises (
     parent_on_stack_type integer not null, -- promise = 1, call = 2, none = 0
     parent_on_stack_id integer null,
     promise_stack_depth integer not null,
-    expression text not null
+    expression text not null,
+    expression_id text not null
 );
 
 create table if not exists promise_associations (

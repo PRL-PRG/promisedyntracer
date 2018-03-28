@@ -41,7 +41,13 @@ class SqlSerializer {
                             env_id_t environment_id);
     void serialize_variable_action(prom_id_t promise_id, var_id_t variable_id,
                                    const std::string &action);
-    void serialize_interference_information(const std::string &information);
+    void serialize_trace(const std::string &opcode, const int id_1);
+    void serialize_trace(const std::string &opcode, const int id_1,
+                         const int id_2);
+    void serialize_trace(const std::string &opcode, const int id_1,
+                         const int id_2, const std::string sexptype);
+    void serialize_trace(const std::string &opcode, const fn_id_t &id_1,
+                         const int id_2, const int id_3);
 
   private:
     sqlite3_stmt *compile(const char *statement);

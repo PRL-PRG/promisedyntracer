@@ -391,10 +391,6 @@ struct tracer_state_t {
         environments;
     void start_pass(dyntrace_context_t *context, const SEXP prom);
     void finish_pass();
-    // When doing longjump (exception thrown, etc.) this function gets the
-    // target environment and unwinds function call stack until that
-    // environment is on top.
-    void adjust_stacks(unwind_info_t &info);
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();

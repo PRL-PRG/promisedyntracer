@@ -101,6 +101,7 @@ class SqlSerializer {
     sqlite3_stmt *insert_environment_statement = NULL;
     sqlite3_stmt *insert_variable_statement = NULL;
     sqlite3_stmt *insert_variable_action_statement = NULL;
+    sqlite3_stmt *insert_jump_statement = NULL;
 };
 
 #endif /* __SQL_SERIALIZER_H__ */

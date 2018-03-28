@@ -225,6 +225,7 @@ struct prom_info_t : prom_basic_info_t {
 
 struct unwind_info_t {
     rid_t  jump_context;
+    int restart;
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
     vector<rid_t> unwound_contexts;

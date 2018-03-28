@@ -448,11 +448,10 @@ void begin_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
     debug_serializer(context).serialize_begin_ctxt(cptr);
 }
 
-void jump_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
-    vector<call_id_t> unwound_calls;
-    vector<prom_id_t> unwound_promises;
+void jump_ctxt(dyntrace_context_t *context, const RCNTXT *cptr, const SEXP return_value, int restart) {
     unwind_info_t info;
     info.jump_context = ((rid_t) cptr);
+    info.restart = restart;
     tracer_state(context).adjust_stacks(info);
     debug_serializer(context).serialize_unwind(info);
     tracer_serializer(context).serialize_unwind(info);

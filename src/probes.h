@@ -43,7 +43,7 @@ void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref);
 void new_environment(dyntrace_context_t *context, const SEXP rho);
 void begin_ctxt(dyntrace_context_t *context, const RCNTXT *);
-void jump_ctxt(dyntrace_context_t *context,  const RCNTXT *);
+void jump_ctxt(dyntrace_context_t *context,  const RCNTXT *, SEXP return_value, int restart);
 void end_ctxt(dyntrace_context_t *context, const RCNTXT *);
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho);

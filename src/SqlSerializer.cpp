@@ -110,6 +110,7 @@ void SqlSerializer::finalize_statements() {
     sqlite3_finalize(insert_environment_statement);
     sqlite3_finalize(insert_variable_statement);
     sqlite3_finalize(insert_variable_action_statement);
+    sqlite3_finalize(insert_jump_statement);
 }
 
 void SqlSerializer::prepare_statements() {
@@ -160,6 +161,9 @@ void SqlSerializer::prepare_statements() {
 
     insert_variable_action_statement =
         compile("insert into variable_actions values (?,?,?);");
+
+    insert_jump_statement =
+            compile("insert into jumps values (?,?,?,?);");
 }
 
 void SqlSerializer::serialize_start_trace() {
@@ -405,8 +409,14 @@ void SqlSerializer::serialize_new_environment(const env_id_t env_id,
 }
 
 void SqlSerializer::serialize_unwind(const unwind_info_t &info) {
+    sqlite3_bind_int(insert_jump_statement, 1, info.restart);
+    sqlite3_bind_int(insert_jump_statement, 2, info.unwound_contexts.size());
+    sqlite3_bind_int(insert_jump_statement, 3, info.unwound_calls.size());
+    sqlite3_bind_int(insert_jump_statement, 4, info.unwound_promises.size());
+    execute(insert_jump_statement);
+
     size_t unwindings =
-        info.unwound_calls.size() + info.unwound_promises.size();
+            info.unwound_calls.size() + info.unwound_promises.size();
     for (size_t i = 1; i <= unwindings; ++i) {
         unindent();
     }

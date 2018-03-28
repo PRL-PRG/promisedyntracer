@@ -195,3 +195,11 @@ create table if not exists variable_actions (
     foreign key (promise_id) references promises,
     foreign key (variable_id) references variables
 );
+
+create table if not exists jumps (
+    --[ data ] ----------------------------------------------------------------
+    restart integer not null, -- 0: false, 1: true
+    context_depth integer not null,
+    call_depth integer not null,
+    promise_depth integer not null
+);

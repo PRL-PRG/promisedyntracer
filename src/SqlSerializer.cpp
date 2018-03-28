@@ -129,7 +129,7 @@ void SqlSerializer::prepare_statements() {
         compile("insert into arguments values (?,?,?,?,?);");
 
     insert_promise_statement =
-        compile("insert into promises values (?,?,?,?,?,?,?,?);");
+        compile("insert into promises values (?,?,?,?,?,?,?,?,?);");
 
     insert_promise_association_statement =
         compile("insert into promise_associations values (?,?,?);");
@@ -448,17 +448,22 @@ void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1) {
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
+                                    const std::string id_2) {
+    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+}
+
+void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                     const int id_2) {
 
     trace << opcode << " " << id_1 << " " << id_2 << std::endl;
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
-                                    const int id_2,
+                                    const int id_2, const std::string &symbol,
                                     const std::string sexptype) {
 
-    trace << opcode << " " << id_1 << " " << id_2 << " " << sexptype
-          << std::endl;
+    trace << opcode << " " << id_1 << " " << id_2 << " " << symbol << " "
+          << sexptype << std::endl;
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode,
@@ -501,6 +506,8 @@ sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
     sqlite3_bind_int(insert_promise_statement, 7, info.depth);
     sqlite3_bind_text(insert_promise_statement, 8, info.expression.c_str(), -1,
                       SQLITE_TRANSIENT);
+    sqlite3_bind_text(insert_promise_statement, 9, info.expression_id.c_str(),
+                      -1, SQLITE_TRANSIENT);
     return insert_promise_statement;
 }
 

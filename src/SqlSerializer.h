@@ -43,9 +43,12 @@ class SqlSerializer {
                                    const std::string &action);
     void serialize_trace(const std::string &opcode, const int id_1);
     void serialize_trace(const std::string &opcode, const int id_1,
+                         const std::string id_2);
+    void serialize_trace(const std::string &opcode, const int id_1,
                          const int id_2);
     void serialize_trace(const std::string &opcode, const int id_1,
-                         const int id_2, const std::string sexptype);
+                         const int id_2, const std::string &symbol,
+                         const std::string sexptype);
     void serialize_trace(const std::string &opcode, const fn_id_t &id_1,
                          const int id_2, const int id_3);
 

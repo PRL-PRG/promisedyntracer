@@ -333,8 +333,8 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
 
     std::string ent_id = std::string("ent ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(ent_id);
-    tracer_serializer(context).serialize_trace(OPCODE_PROMISE_BEGIN,
-                                               info.prom_id);
+    tracer_serializer(context).serialize_trace(
+        OPCODE_PROMISE_BEGIN, info.prom_id, info.expression_id);
     debug_serializer(context).serialize_force_promise_entry(info);
     tracer_serializer(context).serialize_force_promise_entry(
         context, info, tracer_state(context).clock_id);
@@ -571,7 +571,7 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
     debug_serializer(context).serialize_interference_information(action_id);
     tracer_serializer(context).serialize_trace(
         action, tracer_state(context).to_environment_id(rho), variable_id,
-        sexp_type_to_string((sexp_type)TYPEOF(value)));
+        CHAR(PRINTNAME(symbol)), sexp_type_to_string((sexp_type)TYPEOF(value)));
 }
 
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,

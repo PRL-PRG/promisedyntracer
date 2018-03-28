@@ -212,6 +212,7 @@ struct prom_basic_info_t {
     stack_event_t parent_on_stack;
     int depth;
     std::string expression;
+    std::string expression_id;
 };
 
 struct prom_info_t : prom_basic_info_t {
@@ -224,7 +225,7 @@ struct prom_info_t : prom_basic_info_t {
 };
 
 struct unwind_info_t {
-    rid_t  jump_context;
+    rid_t jump_context;
     vector<call_id_t> unwound_calls;
     vector<prom_id_t> unwound_promises;
     vector<rid_t> unwound_contexts;
@@ -302,10 +303,10 @@ template <typename T>
 void get_stack_parent2(T &info, vector<stack_event_t> &stack) {
     // put the body here
     static_assert(std::is_base_of<prom_basic_info_t, T>::value ||
-                  std::is_base_of<prom_info_t, T>::value ||
-                  std::is_base_of<call_info_t, T>::value,
+                      std::is_base_of<prom_info_t, T>::value ||
+                      std::is_base_of<call_info_t, T>::value,
                   "get_stack_parent is only applicable for arguments of types: "
-                          "prom_basic_info_t,  prom_info_t, or call_info_t.");
+                  "prom_basic_info_t,  prom_info_t, or call_info_t.");
 
     if (stack.size() > 1) {
         stack_event_t stack_elem = stack.rbegin()[1];
@@ -326,8 +327,10 @@ void get_stack_parent2(T &info, vector<stack_event_t> &stack) {
     }
 }
 
-stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack, stack_type type);
-stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack, stack_type type, int rposition);
+stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack,
+                                        stack_type type);
+stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack,
+                                             stack_type type, int rposition);
 
 prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
@@ -342,7 +345,7 @@ string recursive_type_to_string(recursion_type);
 
 struct tracer_state_t {
     int clock_id; // Should be kept across Rdt calls (unless overwrite is true)
-    vector<stack_event_t> full_stack;    // Should be reset on each tracer pass
+    vector<stack_event_t> full_stack; // Should be reset on each tracer pass
 
     // Map from promise IDs to call IDs
     unordered_map<prom_id_t, call_id_t>

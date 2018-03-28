@@ -249,6 +249,7 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
     dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
     info.expression = get_expression(PRCODE(promise));
     dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
+    info.expression_id = compute_hash(info.expression.c_str());
     return info;
 }
 
@@ -269,7 +270,12 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
-
+    void (*probe)(dyntrace_context_t *, SEXP);
+    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.expression = get_expression(PRCODE(promise));
+    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
+    info.expression_id = compute_hash(info.expression.c_str());
     return info;
 }
 

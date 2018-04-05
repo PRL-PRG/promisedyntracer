@@ -135,6 +135,7 @@ create table if not exists promise_lifecycle (
     builtin_counter integer not null,
     special_counter integer not null,
     closure_counter integer not null,
+    inside_force integer not null, --- 0: outside -- 1: inside -- -1: NA
     --[ keys ]-----------------------------------------------------------------
     foreign key (promise_id) references promises,
     foreign key (gc_trigger_counter) references gc_trigger

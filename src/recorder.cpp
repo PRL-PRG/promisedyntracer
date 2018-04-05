@@ -109,7 +109,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(1);
-    void (*probe)(dyntrace_context_t *, SEXP);
+    void (*probe)(dyntrace_context_t *, SEXP, int);
     probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
     dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
     info.call_expression = get_expression(call);
@@ -244,7 +244,7 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
-    void (*probe)(dyntrace_context_t *, SEXP);
+    void (*probe)(dyntrace_context_t *, SEXP, int);
     probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
     dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
     info.expression = get_expression(PRCODE(promise));
@@ -270,7 +270,7 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
-    void (*probe)(dyntrace_context_t *, SEXP);
+    void (*probe)(dyntrace_context_t *, SEXP, int);
     probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
     dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
     info.expression = get_expression(PRCODE(promise));

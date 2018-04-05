@@ -142,7 +142,7 @@ void SqlSerializer::prepare_statements() {
         compile("insert into promise_returns values (?,?,?);");
 
     insert_promise_lifecycle_statement =
-        compile("insert into promise_lifecycle values (?,?,?,?,?,?);");
+        compile("insert into promise_lifecycle values (?,?,?,?,?,?,?);");
 
     insert_promise_argument_type_statement =
         compile("insert into promise_argument_types values (?,?);");
@@ -236,7 +236,7 @@ void SqlSerializer::execute(sqlite3_stmt *statement) {
 }
 
 void SqlSerializer::serialize_promise_lifecycle(
-    const prom_lifecycle_info_t &info) {
+    const prom_lifecycle_info_t &info, int in_force) {
     sqlite3_bind_int(insert_promise_lifecycle_statement, 1, info.promise_id);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 2, info.event);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 3,
@@ -247,6 +247,8 @@ void SqlSerializer::serialize_promise_lifecycle(
                      info.special_counter);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 6,
                      info.closure_counter);
+    sqlite3_bind_int(insert_promise_lifecycle_statement, 7,
+                     in_force);
 
     execute(insert_promise_lifecycle_statement);
 }

@@ -33,8 +33,9 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
                      const SEXP rho);
 void promise_force_entry(dyntrace_context_t *context, const SEXP promise);
 void promise_force_exit(dyntrace_context_t *context, const SEXP promise);
-void promise_value_lookup(dyntrace_context_t *context, const SEXP promise);
-void promise_expression_lookup(dyntrace_context_t *context, const SEXP promise);
+void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int in_force);
+void promise_expression_lookup(dyntrace_context_t *context, const SEXP promise, int in_force);
+void promise_environment_lookup(dyntrace_context_t *context, const SEXP promise, int in_force);
 void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise);
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed);
 void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,

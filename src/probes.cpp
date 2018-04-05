@@ -14,6 +14,7 @@ const std::string OPCODE_PROMISE_FINISH = "prf";
 const std::string OPCODE_PROMISE_VALUE = "prv";
 const std::string OPCODE_PROMISE_CONTEXT_JUMP = "prj";
 const std::string OPCODE_PROMISE_EXPRESSION = "pre";
+const std::string OPCODE_PROMISE_ENVIRONMENT = "pen";
 const std::string OPCODE_ENVIRONMENT_CREATE = "enc";
 const std::string OPCODE_ENVIRONMENT_ASSIGN = "ena";
 const std::string OPCODE_ENVIRONMENT_REMOVE = "enr";
@@ -307,8 +308,8 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
             tracer_state(context).get_builtin_counter(),
             tracer_state(context).get_special_counter(),
             tracer_state(context).get_closure_counter()};
-        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
-        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
 
     std::string cre_id = std::string("cre ") + std::to_string(info.prom_id);
@@ -349,8 +350,8 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
             tracer_state(context).get_builtin_counter(),
             tracer_state(context).get_special_counter(),
             tracer_state(context).get_closure_counter()};
-        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
-        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
 }
 
@@ -378,7 +379,7 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     tracer_state(context).clock_id++;
 }
 
-void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
+void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int in_force) {
     prom_info_t info = promise_lookup_get_info(context, promise);
     std::string val_id = std::string("val ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(val_id);
@@ -391,12 +392,12 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise) {
         tracer_state(context).clock_id++;
         prom_lifecycle_info_t prom_gc_info{
             info.prom_id, 1, tracer_state(context).gc_trigger_counter};
-        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
-        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
     }
 }
 
-void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom) {
+void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom, int in_force) {
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_EXPRESSION,
@@ -411,8 +412,29 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom) {
             tracer_state(context).get_builtin_counter(),
             tracer_state(context).get_special_counter(),
             tracer_state(context).get_closure_counter()};
-        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
-        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+    }
+}
+
+void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, int in_force) {
+    prom_info_t info = promise_expression_lookup_get_info(context, prom);
+    if (info.prom_id >= 0) {
+        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+                                                   info.prom_id);
+        // tracer_serializer(context).serialize_promise_environment_lookup(
+        //         info, tracer_state(context).clock_id); // FIXME
+        tracer_state(context).clock_id++;
+        prom_lifecycle_info_t prom_gc_info; // FIXME
+        // = {
+        //        info.prom_id,
+        //        3,
+        //        tracer_state(context).get_gc_trigger_counter(),
+        //        tracer_state(context).get_builtin_counter(),
+        //        tracer_state(context).get_special_counter(),
+        //        tracer_state(context).get_closure_counter()};
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
     }
 }
 
@@ -429,8 +451,8 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
             tracer_state(context).get_builtin_counter(),
             tracer_state(context).get_special_counter(),
             tracer_state(context).get_closure_counter()};
-        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info);
-        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info);
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
 
     auto iter = promise_origin.find(id);

@@ -203,11 +203,12 @@ string DebugSerializer::log_line(const gc_info_t &info) {
     return line.str();
 }
 
-string DebugSerializer::log_line(const prom_lifecycle_info_t &info) {
+string DebugSerializer::log_line(const prom_lifecycle_info_t &info, int in_force) {
     stringstream line;
-    line << "prom_gc"
+    line << "prom_lifecycle"
          << " promise_id=" << info.promise_id
          << " event=" << info.event
+         << " in_force=" << in_force
          << " gc_trigger_counter=" << info.gc_trigger_counter;
     return line.str();
 }
@@ -267,9 +268,9 @@ string DebugSerializer::prefix() {
 //    return line.str();
 }
 
-void DebugSerializer::serialize_promise_lifecycle(const prom_lifecycle_info_t &info) {
+void DebugSerializer::serialize_promise_lifecycle(const prom_lifecycle_info_t &info, int in_force) {
     if (!(verbose > 1)) return;
-    cerr << prefix() << log_line(info) << print_stack() << endl;
+    cerr << prefix() << log_line(info, in_force) << print_stack() << endl;
 }
 
 void DebugSerializer::serialize_gc_exit(const gc_info_t &info) {

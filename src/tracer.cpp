@@ -42,6 +42,9 @@ SEXP create_dyntracer(SEXP database, SEXP schema, SEXP truncate, SEXP verbose) {
     dyntracer->probe_promise_value_lookup = promise_value_lookup;
     dyntracer->probe_promise_expression_lookup = promise_expression_lookup;
     dyntracer->probe_promise_environment_lookup = promise_environment_lookup;
+    dyntracer->probe_promise_value_set = promise_value_set;
+    dyntracer->probe_promise_expression_set = promise_expression_set;
+    dyntracer->probe_promise_environment_set = promise_environment_set;
     dyntracer->probe_vector_alloc = vector_alloc;
     dyntracer->probe_gc_entry = gc_entry;
     dyntracer->probe_gc_exit = gc_exit;

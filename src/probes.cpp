@@ -422,17 +422,97 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, in
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
-        // tracer_serializer(context).serialize_promise_environment_lookup(
+        //tracer_serializer(context).serialize_promise_environment_lookup(
         //         info, tracer_state(context).clock_id); // FIXME
         tracer_state(context).clock_id++;
-        prom_lifecycle_info_t prom_gc_info; // FIXME
-        // = {
-        //        info.prom_id,
-        //        3,
-        //        tracer_state(context).get_gc_trigger_counter(),
-        //        tracer_state(context).get_builtin_counter(),
-        //        tracer_state(context).get_special_counter(),
-        //        tracer_state(context).get_closure_counter()};
+        prom_lifecycle_info_t prom_gc_info = {
+                info.prom_id,
+                4,
+                tracer_state(context).get_gc_trigger_counter(),
+                tracer_state(context).get_builtin_counter(),
+                tracer_state(context).get_special_counter(),
+                tracer_state(context).get_closure_counter()};
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+    }
+}
+
+//void promise_value_lookup(dyntrace_context_t *context, const SEXP prom, int in_force) {
+//    prom_info_t info = promise_expression_lookup_get_info(context, prom);
+//    if (info.prom_id >= 0) {
+//        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+//                                                   info.prom_id);
+//        //tracer_serializer(context).serialize_promise_environment_lookup(
+//        //         info, tracer_state(context).clock_id); // FIXME
+//        tracer_state(context).clock_id++;
+//        prom_lifecycle_info_t prom_gc_info = {
+//                info.prom_id,
+//                5,
+//                tracer_state(context).get_gc_trigger_counter(),
+//                tracer_state(context).get_builtin_counter(),
+//                tracer_state(context).get_special_counter(),
+//                tracer_state(context).get_closure_counter()};
+//        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+//        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+//    }
+//}
+
+
+void promise_expression_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+    prom_info_t info = promise_expression_lookup_get_info(context, prom);
+    if (info.prom_id >= 0) {
+        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+                                                   info.prom_id);
+        //tracer_serializer(context).serialize_promise_environment_lookup(
+        //         info, tracer_state(context).clock_id); // FIXME
+        tracer_state(context).clock_id++;
+        prom_lifecycle_info_t prom_gc_info = {
+                info.prom_id,
+                6,
+                tracer_state(context).get_gc_trigger_counter(),
+                tracer_state(context).get_builtin_counter(),
+                tracer_state(context).get_special_counter(),
+                tracer_state(context).get_closure_counter()};
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+    }
+}
+
+void promise_value_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+    prom_info_t info = promise_expression_lookup_get_info(context, prom);
+    if (info.prom_id >= 0) {
+        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+                                                   info.prom_id);
+        //tracer_serializer(context).serialize_promise_environment_lookup(
+        //         info, tracer_state(context).clock_id); // FIXME
+        tracer_state(context).clock_id++;
+        prom_lifecycle_info_t prom_gc_info = {
+                info.prom_id,
+                8,
+                tracer_state(context).get_gc_trigger_counter(),
+                tracer_state(context).get_builtin_counter(),
+                tracer_state(context).get_special_counter(),
+                tracer_state(context).get_closure_counter()};
+        debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+        tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+    }
+}
+
+void promise_environment_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+    prom_info_t info = promise_expression_lookup_get_info(context, prom);
+    if (info.prom_id >= 0) {
+        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+                                                   info.prom_id);
+        //tracer_serializer(context).serialize_promise_environment_lookup(
+        //         info, tracer_state(context).clock_id); // FIXME
+        tracer_state(context).clock_id++;
+        prom_lifecycle_info_t prom_gc_info = {
+                info.prom_id,
+                7,
+                tracer_state(context).get_gc_trigger_counter(),
+                tracer_state(context).get_builtin_counter(),
+                tracer_state(context).get_special_counter(),
+                tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
     }

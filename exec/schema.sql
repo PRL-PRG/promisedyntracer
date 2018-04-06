@@ -130,7 +130,7 @@ create table if not exists promise_lifecycle (
     --[ relation ]-------------------------------------------------------------
     promise_id integer not null,
     --[ data ]-----------------------------------------------------------------
-    event_type integer not null, --- 0: creation, -- 1: lookup/force -- 2: unmark --3: expression lookup --4: environment lookup --6: expression set --7: environment set --8: value set
+    event_type integer not null, --- 0: creation, -- 1: force -- 2: unmark --3: expression lookup --4: environment lookup --5: value lookup --6: expression set --7: environment set --8: value set
     gc_trigger_counter integer not null,
     builtin_counter integer not null,
     special_counter integer not null,

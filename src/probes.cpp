@@ -391,7 +391,7 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int i
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
         prom_lifecycle_info_t prom_gc_info{
-            info.prom_id, 1, tracer_state(context).gc_trigger_counter};
+            info.prom_id, 5, tracer_state(context).gc_trigger_counter};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
     }

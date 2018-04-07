@@ -205,3 +205,42 @@ create table if not exists jumps (
     call_depth integer not null,
     promise_depth integer not null
 );
+
+create table if not exists function_environment_actions (
+    --[ data ] ----------------------------------------------------------------
+    function_id text not null,
+    direct_end int not null,
+    direct_ena int not null,
+    direct_enr int not null,
+    direct_enl int not null,
+    transitive_end int not null,
+    transitive_ena int not null,
+    transitive_enr int not null,
+    transitive_enl int not null,
+    --[ relations ]------------------------------------------------------------
+    foreign key (function_id) references functions
+);
+
+create table if not exists promise_environment_actions (
+    --[ data ] ----------------------------------------------------------------
+    promise_id integer not null,
+    direct_end int not null,
+    direct_ena int not null,
+    direct_enr int not null,
+    direct_enl int not null,
+    transitive_end int not null,
+    transitive_ena int not null,
+    transitive_enr int not null,
+    transitive_enl int not null,
+    --[ relations ]------------------------------------------------------------
+    foreign key (promise_id) references promises
+);
+
+create table if not exists aggregated_environment_actions (
+    --[ data ] ----------------------------------------------------------------
+    context text not null,
+    end int not null,
+    ena int not null,
+    enr int not null,
+    enl int not null
+);

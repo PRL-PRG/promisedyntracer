@@ -6,9 +6,7 @@ void tracer_state_t::start_pass(dyntrace_context_t *context, const SEXP prom) {
     promise_origin[prom_id] = 0;
 }
 
-void tracer_state_t::finish_pass() {
-    promise_origin.clear();
-}
+void tracer_state_t::finish_pass() { promise_origin.clear(); }
 
 tracer_state_t::tracer_state_t() {
     clock_id = 0;
@@ -23,6 +21,18 @@ tracer_state_t::tracer_state_t() {
     builtin_counter = 0;
     environment_id_counter = 0;
     variable_id_counter = 0;
+    toplevel_ena = 0;
+    toplevel_end = 0;
+    toplevel_enr = 0;
+    toplevel_enl = 0;
+    promise_ena = 0;
+    promise_end = 0;
+    promise_enr = 0;
+    promise_enl = 0;
+    function_ena = 0;
+    function_end = 0;
+    function_enr = 0;
+    function_enl = 0;
 }
 
 void tracer_state_t::increment_closure_counter() { closure_counter++; }
@@ -115,17 +125,21 @@ static stack_event_t make_dummy_stack_event() {
 }
 
 // TODO return pointer?
-stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack, stack_type type) {
-    for (vector<stack_event_t>::reverse_iterator i = stack.rbegin(); i != stack.rend(); ++i)
+stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack,
+                                        stack_type type) {
+    for (vector<stack_event_t>::reverse_iterator i = stack.rbegin();
+         i != stack.rend(); ++i)
         if (type == i->type)
             return *i;
 
     return make_dummy_stack_event();
 }
 
-stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack, stack_type type, int rposition) {
+stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack,
+                                             stack_type type, int rposition) {
     int rindex = rposition;
-    for (vector<stack_event_t>::reverse_iterator i = stack.rbegin(); i != stack.rend(); ++i)
+    for (vector<stack_event_t>::reverse_iterator i = stack.rbegin();
+         i != stack.rend(); ++i)
         if (type == i->type)
             if (rindex == 0)
                 return *i;
@@ -135,3 +149,110 @@ stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack, stack
     return make_dummy_stack_event();
 }
 
+void tracer_state_t::create_promise_environment_action(prom_id_t promise_id) {
+    promise_environment_action[promise_id] = {0, 0, 0, 0, 0, 0, 0, 0};
+}
+
+void tracer_state_t::update_promise_environment_action(prom_id_t promise_id,
+                                                       std::string action,
+                                                       bool transitive) {
+    if (promise_environment_action.find(promise_id) ==
+        promise_environment_action.end())
+        promise_environment_action[promise_id] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    int index = transitive ? 4 : 0;
+    if (action == OPCODE_ENVIRONMENT_DEFINE)
+        index += 0;
+    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+        index += 1;
+    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+        index += 2;
+    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+        index += 3;
+
+    promise_environment_action[promise_id][index] += 1;
+
+    if (!transitive) {
+        if (action == OPCODE_ENVIRONMENT_DEFINE)
+            promise_end += 1;
+        else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+            promise_ena += 1;
+        else if (action == OPCODE_ENVIRONMENT_REMOVE)
+            promise_enr += 1;
+        else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+            promise_enl += 1;
+    }
+}
+
+std::vector<int>
+tracer_state_t::remove_promise_environment_action(prom_id_t promise_id) {
+    auto actions = promise_environment_action.find(promise_id);
+    if (actions != promise_environment_action.end()) {
+        auto result = std::move(actions->second);
+        promise_environment_action.erase(actions);
+        return result;
+    } else {
+        return {0, 0, 0, 0, 0, 0, 0, 0};
+    }
+}
+
+// void tracer_state_t::create_function_environment_action(fn_id_t function_id)
+// {
+//     if (function_environment_action.find(function_id) ==
+//         function_environment_action.end())
+//         function_environment_action[function_id] = {0, 0, 0, 0, 0, 0, 0, 0};
+// }
+
+void tracer_state_t::update_function_environment_action(fn_id_t function_id,
+                                                        std::string action,
+                                                        bool transitive) {
+    if (function_environment_action.find(function_id) ==
+        function_environment_action.end())
+        function_environment_action[function_id] = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    int index = transitive ? 4 : 0;
+    if (action == OPCODE_ENVIRONMENT_DEFINE)
+        index += 0;
+    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+        index += 1;
+    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+        index += 2;
+    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+        index += 3;
+
+    function_environment_action[function_id][index] += 1;
+
+    if (!transitive) {
+        if (action == OPCODE_ENVIRONMENT_DEFINE)
+            function_end += 1;
+        else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+            function_ena += 1;
+        else if (action == OPCODE_ENVIRONMENT_REMOVE)
+            function_enr += 1;
+        else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+            function_enl += 1;
+    }
+}
+
+std::vector<int>
+tracer_state_t::remove_function_environment_action(fn_id_t function_id) {
+    auto actions = function_environment_action.find(function_id);
+    if (actions != function_environment_action.end()) {
+        auto result = std::move(actions->second);
+        function_environment_action.erase(actions);
+        return result;
+    } else {
+        return {0, 0, 0, 0, 0, 0, 0, 0};
+    }
+}
+
+void tracer_state_t::update_toplevel_action(std::string action) {
+    if (action == OPCODE_ENVIRONMENT_DEFINE)
+        toplevel_end += 1;
+    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+        toplevel_ena += 1;
+    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+        toplevel_enr += 1;
+    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+        toplevel_enl += 1;
+}

@@ -165,8 +165,7 @@ void SqlSerializer::prepare_statements() {
     insert_variable_action_statement =
         compile("insert into variable_actions values (?,?,?);");
 
-    insert_jump_statement =
-            compile("insert into jumps values (?,?,?,?);");
+    insert_jump_statement = compile("insert into jumps values (?,?,?,?);");
 
     insert_function_environment_action_statement = compile(
         "insert into function_environment_actions values (?,?,?,?,?,?,?,?,?);");
@@ -260,8 +259,7 @@ void SqlSerializer::serialize_promise_lifecycle(
                      info.special_counter);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 6,
                      info.closure_counter);
-    sqlite3_bind_int(insert_promise_lifecycle_statement, 7,
-                     in_force);
+    sqlite3_bind_int(insert_promise_lifecycle_statement, 7, in_force);
 
     execute(insert_promise_lifecycle_statement);
 }
@@ -431,7 +429,7 @@ void SqlSerializer::serialize_unwind(const unwind_info_t &info) {
     execute(insert_jump_statement);
 
     size_t unwindings =
-            info.unwound_calls.size() + info.unwound_promises.size();
+        info.unwound_calls.size() + info.unwound_promises.size();
     for (size_t i = 1; i <= unwindings; ++i) {
         unindent();
     }
@@ -450,6 +448,9 @@ void SqlSerializer::serialize_variable(var_id_t variable_id,
 void SqlSerializer::serialize_variable_action(prom_id_t promise_id,
                                               var_id_t variable_id,
                                               const std::string &action) {
+    // This is to avoid serializing data to this table.
+    // We believe it is not needed anymore.
+    return;
     sqlite3_bind_int(insert_variable_action_statement, 1, promise_id);
     sqlite3_bind_int(insert_variable_action_statement, 2, variable_id);
     sqlite3_bind_text(insert_variable_action_statement, 3, action.c_str(),

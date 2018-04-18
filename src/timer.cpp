@@ -107,13 +107,15 @@ namespace timing {
         auto end_time = chrono::high_resolution_clock::now();
         const long duration = chrono::duration_cast<chrono::nanoseconds>(end_time-start_time).count();
         timers[s] += duration;
+        occurances[s]++;
     }
 
     std::vector<std::pair<std::string, std::string>> Timer::stats() {
         vector<pair<string, string>> r;
 
         for (int i = 0; i < number_of_segments; i++) {
-            r.push_back(make_pair(segment_names[i], to_string(timers[i])));
+            r.push_back(make_pair("TIMING_" + segment_names[i], to_string(timers[i])));
+            r.push_back(make_pair("OCCURANCE_" + segment_names[i], to_string(occurances[i])));
         }
 
         return r;

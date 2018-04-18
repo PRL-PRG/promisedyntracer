@@ -92,6 +92,7 @@ namespace timing {
     class Timer {
     private:
         long timers[number_of_segments] = {};
+        long occurances[number_of_segments] = {};
         std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 
     public:

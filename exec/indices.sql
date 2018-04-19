@@ -7,7 +7,7 @@ create index idx_arguments_fk on arguments(call_id);
 create index idx_calls_pk on calls(id);
 create index idx_calls_fk_function_id on calls(function_id);
 create index idx_calls_fk_parent_id on calls(parent_id);
-create index idx_call_returns_fk on call_returns(id);
+create index idx_call_returns_fk on call_returns(call_id);
 create index idx_promises_pk on promises(id);
 create index idx_promise_associations_fk_promise_id on promise_associations(promise_id);
 create index idx_promise_associations_fk_call_id on promise_associations(call_id);

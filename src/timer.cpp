@@ -104,6 +104,7 @@ namespace timing {
         const long duration = chrono::duration_cast<chrono::nanoseconds>(end_time-start_time).count();
         timers[s] += duration;
         occurances[s]++;
+        start_time = chrono::high_resolution_clock::now();
     }
 
     std::vector<std::pair<std::string, std::string>> Timer::stats() {

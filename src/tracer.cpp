@@ -21,7 +21,7 @@ extern "C" {
 //     -1: SQL queries,
 SEXP create_dyntracer(SEXP database, SEXP schema, SEXP truncate, SEXP verbose) {
     void *context =
-        new Context(sexp_to_string(":memory:"), sexp_to_string(schema),
+        new Context(":memory:", sexp_to_string(schema),
                     sexp_to_bool(truncate), sexp_to_int(verbose));
     /* calloc initializes the memory to zero. This ensures that probes not
        attached will be NULL. Replacing calloc with malloc will cause

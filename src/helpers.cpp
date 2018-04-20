@@ -62,8 +62,8 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
     return prom_id;
 }
 
-fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
-    fn_key_t definition(get_expression(func));
+fn_id_t get_function_id(dyntrace_context_t *context,const string &function_definition, bool builtin) {
+    fn_key_t definition(function_definition);
 
     auto &function_ids = tracer_state(context).function_ids;
     auto it = function_ids.find(definition);

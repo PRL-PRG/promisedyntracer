@@ -103,7 +103,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     info.fn_compiled = is_byte_compiled(op);
     info.fn_type = function_type::CLOSURE;
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
-    info.fn_definition = get_expression(op);
+    info.fn_definition = get_function_definition(context, op);
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_DEFINITION);
     info.fn_id = get_function_id(context, info.fn_definition);
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_FUNCTION_ID);
@@ -158,7 +158,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
 
     info.fn_compiled = is_byte_compiled(op);
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
-    info.fn_definition = get_expression(op);
+    info.fn_definition = get_function_definition(context, op);
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_DEFINITION);
     info.fn_id = get_function_id(context, info.fn_definition);
     Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_FUNCTION_ID);
@@ -208,7 +208,7 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
     const char *name = get_name(call);
     if (name != NULL)
         info.name = name;
-    info.fn_definition = get_expression(op);
+    info.fn_definition = get_function_definition(context, op);
     info.fn_id = get_function_id(context, info.fn_definition, true);
     info.fn_addr = get_function_addr(op);
     info.name = info.name;
@@ -237,7 +237,7 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
     const char *name = get_name(call);
     if (name != NULL)
         info.name = name;
-    info.fn_definition = get_expression(op);
+    info.fn_definition = get_function_definition(context, op);
     info.fn_id = get_function_id(context, info.fn_definition, true);
     info.fn_addr = get_function_addr(op);
     stack_event_t elem = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);

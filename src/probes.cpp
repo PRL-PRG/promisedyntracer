@@ -181,7 +181,7 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     tracer_state(context).increment_closure_counter();
     closure_info_t info = function_entry_get_info(context, call, op, rho);
 
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER);
+    //Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER);
 
     stack_event_t stack_elem;
     stack_elem.type = stack_type::CALL;
@@ -231,7 +231,7 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     closure_info_t info =
         function_exit_get_info(context, call, op, rho, retval);
 
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER);
+    //Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER);
 
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::CALL ||

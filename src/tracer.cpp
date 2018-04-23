@@ -36,6 +36,7 @@ SEXP create_dyntracer(SEXP database, SEXP schema, SEXP truncate, SEXP verbose) {
     dyntracer->probe_specialsxp_entry = specialsxp_entry;
     dyntracer->probe_specialsxp_exit = specialsxp_exit;
     dyntracer->probe_gc_promise_unmarked = gc_promise_unmarked;
+    dyntracer->probe_gc_function_unmarked = gc_function_unmarked;
     dyntracer->probe_promise_force_entry = promise_force_entry;
     dyntracer->probe_promise_force_exit = promise_force_exit;
     dyntracer->probe_promise_created = promise_created;

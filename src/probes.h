@@ -40,6 +40,7 @@ void promise_value_set(dyntrace_context_t *context, const SEXP promise, int in_f
 void promise_expression_set(dyntrace_context_t *context, const SEXP promise, int in_force);
 void promise_environment_set(dyntrace_context_t *context, const SEXP promise, int in_force);
 void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise);
+void gc_function_unmarked(dyntrace_context_t *context, const SEXP function);
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed);
 void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
              double ncells);

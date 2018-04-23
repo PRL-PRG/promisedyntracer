@@ -66,10 +66,12 @@ string get_function_definition(dyntrace_context_t *context, const SEXP function)
     auto &definitions = tracer_state(context).function_definitions;
     auto it = definitions.find(function);
     if (it != definitions.end()) {
+#ifdef RDT_DEBUG
         string test = get_expression(function);
         if (it->second.compare(test) != 0) {
             cout << "Function definitions are wrong.";
         }
+#endif
         return it->second;
     } else {
         string definition = get_expression(function);

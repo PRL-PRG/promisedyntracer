@@ -721,6 +721,14 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
     Timer::getInstance().endSegment(segment::GC_PROMISE_UNMARKED_RECORDER);
 }
 
+void gc_function_unmarked(dyntrace_context_t *context, const SEXP function) {
+    Timer::getInstance().reset();
+
+    remove_function_definition(context, function);
+
+    Timer::getInstance().endSegment(segment::GC_ENTRY_RECORDER);
+}
+
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed) {
     Timer::getInstance().reset();
 

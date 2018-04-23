@@ -262,6 +262,7 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
                           bool negative = false);
 call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
 string get_function_definition(dyntrace_context_t *context, const SEXP function);
+void remove_function_definition(dyntrace_context_t *context, const SEXP function);
 fn_id_t get_function_id(dyntrace_context_t *context, const string &def,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);

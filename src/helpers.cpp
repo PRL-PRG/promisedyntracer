@@ -78,6 +78,13 @@ string get_function_definition(dyntrace_context_t *context, const SEXP function)
     }
 }
 
+void remove_function_definition(dyntrace_context_t *context, const SEXP function) {
+    auto &definitions = tracer_state(context).function_definitions;
+    auto it = definitions.find(function);
+    if (it != definitions.end())
+        tracer_state(context).function_definitions.erase(it);
+}
+
 fn_id_t get_function_id(dyntrace_context_t *context,const string &function_definition, bool builtin) {
     fn_key_t definition(function_definition);
 

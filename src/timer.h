@@ -8,7 +8,8 @@
 namespace timing {
 
     enum segment {
-        FUNCTION_ENTRY_RECORDER_OTHER = 0,
+        FUNCTION_ENTRY_RECORDER = 0,
+        FUNCTION_ENTRY_RECORDER_OTHER,
         FUNCTION_ENTRY_RECORDER_FUNCTION_ID,
         FUNCTION_ENTRY_RECORDER_CALL_ID,
         FUNCTION_ENTRY_RECORDER_PARENT_ID,
@@ -21,9 +22,14 @@ namespace timing {
         FUNCTION_ENTRY_RECORDER_PARENT_PROMISE,
 
         FUNCTION_ENTRY_STACK,
-        FUNCTION_ENTRY_WRITE_SQL,
         FUNCTION_ENTRY_WRITE_TRACE,
 
+        FUNCTION_ENTRY_WRITE_SQL,
+        FUNCTION_ENTRY_WRITE_SQL_RECORDKEEPING,
+        FUNCTION_ENTRY_WRITE_SQL_BIND,
+        FUNCTION_ENTRY_WRITE_SQL_EXECUTE,
+
+        FUNCTION_EXIT_RECORDER,
         FUNCTION_EXIT_RECORDER_OTHER,
         FUNCTION_EXIT_RECORDER_FUNCTION_ID,
         FUNCTION_EXIT_RECORDER_CALL_ID,
@@ -37,39 +43,61 @@ namespace timing {
         FUNCTION_EXIT_RECORDER_PARENT_PROMISE,
 
         FUNCTION_EXIT_STACK,
-        FUNCTION_EXIT_WRITE_SQL,
         FUNCTION_EXIT_WRITE_TRACE,
+
+        FUNCTION_EXIT_WRITE_SQL,
+        FUNCTION_EXIT_WRITE_SQL_RECORDKEEPING,
+        FUNCTION_EXIT_WRITE_SQL_BIND,
+        FUNCTION_EXIT_WRITE_SQL_EXECUTE,
 
         BUILTIN_ENTRY_RECORDER,
         BUILTIN_ENTRY_STACK,
         BUILTIN_ENTRY_WRITE_SQL,
+        BUILTIN_ENTRY_WRITE_SQL_RECORDKEEPING,
+        BUILTIN_ENTRY_WRITE_SQL_BIND,
+        BUILTIN_ENTRY_WRITE_SQL_EXECUTE,
         BUILTIN_ENTRY_WRITE_TRACE,
 
         BUILTIN_EXIT_RECORDER,
         BUILTIN_EXIT_STACK,
         BUILTIN_EXIT_WRITE_SQL,
+        BUILTIN_EXIT_WRITE_SQL_RECORDKEEPING,
+        BUILTIN_EXIT_WRITE_SQL_BIND,
+        BUILTIN_EXIT_WRITE_SQL_EXECUTE,
         BUILTIN_EXIT_WRITE_TRACE,
 
         CREATE_PROMISE_RECORDER,
         CREATE_PROMISE_WRITE_SQL,
+        CREATE_PROMISE_WRITE_SQL_BIND,
+        CREATE_PROMISE_WRITE_SQL_EXECUTE,
         CREATE_PROMISE_WRITE_TRACE,
 
         FORCE_PROMISE_ENTRY_RECORDER,
         FORCE_PROMISE_ENTRY_STACK,
         FORCE_PROMISE_ENTRY_WRITE_SQL,
+        FORCE_PROMISE_ENTRY_WRITE_SQL_RECORDKEEPING,
+        FORCE_PROMISE_ENTRY_WRITE_SQL_BIND,
+        FORCE_PROMISE_ENTRY_WRITE_SQL_EXECUTE,
         FORCE_PROMISE_ENTRY_WRITE_TRACE,
 
         FORCE_PROMISE_EXIT_RECORDER,
         FORCE_PROMISE_EXIT_STACK,
         FORCE_PROMISE_EXIT_WRITE_SQL,
+        FORCE_PROMISE_EXIT_WRITE_SQL_BIND,
+        FORCE_PROMISE_EXIT_WRITE_SQL_EXECUTE,
+        FORCE_PROMISE_EXIT_WRITE_SQL_RECORDKEEPING,
         FORCE_PROMISE_EXIT_WRITE_TRACE,
 
         LOOKUP_PROMISE_VALUE_RECORDER,
         LOOKUP_PROMISE_VALUE_WRITE_SQL,
+        LOOKUP_PROMISE_VALUE_WRITE_SQL_BIND,
+        LOOKUP_PROMISE_VALUE_WRITE_SQL_EXECUTE,
         LOOKUP_PROMISE_VALUE_WRITE_TRACE,
 
         LOOKUP_PROMISE_EXPRESSION_RECORDER,
         LOOKUP_PROMISE_EXPRESSION_WRITE_SQL,
+        LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_BIND,
+        LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_EXECUTE,
         LOOKUP_PROMISE_EXPRESSION_WRITE_TRACE,
 
         LOOKUP_PROMISE_ENVIRONMENT_RECORDER,
@@ -99,29 +127,57 @@ namespace timing {
 
         GC_EXIT_RECORDER,
         GC_EXIT_WRITE_SQL,
+        GC_EXIT_WRITE_SQL_BIND,
+        GC_EXIT_WRITE_SQL_EXECUTE,
 
         VECTOR_ALLOC_RECORDER,
         VECTOR_ALLOC_WRITE_SQL,
+        VECTOR_ALLOC_WRITE_SQL_BIND,
+        VECTOR_ALLOC_WRITE_SQL_EXECUTE,
 
         NEW_ENVIRONMENT_RECORDER,
         NEW_ENVIRONMENT_WRITE_SQL,
+        NEW_ENVIRONMENT_WRITE_SQL_BIND,
+        NEW_ENVIRONMENT_WRITE_SQL_EXECUTE,
         NEW_ENVIRONMENT_WRITE_TRACE,
 
         CONTEXT_ENTRY_STACK,
         CONTEXT_JUMP_STACK,
+        CONTEXT_JUMP_WRITE_SQL,
+        CONTEXT_JUMP_WRITE_SQL_BIND,
+        CONTEXT_JUMP_WRITE_SQL_EXECUTE,
+        CONTEXT_JUMP_WRITE_SQL_RECORDKEEPING,
         CONTEXT_EXIT_STACK,
+
+        PROMISE_LIFECYCLE_WRITE_SQL_BIND,
+        PROMISE_LIFECYCLE_WRITE_SQL_EXECUTE,
+
+        ENVIRONMENT_ACTION_RECORDER,
+        ENVIRONMENT_ACTION_WRITE_SQL,
+        ENVIRONMENT_ACTION_WRITE_SQL_BIND,
+        ENVIRONMENT_ACTION_WRITE_SQL_EXECUTE,
+        ENVIRONMENT_ACTION_WRITE_TRACE,
 
         number_of_segments
     };
 
+    enum timer {
+        MAIN = 0,
+        RECORDER,
+        SQL,
+        number_of_timers
+
+    };
+
     class Timer {
     private:
+        timer name;
         long timers[number_of_segments] = {};
         long occurances[number_of_segments] = {};
         std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
 
     public:
-        Timer() {};
+        Timer(timer t) : name(t) {};
 
         void start();
         void reset();
@@ -129,12 +185,16 @@ namespace timing {
         void endSegment(segment s);
         std::vector<std::pair<std::string, std::string>> stats();
 
-        Timer(Timer const&) = delete;
+        //Timer(Timer const&) = delete;
         void operator=(Timer const&) = delete;
 
-        static Timer& getInstance() {
-            static Timer instance;
-            return instance;
+        static Timer& getInstance(timer name) {
+            static Timer instances[] = {
+                    Timer(MAIN),
+                    Timer(RECORDER),
+                    Timer(SQL)
+            };
+            return instances[name];
         }
     };
 }

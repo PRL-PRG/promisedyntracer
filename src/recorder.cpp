@@ -95,6 +95,8 @@ void set_distances_and_lifestyle(dyntrace_context_t *context,
 closure_info_t function_entry_get_info(dyntrace_context_t *context,
                                        const SEXP call, const SEXP op,
                                        const SEXP rho) {
+    Timer::getInstance(timer::RECORDER).reset();
+
     closure_info_t info;
 
     const char *name = get_name(call);
@@ -102,30 +104,30 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 
     info.fn_compiled = is_byte_compiled(op);
     info.fn_type = function_type::CLOSURE;
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
     info.fn_definition = get_function_definition(context, op);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_DEFINITION);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_DEFINITION);
     info.fn_id = get_function_id(context, info.fn_definition);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_FUNCTION_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_FUNCTION_ID);
     info.fn_addr = get_function_addr(op);
     info.call_ptr = get_sexp_address(rho);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_OTHER);
     info.call_id = make_funcall_id(context, op);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_CALL_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_CALL_ID);
 
     stack_event_t event = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
     info.parent_call_id = event.type == stack_type::NONE ? 0: event.call_id;
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_PARENT_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_PARENT_ID);
 
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(1);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_LOCATION);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_LOCATION);
 
     void (*probe)(dyntrace_context_t *, SEXP, int);
     probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
     dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
     info.call_expression = get_expression(call);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_EXPRESSION);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_EXPRESSION);
 
     dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     if (ns) {
@@ -134,16 +136,16 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
         if (name != NULL)
             info.name = name;
     }
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_NAME);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_NAME);
 
     info.arguments = get_arguments(context, info.call_id, op, rho);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_ARGUMENTS);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_ARGUMENTS);
     info.recursion = is_recursive(context, info.fn_id);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_RECURSIVE);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_RECURSIVE);
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-    Timer::getInstance().endSegment(segment::FUNCTION_ENTRY_RECORDER_PARENT_PROMISE);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_PARENT_PROMISE);
 
     return info;
 }
@@ -151,29 +153,31 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
 closure_info_t function_exit_get_info(dyntrace_context_t *context,
                                       const SEXP call, const SEXP op,
                                       const SEXP rho, const SEXP retval) {
+    Timer::getInstance(timer::RECORDER).reset();
+
     closure_info_t info;
 
     const char *name = get_name(call);
     const char *ns = get_ns_name(op);
 
     info.fn_compiled = is_byte_compiled(op);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
     info.fn_definition = get_function_definition(context, op);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_DEFINITION);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_DEFINITION);
     info.fn_id = get_function_id(context, info.fn_definition);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_FUNCTION_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_FUNCTION_ID);
     info.fn_addr = get_function_addr(op);
 
     stack_event_t call_event = get_last_on_stack_by_type(tracer_state(context).full_stack, stack_type::CALL);
     info.call_id = call_event.type == stack_type::NONE ? 0 : call_event.call_id;
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_CALL_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_CALL_ID);
 
     info.fn_type = function_type::CLOSURE;
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
 
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_LOCATION);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_LOCATION);
 
     if (ns) {
         info.name = string(ns) + "::" + CHKSTR(name);
@@ -181,22 +185,22 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
         if (name != NULL)
             info.name = name;
     }
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_NAME);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_NAME);
 
     info.arguments = get_arguments(context, info.call_id, op, rho);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_ARGUMENTS);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_ARGUMENTS);
 
     stack_event_t parent_call = get_from_back_of_stack_by_type(tracer_state(context).full_stack, stack_type::CALL, 1);
     info.parent_call_id = parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_PARENT_ID);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_PARENT_ID);
     info.recursion = is_recursive(context, info.fn_id);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_RECURSIVE);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_RECURSIVE);
 
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_PARENT_PROMISE);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_PARENT_PROMISE);
     info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
-    Timer::getInstance().endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
+    Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_OTHER);
     return info;
 }
 

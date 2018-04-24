@@ -718,7 +718,7 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
     prom_key_t key(addr, prom_type, orig_type);
     tracer_state(context).promise_ids.erase(key);
 
-    Timer::getInstance().endSegment(segment::GC_PROMISE_UNMARKED_RECORDER);
+    Timer::getInstance().endSegment(segment::GC_PROMISE_UNMARKED_RECORD_KEEPING);
 }
 
 void gc_function_unmarked(dyntrace_context_t *context, const SEXP function) {
@@ -726,7 +726,7 @@ void gc_function_unmarked(dyntrace_context_t *context, const SEXP function) {
 
     remove_function_definition(context, function);
 
-    Timer::getInstance().endSegment(segment::GC_ENTRY_RECORDER);
+    Timer::getInstance().endSegment(segment::GC_FUNCTION_UNMARKED_RECORD_KEEPING);
 }
 
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed) {

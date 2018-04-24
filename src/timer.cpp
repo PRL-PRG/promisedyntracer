@@ -187,7 +187,7 @@ namespace timing {
         vector<pair<string, string>> r;
 
         for (int i = 0; i < number_of_segments; i++) {
-            r.push_back(make_pair("TIMER_" + timer_names[name] + segment_names[i],
+            r.push_back(make_pair("TIMER_" + timer_names[name] + "_" + segment_names[i],
                                   to_string(timers[i]) + "/" + to_string(occurances[i])));
         }
 

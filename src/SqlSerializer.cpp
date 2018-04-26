@@ -191,7 +191,7 @@ void SqlSerializer::serialize_start_trace() {
 
 void SqlSerializer::serialize_metadatum(const std::string &key,
                                         const std::string &value) {
-    
+
     execute(populate_metadata_statement(key, value));
 }
 
@@ -271,13 +271,15 @@ void SqlSerializer::serialize_promise_lifecycle(
     sqlite3_bind_int(insert_promise_lifecycle_statement, 7, in_force);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::PROMISE_LIFECYCLE_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::PROMISE_LIFECYCLE_WRITE_SQL_BIND);
 #endif
 
     execute(insert_promise_lifecycle_statement);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::PROMISE_LIFECYCLE_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::PROMISE_LIFECYCLE_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -296,7 +298,8 @@ void SqlSerializer::serialize_gc_exit(const gc_info_t &info) {
 #endif
     execute(insert_gc_trigger_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::GC_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::GC_EXIT_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -310,11 +313,13 @@ void SqlSerializer::serialize_vector_alloc(const type_gc_info_t &info) {
     sqlite3_bind_int64(insert_type_distribution_statement, 3, info.length);
     sqlite3_bind_int64(insert_type_distribution_statement, 4, info.bytes);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::VECTOR_ALLOC_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::VECTOR_ALLOC_WRITE_SQL_BIND);
 #endif
     execute(insert_type_distribution_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::VECTOR_ALLOC_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::VECTOR_ALLOC_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -324,13 +329,15 @@ void SqlSerializer::serialize_promise_expression_lookup(const prom_info_t &info,
     Timer::getInstance(timer::SQL).reset();
 #endif
     auto statement = populate_promise_evaluation_statement(
-            info, RDT_SQL_LOOKUP_PROMISE_EXPRESSION, clock_id);
+        info, RDT_SQL_LOOKUP_PROMISE_EXPRESSION, clock_id);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -339,14 +346,16 @@ void SqlSerializer::serialize_promise_lookup(const prom_info_t &info,
 #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).reset();
 #endif
-    auto statement = populate_promise_evaluation_statement(info, RDT_SQL_LOOKUP_PROMISE,
-                                          clock_id);
+    auto statement = populate_promise_evaluation_statement(
+        info, RDT_SQL_LOOKUP_PROMISE, clock_id);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -401,56 +410,65 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
     bool need_to_insert = register_inserted_function(context, info.fn_id);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_RECORDKEEPING);
 #endif
 
     if (need_to_insert) {
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         auto statement = populate_function_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
         execute(statement);
     }
 
-    //for (unsigned int index = 0; index < info.arguments.size(); ++index) {
+    // for (unsigned int index = 0; index < info.arguments.size(); ++index) {
     int position = 0;
     for (auto it = info.arguments.begin(); it != info.arguments.end();
          ++it, ++position) {
-        auto statement = populate_insert_argument_statement(info, *it,
-                                                            position);
+        auto statement =
+            populate_insert_argument_statement(info, *it, position);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
 
     {
         auto statement = populate_call_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
 
-    //for (unsigned int index = 0; index < info.arguments.size(); ++index) {
+    // for (unsigned int index = 0; index < info.arguments.size(); ++index) {
     for (auto i = info.arguments.begin(); i != info.arguments.end(); ++i) {
         auto statement = populate_promise_association_statement(info, *i);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
 }
@@ -461,15 +479,18 @@ void SqlSerializer::serialize_function_exit(const closure_info_t &info) {
 #endif
     unindent();
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_EXIT_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_EXIT_WRITE_SQL_RECORDKEEPING);
 #endif
     auto statement = populate_call_return_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_EXIT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_EXIT_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_EXIT_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -481,26 +502,31 @@ void SqlSerializer::serialize_builtin_entry(dyntrace_context_t *context,
     indent();
     bool need_to_insert = register_inserted_function(context, info.fn_id);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_RECORDKEEPING);
 #endif
     if (need_to_insert) {
         auto statement = populate_function_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_BIND);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_EXECUTE);
+        Timer::getInstance(timer::SQL)
+            .endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
 
     auto statement = populate_call_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -510,15 +536,18 @@ void SqlSerializer::serialize_builtin_exit(const builtin_info_t &info) {
 #endif
     unindent();
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_EXIT_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_EXIT_WRITE_SQL_RECORDKEEPING);
 #endif
     auto statement = populate_call_return_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_EXIT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_EXIT_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::BUILTIN_EXIT_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -530,17 +559,20 @@ void SqlSerializer::serialize_force_promise_entry(dyntrace_context_t *context,
 #endif
     indent();
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_RECORDKEEPING);
 #endif
     if (info.prom_id < 0) // if this is a promise from the outside
         if (!negative_promise_already_inserted(context, info.prom_id)) {
             auto statement = populate_insert_promise_statement(info);
-    #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_BIND);
+#ifdef RDT_TIMER
+            Timer::getInstance(timer::SQL)
+                .endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_BIND);
 #endif
             execute(statement);
-    #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_EXECUTE);
+#ifdef RDT_TIMER
+            Timer::getInstance(timer::SQL)
+                .endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_EXECUTE);
 #endif
         }
 
@@ -558,34 +590,39 @@ void SqlSerializer::serialize_force_promise_exit(const prom_info_t &info,
     sqlite3_bind_int(insert_promise_return_statement, 2, info.prom_id);
     sqlite3_bind_int(insert_promise_return_statement, 3, clock_id);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_BIND);
 #endif
     execute(insert_promise_return_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_EXECUTE);
 #endif
     unindent();
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_RECORDKEEPING);
 #endif
 }
 
 void SqlSerializer::serialize_promise_created(const prom_basic_info_t &info) {
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).reset();
+  Timer::getInstance(timer::SQL).reset();
 #endif
     auto statement = populate_insert_promise_statement(info);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::CREATE_PROMISE_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::CREATE_PROMISE_WRITE_SQL_BIND);
 #endif
     execute(statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::CREATE_PROMISE_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::CREATE_PROMISE_WRITE_SQL_EXECUTE);
 #endif
 }
 
 void SqlSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
-                                                    ternary default_argument) {
+                                                    bool default_argument) {
 #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).reset();
 #endif
@@ -593,46 +630,52 @@ void SqlSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
     sqlite3_bind_int(insert_promise_argument_type_statement, 2,
                      static_cast<int>(default_argument));
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
     execute(insert_promise_argument_type_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
 }
 
 void SqlSerializer::serialize_new_environment(const env_id_t env_id,
                                               const fn_id_t fun_id) {
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).reset();
+  Timer::getInstance(timer::SQL).reset();
 #endif
     sqlite3_bind_int(insert_environment_statement, 1, env_id);
     sqlite3_bind_text(insert_environment_statement, 2, fun_id.c_str(),
                       fun_id.length(), NULL);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::NEW_ENVIRONMENT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::NEW_ENVIRONMENT_WRITE_SQL_BIND);
 #endif
     execute(insert_environment_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::NEW_ENVIRONMENT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::NEW_ENVIRONMENT_WRITE_SQL_EXECUTE);
 #endif
 }
 
 void SqlSerializer::serialize_unwind(const unwind_info_t &info) {
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).reset();
+  Timer::getInstance(timer::SQL).reset();
 #endif
     sqlite3_bind_int(insert_jump_statement, 1, info.restart);
     sqlite3_bind_int(insert_jump_statement, 2, info.unwound_contexts.size());
     sqlite3_bind_int(insert_jump_statement, 3, info.unwound_calls.size());
     sqlite3_bind_int(insert_jump_statement, 4, info.unwound_promises.size());
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::CONTEXT_JUMP_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::CONTEXT_JUMP_WRITE_SQL_BIND);
 #endif
     execute(insert_jump_statement);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::CONTEXT_JUMP_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::CONTEXT_JUMP_WRITE_SQL_EXECUTE);
 #endif
 
     size_t unwindings =
@@ -641,7 +684,8 @@ void SqlSerializer::serialize_unwind(const unwind_info_t &info) {
         unindent();
     }
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::CONTEXT_JUMP_WRITE_SQL_RECORDKEEPING);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::CONTEXT_JUMP_WRITE_SQL_RECORDKEEPING);
 #endif
 }
 
@@ -656,11 +700,13 @@ void SqlSerializer::serialize_variable(var_id_t variable_id,
                       NULL);
     sqlite3_bind_int(insert_variable_statement, 3, environment_id);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::ENVIRONMENT_ACTION_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::ENVIRONMENT_ACTION_WRITE_SQL_BIND);
 #endif
     execute(insert_variable_statement);
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::ENVIRONMENT_ACTION_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::ENVIRONMENT_ACTION_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -692,13 +738,15 @@ void SqlSerializer::serialize_function_environment_action(
                          actions[i]);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_EXIT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_EXIT_WRITE_SQL_BIND);
 #endif // also builtin, I'll fudge this
 
     execute(insert_function_environment_action_statement);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FUNCTION_EXIT_WRITE_SQL_EXECUTE);
 #endif
 }
 
@@ -717,18 +765,21 @@ void SqlSerializer::serialize_promise_environment_action(
                          actions[i]);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_BIND);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_BIND);
 #endif
 
     execute(insert_promise_environment_action_statement);
 
 #ifdef RDT_TIMER
-    Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_EXECUTE);
+    Timer::getInstance(timer::SQL)
+        .endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL_EXECUTE);
 #endif
 }
 
 void SqlSerializer::serialize_aggregated_environment_actions(
     const std::string context, int end, int ena, int enr, int enl) {
+    return;
     sqlite3_bind_text(insert_aggregated_environment_action_statement, 1,
                       context.c_str(), context.length(), SQLITE_STATIC);
     sqlite3_bind_int(insert_aggregated_environment_action_statement, 2, end);
@@ -858,10 +909,11 @@ SqlSerializer::populate_call_return_statement(const call_info_t &info) {
 sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
     const closure_info_t &info, const arg_t &argument) {
 
-    //const arg_t &argument = info.arguments[index];
+    // const arg_t &argument = info.arguments[index];
 
     if (argument.expression_type == sexp_type::PROM)
-        sqlite3_bind_int(insert_promise_association_statement, 1, argument.promise_id);
+        sqlite3_bind_int(insert_promise_association_statement, 1,
+                         argument.promise_id);
     else
         sqlite3_bind_null(insert_promise_association_statement, 1);
 
@@ -871,8 +923,9 @@ sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
     return insert_promise_association_statement;
 }
 
-sqlite3_stmt *SqlSerializer::populate_metadata_statement(const std::string &key,
-                                                         const std::string &value) {
+sqlite3_stmt *
+SqlSerializer::populate_metadata_statement(const std::string &key,
+                                           const std::string &value) {
     if (key.empty())
         sqlite3_bind_null(insert_metadata_statement, 1);
     else
@@ -897,8 +950,7 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
         sqlite3_bind_null(insert_function_statement, 2);
     else
         sqlite3_bind_text(insert_function_statement, 2,
-                          info.definition_location.c_str(), -1,
-                          SQLITE_STATIC);
+                          info.definition_location.c_str(), -1, SQLITE_STATIC);
 
     if (info.fn_definition.empty())
         sqlite3_bind_null(insert_function_statement, 3);
@@ -917,11 +969,11 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
 sqlite3_stmt *SqlSerializer::populate_insert_argument_statement(
     const closure_info_t &info, const arg_t &argument, int position) {
     sqlite3_bind_int(insert_argument_statement, 1, argument.id);
-    sqlite3_bind_text(insert_argument_statement, 2, argument.name.c_str(),
-                      -1, SQLITE_STATIC);
+    sqlite3_bind_text(insert_argument_statement, 2, argument.name.c_str(), -1,
+                      SQLITE_STATIC);
     sqlite3_bind_int(insert_argument_statement, 3, position); // FIXME broken or
-                                                              // unnecessary (pick one)
-    sqlite3_bind_int(insert_argument_statement, 4, argument.position);
+    // unnecessary (pick one)
+    sqlite3_bind_int(insert_argument_statement, 4, argument.formal_parameter_position);
     sqlite3_bind_int(insert_argument_statement, 5, info.call_id);
     return insert_argument_statement;
 }

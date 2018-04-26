@@ -35,23 +35,14 @@ typedef pair<call_id_t, string> arg_key_t;
 
 rid_t get_sexp_address(SEXP e);
 
-//typedef tuple<string, arg_id_t, prom_id_t, bool, int> arg_t;
-//typedef tuple<arg_id_t, prom_id_t, bool, int> anon_arg_t;
-
-enum class ternary {
-    FALSE = 0,
-    TRUE = 1,
-    OMEGA = -1
-};
-
 struct arg_t {
-    arg_id_t  id;
-    string    name;
+    arg_id_t id;
+    string name;
     sexp_type argument_type;
     sexp_type expression_type;
     prom_id_t promise_id; // only set if sexp_type == PROM
-    ternary   default_argument;
-    int       position;
+    bool default_argument;
+    int formal_parameter_position;
 };
 
 enum class function_type {
@@ -147,72 +138,6 @@ struct call_info_t {
 
 typedef vector<arg_t> arglist_t;
 
-//class arglist_t {
-//    vector<arg_t> args;
-//    vector<arg_t> ddd_kw_args;
-//    vector<arg_t> ddd_pos_args;
-//    mutable vector<reference_wrapper<const arg_t>> arg_refs;
-//    mutable bool update_arg_refs;
-//
-//    template <typename T> void push_back_tmpl(T &&value, bool ddd) {
-//        if (ddd) {
-//            arg_t new_value = value;
-//            string &arg_name = get<0>(new_value);
-//            arg_name = "...[" + arg_name + "]";
-//            ddd_kw_args.push_back(new_value);
-//        } else {
-//            args.push_back(forward<T>(value));
-//        }
-//        update_arg_refs = true;
-//    }
-//
-//    template <typename T> void push_back_anon_tmpl(T &&value) {
-//        string arg_name = "...[" + to_string(ddd_pos_args.size()) + "]";
-//        // prepend string arg_name to anon_arg_t value
-//        arg_t new_value = tuple_cat(make_tuple(arg_name), value);
-//
-//        ddd_pos_args.push_back(new_value);
-//        update_arg_refs = true;
-//    }
-//
-//  public:
-//    arglist_t() { update_arg_refs = true; }
-//
-//    void push_back(const arg_t &value, bool ddd = false) {
-//        push_back_tmpl(value, ddd);
-//    }
-//
-//    void push_back(arg_t &&value, bool ddd = false) {
-//        push_back_tmpl(value, ddd);
-//    }
-//
-//    void push_back(const anon_arg_t &value) { push_back_anon_tmpl(value); }
-//
-//    void push_back(anon_arg_t &&value) { push_back_anon_tmpl(value); }
-//
-//    // Return vector of references to elements of our three inner vectors
-//    // so we can iterate over all of them in one for loop.
-//    vector<reference_wrapper<const arg_t>> all() const {
-//        if (update_arg_refs) {
-//            arg_refs.assign(args.begin(), args.end());
-//            arg_refs.insert(arg_refs.end(), ddd_kw_args.begin(),
-//                            ddd_kw_args.end());
-//            arg_refs.insert(arg_refs.end(), ddd_pos_args.begin(),
-//                            ddd_pos_args.end());
-//            update_arg_refs = false;
-//        }
-//
-//        return arg_refs;
-//    }
-//
-//    size_t size() const {
-//        if (update_arg_refs) {
-//            all();
-//        }
-//        return arg_refs.size();
-//    }
-//};
-
 struct closure_info_t : call_info_t {
     arglist_t arguments;
 };
@@ -279,8 +204,10 @@ prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise);
 prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
                           bool negative = false);
 call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
-string get_function_definition(dyntrace_context_t *context, const SEXP function);
-void remove_function_definition(dyntrace_context_t *context, const SEXP function);
+string get_function_definition(dyntrace_context_t *context,
+                               const SEXP function);
+void remove_function_definition(dyntrace_context_t *context,
+                                const SEXP function);
 fn_id_t get_function_id(dyntrace_context_t *context, const string &def,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);
@@ -356,10 +283,10 @@ stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack,
 prom_id_t get_parent_promise(dyntrace_context_t *context);
 arg_id_t get_argument_id(dyntrace_context_t *, call_id_t call_id,
                          const string &argument);
-//arglist_t get_arguments(dyntrace_context_t *, call_id_t, SEXP op, SEXP rho);
-void get_arguments(closure_info_t &info, dyntrace_context_t *context,
-                   const call_id_t call_id, const SEXP op,
-                   const SEXP environment);
+
+void update_closure_arguments(closure_info_t &info, dyntrace_context_t *context,
+                              const call_id_t call_id, const SEXP op,
+                              const SEXP environment);
 
 size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context);
 size_t get_no_of_ancestors_on_stack();

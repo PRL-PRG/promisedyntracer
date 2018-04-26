@@ -1,16 +1,6 @@
 #include "tracer.h"
 #include "SqlSerializer.h"
 #include "probes.h"
-//#include "recorder.h"
-//#include <cstring>
-//#include <fstream>
-//#include <functional>
-//#include <sstream>
-//#include <stack>
-//#include <string>
-//#include <unordered_map>
-//#include <unordered_set>
-//#include <vector>
 
 extern "C" {
 
@@ -19,10 +9,11 @@ extern "C" {
 //     1: debug tracer prints calls and promises,
 //     2: debug tracer prints everything
 //     -1: SQL queries,
-SEXP create_dyntracer(SEXP database, SEXP schema, SEXP truncate, SEXP verbose) {
-    void *context =
-        new Context(sexp_to_string(database), sexp_to_string(schema),
-                    sexp_to_bool(truncate), sexp_to_int(verbose));
+SEXP create_dyntracer(SEXP output_dir, SEXP database, SEXP schema,
+                      SEXP truncate, SEXP verbose) {
+    void *context = new Context(
+        sexp_to_string(output_dir), sexp_to_string(database),
+        sexp_to_string(schema), sexp_to_bool(truncate), sexp_to_int(verbose));
     /* calloc initializes the memory to zero. This ensures that probes not
        attached will be NULL. Replacing calloc with malloc will cause
        segfaults. */

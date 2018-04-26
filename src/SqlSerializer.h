@@ -31,7 +31,7 @@ class SqlSerializer {
                                              int clock_id);
     void serialize_promise_lifecycle(const prom_lifecycle_info_t &info, int);
     void serialize_promise_argument_type(const prom_id_t prom_id,
-                                         ternary default_argument);
+                                         bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &info);
     void serialize_gc_exit(const gc_info_t &info);
     void serialize_unwind(const unwind_info_t &info);

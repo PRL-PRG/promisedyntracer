@@ -3,7 +3,7 @@
 #include "tracer.h"
 
 static const R_CallMethodDef CallEntries[] = {
-    {"create_dyntracer", (DL_FUNC) &create_dyntracer, 4},
+    {"create_dyntracer", (DL_FUNC) &create_dyntracer, 5},
     {"destroy_dyntracer", (DL_FUNC) &destroy_dyntracer, 1},
     {NULL, NULL, 0}
 };

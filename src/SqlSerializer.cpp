@@ -189,7 +189,8 @@ void SqlSerializer::serialize_start_trace() {
 
 void SqlSerializer::serialize_metadatum(const std::string &key,
                                         const std::string &value) {
-    execute(populate_metadata_statement(key.c_str(), value.c_str()));
+    
+    execute(populate_metadata_statement(key, value));
 }
 
 void SqlSerializer::serialize_finish_trace() {
@@ -548,7 +549,7 @@ void SqlSerializer::serialize_function_environment_action(
     Timer::getInstance(timer::SQL).reset();
 
     sqlite3_bind_text(insert_function_environment_action_statement, 1,
-                      function_id.c_str(), -1, SQLITE_TRANSIENT);
+                      function_id.c_str(), -1, SQLITE_STATIC);
 
     for (int i = 0; i < 8; ++i)
         sqlite3_bind_int(insert_function_environment_action_statement, i + 2,
@@ -583,7 +584,7 @@ void SqlSerializer::serialize_promise_environment_action(
 void SqlSerializer::serialize_aggregated_environment_actions(
     const std::string context, int end, int ena, int enr, int enl) {
     sqlite3_bind_text(insert_aggregated_environment_action_statement, 1,
-                      context.c_str(), context.length(), SQLITE_TRANSIENT);
+                      context.c_str(), context.length(), SQLITE_STATIC);
     sqlite3_bind_int(insert_aggregated_environment_action_statement, 2, end);
     sqlite3_bind_int(insert_aggregated_environment_action_statement, 3, ena);
     sqlite3_bind_int(insert_aggregated_environment_action_statement, 4, enr);
@@ -632,7 +633,7 @@ sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
     } else {
         string full_type = full_sexp_type_to_number_string(info.full_type);
         sqlite3_bind_text(insert_promise_statement, 3, full_type.c_str(), -1,
-                          SQLITE_TRANSIENT);
+                          SQLITE_STATIC);
     }
 
     sqlite3_bind_int(insert_promise_statement, 4, info.in_prom_id);
@@ -654,9 +655,9 @@ sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
     }
     sqlite3_bind_int(insert_promise_statement, 7, info.depth);
     sqlite3_bind_text(insert_promise_statement, 8, info.expression.c_str(), -1,
-                      SQLITE_TRANSIENT);
+                      SQLITE_STATIC);
     sqlite3_bind_text(insert_promise_statement, 9, info.expression_id.c_str(),
-                      -1, SQLITE_TRANSIENT);
+                      -1, SQLITE_STATIC);
     return insert_promise_statement;
 }
 
@@ -666,13 +667,13 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
         sqlite3_bind_null(insert_call_statement, 2);
     else
         sqlite3_bind_text(insert_call_statement, 2, info.name.c_str(), -1,
-                          SQLITE_TRANSIENT);
+                          SQLITE_STATIC);
 
     if (info.callsite_location.empty())
         sqlite3_bind_null(insert_call_statement, 3);
     else
         sqlite3_bind_text(insert_call_statement, 3,
-                          info.callsite_location.c_str(), -1, SQLITE_TRANSIENT);
+                          info.callsite_location.c_str(), -1, SQLITE_STATIC);
 
     sqlite3_bind_int(insert_call_statement, 4, info.fn_compiled ? 1 : 0);
     sqlite3_bind_text(insert_call_statement, 5, info.fn_id.c_str(),
@@ -696,7 +697,7 @@ sqlite3_stmt *SqlSerializer::populate_call_statement(const call_info_t &info) {
             break;
     }
     sqlite3_bind_text(insert_call_statement, 10, info.call_expression.c_str(),
-                      -1, SQLITE_TRANSIENT);
+                      -1, SQLITE_STATIC);
     return insert_call_statement;
 }
 
@@ -725,19 +726,19 @@ sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
     return insert_promise_association_statement;
 }
 
-sqlite3_stmt *SqlSerializer::populate_metadata_statement(const string key,
-                                                         const string value) {
+sqlite3_stmt *SqlSerializer::populate_metadata_statement(const std::string &key,
+                                                         const std::string &value) {
     if (key.empty())
         sqlite3_bind_null(insert_metadata_statement, 1);
     else
         sqlite3_bind_text(insert_metadata_statement, 1, key.c_str(), -1,
-                          SQLITE_TRANSIENT);
+                          SQLITE_STATIC);
 
     if (value.empty())
         sqlite3_bind_null(insert_metadata_statement, 2);
     else
         sqlite3_bind_text(insert_metadata_statement, 2, value.c_str(), -1,
-                          SQLITE_TRANSIENT);
+                          SQLITE_STATIC);
 
     return insert_metadata_statement;
 }
@@ -752,13 +753,13 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
     else
         sqlite3_bind_text(insert_function_statement, 2,
                           info.definition_location.c_str(), -1,
-                          SQLITE_TRANSIENT);
+                          SQLITE_STATIC);
 
     if (info.fn_definition.empty())
         sqlite3_bind_null(insert_function_statement, 3);
     else
         sqlite3_bind_text(insert_function_statement, 3,
-                          info.fn_definition.c_str(), -1, SQLITE_TRANSIENT);
+                          info.fn_definition.c_str(), -1, SQLITE_STATIC);
 
     sqlite3_bind_int(insert_function_statement, 4,
                      to_underlying_type(info.fn_type));
@@ -774,7 +775,7 @@ sqlite3_stmt *SqlSerializer::populate_insert_argument_statement(
         info.arguments.all()[actual_parameter_position].get();
     sqlite3_bind_int(insert_argument_statement, 1, get<1>(argument));
     sqlite3_bind_text(insert_argument_statement, 2, get<0>(argument).c_str(),
-                      -1, SQLITE_TRANSIENT);
+                      -1, SQLITE_STATIC); // XXX ??
     sqlite3_bind_int(insert_argument_statement, 3,
                      actual_parameter_position); // FIXME broken or
                                                  // unnecessary (pick one)

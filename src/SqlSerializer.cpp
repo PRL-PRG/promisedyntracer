@@ -117,6 +117,7 @@ void SqlSerializer::finalize_statements() {
     sqlite3_finalize(insert_function_environment_action_statement);
     sqlite3_finalize(insert_promise_environment_action_statement);
     sqlite3_finalize(insert_aggregated_environment_action_statement);
+    sqlite3_finalize(insert_trace_statement);
 }
 
 void SqlSerializer::prepare_statements() {
@@ -179,6 +180,8 @@ void SqlSerializer::prepare_statements() {
     insert_aggregated_environment_action_statement =
         compile("insert into aggregated_environment_actions values "
                 "(?,?,?,?,?);");
+
+    insert_trace_statement = compile("insert into trace values (?);");
 }
 
 void SqlSerializer::serialize_start_trace() {
@@ -593,33 +596,46 @@ void SqlSerializer::serialize_aggregated_environment_actions(
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1) {
-
-    trace << opcode << " " << id_1 << std::endl;
+    stringstream trace;
+    trace << opcode << " " << id_1;
+    string s = trace.str();
+    execute(populate_trace_statement(s));
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                     const std::string id_2) {
-    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+    stringstream trace;
+    trace << opcode << " " << id_1 << " " << id_2;
+    string s = trace.str();
+    execute(populate_trace_statement(s));
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                     const int id_2) {
-
-    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+    stringstream trace;
+    trace << opcode << " " << id_1 << " " << id_2;
+    string s = trace.str();
+    execute(populate_trace_statement(s));
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                     const int id_2, const std::string &symbol,
                                     const std::string sexptype) {
-
+    stringstream trace;
     trace << opcode << " " << id_1 << " " << id_2 << " " << symbol << " "
-          << sexptype << std::endl;
+          << sexptype;
+    string s = trace.str();
+    execute(populate_trace_statement(s));
 }
 
 void SqlSerializer::serialize_trace(const std::string &opcode,
                                     const fn_id_t &id_1, const int id_2,
                                     const int id_3) {
-    trace << opcode << " " << id_1 << " " << id_2 << " " << id_3 << std::endl;
+    stringstream trace;
+    trace << opcode << " " << id_1 << " " << id_2 << " " << id_3;
+    string s = trace.str();
+    populate_trace_statement(s);
+    execute(populate_trace_statement(s));
 }
 
 sqlite3_stmt *SqlSerializer::populate_insert_promise_statement(
@@ -741,6 +757,11 @@ sqlite3_stmt *SqlSerializer::populate_metadata_statement(const std::string &key,
                           SQLITE_STATIC);
 
     return insert_metadata_statement;
+}
+
+sqlite3_stmt *SqlSerializer::populate_trace_statement(const string &s) {
+    sqlite3_bind_text(insert_trace_statement, 1, s.c_str(), -1, SQLITE_STATIC);
+    return insert_trace_statement;
 }
 
 sqlite3_stmt *

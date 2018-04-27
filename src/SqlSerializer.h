@@ -96,6 +96,8 @@ class SqlSerializer {
     populate_insert_argument_statement(const closure_info_t &info,
                                        int actual_parameter_position);
 
+    sqlite3_stmt *populate_trace_statement(const string &);
+
     std::string database_filepath;
     int verbose;
     int indentation;
@@ -121,6 +123,7 @@ class SqlSerializer {
     sqlite3_stmt *insert_function_environment_action_statement = NULL;
     sqlite3_stmt *insert_promise_environment_action_statement = NULL;
     sqlite3_stmt *insert_aggregated_environment_action_statement = NULL;
+    sqlite3_stmt *insert_trace_statement = NULL;
 };
 
 #endif /* __SQL_SERIALIZER_H__ */

@@ -244,3 +244,8 @@ create table if not exists aggregated_environment_actions (
     enr int not null,
     enl int not null
 );
+
+create table if not exists trace (
+    --[ data ] ----------------------------------------------------------------
+    trace string not null
+);

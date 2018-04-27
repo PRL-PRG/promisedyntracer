@@ -88,8 +88,8 @@ class SqlSerializer {
     populate_promise_association_statement(const closure_info_t &info,
                                            int index);
 
-    sqlite3_stmt *populate_metadata_statement(const string key,
-                                              const string value);
+    sqlite3_stmt *populate_metadata_statement(const string &key,
+                                              const string &value);
     sqlite3_stmt *populate_function_statement(const call_info_t &info);
 
     sqlite3_stmt *

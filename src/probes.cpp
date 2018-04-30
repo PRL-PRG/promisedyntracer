@@ -305,29 +305,29 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
                       const SEXP op, const SEXP rho, function_type fn_type) {
     Timer::getInstance(timer::MAIN).reset();
 
-    builtin_info_t info =
-        builtin_entry_get_info(context, call, op, rho, fn_type);
+    //builtin_info_t info =
+    //    builtin_entry_get_info(context, call, op, rho, fn_type);
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_RECORDER);
 
-    stack_event_t stack_elem;
-    stack_elem.type = stack_type::CALL;
-    stack_elem.call_id = info.call_id;
-    stack_elem.function_info.function_id = info.fn_id;
-    stack_elem.enclosing_environment = info.call_ptr;
-    tracer_state(context).full_stack.push_back(stack_elem);
+    //stack_event_t stack_elem;
+    //stack_elem.type = stack_type::CALL;
+    //stack_elem.call_id = info.call_id;
+    //stack_elem.function_info.function_id = info.fn_id;
+    //stack_elem.enclosing_environment = info.call_ptr;
+    //tracer_state(context).full_stack.push_back(stack_elem);
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_STACK);
 
-    debug_serializer(context).serialize_builtin_entry(info);
-    tracer_serializer(context).serialize_builtin_entry(context, info);
+    //debug_serializer(context).serialize_builtin_entry(info);
+    //tracer_serializer(context).serialize_builtin_entry(context, info);
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL);
 
-    tracer_serializer(context).serialize_trace(
-        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
-                                               : OPCODE_BUILTIN_BEGIN,
-        info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+    //tracer_serializer(context).serialize_trace(
+    //    info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
+    //                                           : OPCODE_BUILTIN_BEGIN,
+    //    info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_TRACE);
 }
@@ -337,39 +337,39 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
                      const SEXP retval) {
     Timer::getInstance(timer::MAIN).reset();
 
-    builtin_info_t info =
-        builtin_exit_get_info(context, call, op, rho, fn_type, retval);
+    //builtin_info_t info =
+    //    builtin_exit_get_info(context, call, op, rho, fn_type, retval);
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
 
-    auto thing_on_stack = tracer_state(context).full_stack.back();
-    if (thing_on_stack.type != stack_type::CALL ||
-        thing_on_stack.call_id != info.call_id) {
-        dyntrace_log_warning(
-            "Object on stack was %s with id %d,"
-            " but was expected to be built-in with id %d",
-            thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-            thing_on_stack.call_id, info.call_id);
-    }
-    tracer_state(context).full_stack.pop_back();
+    //auto thing_on_stack = tracer_state(context).full_stack.back();
+    //if (thing_on_stack.type != stack_type::CALL ||
+    //    thing_on_stack.call_id != info.call_id) {
+    //    dyntrace_log_warning(
+    //        "Object on stack was %s with id %d,"
+    //       " but was expected to be built-in with id %d",
+    //       thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+    //       thing_on_stack.call_id, info.call_id);
+    // }
+    //tracer_state(context).full_stack.pop_back();
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
 
-    debug_serializer(context).serialize_builtin_exit(info);
-    tracer_serializer(context).serialize_builtin_exit(info);
+    //debug_serializer(context).serialize_builtin_exit(info);
+    //tracer_serializer(context).serialize_builtin_exit(info);
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);
 
-    tracer_serializer(context).serialize_trace(
-        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
-                                               : OPCODE_BUILTIN_FINISH,
-        info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+    //tracer_serializer(context).serialize_trace(
+    //    info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
+    //                                           : OPCODE_BUILTIN_FINISH,
+    //    info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_TRACE);
 
-    tracer_serializer(context).serialize_function_environment_action(
-        info.fn_id,
-        tracer_state(context).remove_function_environment_action(info.fn_id));
+    //tracer_serializer(context).serialize_function_environment_action(
+    //    info.fn_id,
+    //    tracer_state(context).remove_function_environment_action(info.fn_id));
 
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);
 }

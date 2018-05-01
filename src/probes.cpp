@@ -1129,53 +1129,6 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
     Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_WRITE_TRACE);
 #endif
 
-    size_t stack_size = tracer_state(context).full_stack.size();
-    int context_count = 0;
-    int bottom_index = 0;
-    for (; bottom_index < stack_size; ++bottom_index) {
-        stack_event_t exec_context =
-            tracer_state(context).full_stack[bottom_index];
-        if (exec_context.type == stack_type::CALL ||
-            exec_context.type == stack_type::PROMISE)
-            ++context_count;
-        if (context_count == 3)
-            break;
-    }
-
-    bool transitive = false;
-    for (int i = stack_size - 1; i > bottom_index; --i) {
-        stack_event_t exec_context = tracer_state(context).full_stack[i];
-        if (exec_context.type == stack_type::CALL) {
-            tracer_state(context).update_function_environment_action(
-                exec_context.function_info.function_id, action, transitive);
-            // tracer_serializer(context)
-            // .serialize_function_environment_action(
-            //     exec_context.call_id,
-            //     exec_context.function_info.function_id, action,
-            //     variable_id,
-            //     transitive);
-            transitive = true;
-            break;
-        } else if (exec_context.type == stack_type::PROMISE) {
-            SEXP enclosing_address =
-                reinterpret_cast<SEXP>(exec_context.enclosing_environment);
-            // function side effects matter iff they are done in other
-            // environments.
-            if (rho != enclosing_address)
-                tracer_state(context).update_promise_environment_action(
-                    exec_context.promise_id, action, transitive);
-            // tracer_serializer(context).serialize_promise_environment_action(
-            //     exec_context.promise_id, action, variable_id,
-            //     transitive);
-            transitive = true;
-            break;
-        }
-    }
-    /* when the stack is empty, this implies that the action happens at top
-     * level */
-    if (transitive == false) {
-        tracer_state(context).update_toplevel_action(action);
-    }
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_RECORDER);
@@ -1184,21 +1137,25 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
 
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    analysis_driver(context).environment_define_var(symbol, value, rho);
     environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_DEFINE);
 }
 
 void environment_assign_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    analysis_driver(context).environment_assign_var(symbol, value, rho);
     environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_ASSIGN);
 }
 
 void environment_remove_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP rho) {
+    analysis_driver(context).environment_remove_var(symbol, rho);
     environment_action(context, symbol, R_UnboundValue, rho,
                        OPCODE_ENVIRONMENT_REMOVE);
 }
 
 void environment_lookup_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    analysis_driver(context).environment_lookup_var(symbol, value, rho);
     environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_LOOKUP);
 }

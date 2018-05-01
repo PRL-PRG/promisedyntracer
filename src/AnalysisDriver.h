@@ -3,6 +3,7 @@
 
 #include "PromiseEvaluationDistanceAnalysis.h"
 #include "PromiseTypeAnalysis.h"
+#include "SideEffectAnalysis.h"
 #include "State.h"
 #include "StrictnessAnalysis.h"
 
@@ -21,11 +22,20 @@ class AnalysisDriver {
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
     void gc_promise_unmarked(const prom_id_t &prom_id, const SEXP promise);
     void vector_alloc(const type_gc_info_t &type_gc_info);
+    void environment_define_var(const SEXP symbol, const SEXP value,
+                                const SEXP rho);
+    void environment_assign_var(const SEXP symbol, const SEXP value,
+                                const SEXP rho);
+    void environment_lookup_var(const SEXP symbol, const SEXP value,
+                                const SEXP rho);
+    void environment_remove_var(const SEXP symbol,
+                                const SEXP rho);
     void serialize();
 
   private:
     StrictnessAnalysis strictness_analysis_;
     PromiseTypeAnalysis promise_type_analysis_;
+    SideEffectAnalysis side_effect_analysis_;
     PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     std::string output_dir_;
 };

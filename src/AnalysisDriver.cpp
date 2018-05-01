@@ -8,6 +8,7 @@ AnalysisDriver::AnalysisDriver(const tracer_state_t &tracer_state,
       promise_type_analysis_(PromiseTypeAnalysis(tracer_state, output_dir)),
       promise_evaluation_distance_analysis_(
           PromiseEvaluationDistanceAnalysis(tracer_state, output_dir)),
+      side_effect_analysis_(SideEffectAnalysis(tracer_state, output_dir)),
       output_dir_(output_dir) {}
 
 void AnalysisDriver::promise_created(const prom_basic_info_t &prom_basic_info,
@@ -57,9 +58,29 @@ void AnalysisDriver::vector_alloc(const type_gc_info_t &type_gc_info) {
     // object_count_size_analysis_.vector_alloc(type_gc_info);
 }
 
+void AnalysisDriver::environment_define_var(const SEXP symbol, const SEXP value,
+                                            const SEXP rho) {
+    side_effect_analysis_.environment_define_var(symbol, value, rho);
+}
+
+void AnalysisDriver::environment_assign_var(const SEXP symbol, const SEXP value,
+                                            const SEXP rho) {
+    side_effect_analysis_.environment_assign_var(symbol, value, rho);
+}
+
+void AnalysisDriver::environment_lookup_var(const SEXP symbol, const SEXP value,
+                                            const SEXP rho) {
+    side_effect_analysis_.environment_lookup_var(symbol, value, rho);
+}
+
+void AnalysisDriver::environment_remove_var(const SEXP symbol, const SEXP rho) {
+    side_effect_analysis_.environment_remove_var(symbol, rho);
+}
+
 void AnalysisDriver::serialize() {
     strictness_analysis_.serialize();
     // object_count_size_analysis_.serialize();
     promise_type_analysis_.serialize();
     promise_evaluation_distance_analysis_.serialize();
+    side_effect_analysis_.serialize();
 }

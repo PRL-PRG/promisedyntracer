@@ -346,6 +346,11 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_RECORDER);
 #endif
 
+    if (info.fn_type == function_type::SPECIAL)
+      analysis_driver(context).special_entry(info);
+    else
+      analysis_driver(context).builtin_entry(info);
+
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     stack_event_t stack_elem;
     stack_elem.type = stack_type::CALL;

@@ -475,6 +475,7 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::CREATE_PROMISE_WRITE_SQL);
 #endif
+    analysis_driver(context).promise_created(info, prom);
 
     std::string cre_id = std::string("cre ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(cre_id);
@@ -495,12 +496,11 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
 
     prom_info_t info = force_promise_entry_get_info(context, promise);
 
-
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_RECORDER);
 #endif
 
-    analysis_driver(context).promise_entry(info);
+    analysis_driver(context).promise_force_entry(info);
     stack_event_t stack_elem;
     stack_elem.type = stack_type::PROMISE;
     stack_elem.promise_id = info.prom_id;
@@ -558,7 +558,7 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_EXIT_RECORDER);
 #endif
 
-    analysis_driver(context).promise_exit(info);
+    analysis_driver(context).promise_force_exit(info, promise);
 
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::PROMISE ||
@@ -864,14 +864,10 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info,
                                                                -1);
     }
-
-
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::GC_PROMISE_UNMARKED_WRITE_SQL);
 #endif
-
-
-    analysis_driver(context).gc_promise_unmarked(id);
+    analysis_driver(context).gc_promise_unmarked(id, promise);
 
     auto iter = promise_origin.find(id);
     if (iter != promise_origin.end()) {
@@ -960,6 +956,8 @@ void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::VECTOR_ALLOC_WRITE_SQL);
 #endif
+
+    analysis_driver(context).vector_alloc(info);
 }
 
 void new_environment(dyntrace_context_t *context, const SEXP rho) {

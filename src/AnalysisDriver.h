@@ -1,6 +1,7 @@
 #ifndef __ANALYSIS_DRIVER_H__
 #define __ANALYSIS_DRIVER_H__
 
+#include "PromiseEvaluationDistanceAnalysis.h"
 #include "PromiseTypeAnalysis.h"
 #include "State.h"
 #include "StrictnessAnalysis.h"
@@ -13,6 +14,8 @@ class AnalysisDriver {
     void promise_created(const prom_basic_info_t &prom_basic_info,
                          const SEXP promise);
     void closure_entry(const closure_info_t &closure_info);
+    void special_entry(const builtin_info_t &builtin_info);
+    void builtin_entry(const builtin_info_t &builtin_info);
     void closure_exit(const closure_info_t &closure_info);
     void promise_force_entry(const prom_info_t &prom_info);
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
@@ -23,6 +26,7 @@ class AnalysisDriver {
   private:
     StrictnessAnalysis strictness_analysis_;
     PromiseTypeAnalysis promise_type_analysis_;
+    PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     std::string output_dir_;
 };
 

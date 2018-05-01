@@ -3,8 +3,8 @@
 AnalysisDriver::AnalysisDriver(const tracer_state_t &tracer_state,
                                const std::string &output_dir)
     : strictness_analysis_(StrictnessAnalysis(tracer_state, output_dir)),
-      // object_count_size_analysis_(
-      //          ObjectCountSizeAnalysis(tracer_state, output_dir)),
+      object_count_size_analysis_(
+          ObjectCountSizeAnalysis(tracer_state, output_dir)),
       promise_type_analysis_(PromiseTypeAnalysis(tracer_state, output_dir)),
       promise_evaluation_distance_analysis_(
           PromiseEvaluationDistanceAnalysis(tracer_state, output_dir)),
@@ -55,7 +55,7 @@ void AnalysisDriver::gc_promise_unmarked(const prom_id_t &prom_id,
 }
 
 void AnalysisDriver::vector_alloc(const type_gc_info_t &type_gc_info) {
-    // object_count_size_analysis_.vector_alloc(type_gc_info);
+    object_count_size_analysis_.vector_alloc(type_gc_info);
 }
 
 void AnalysisDriver::environment_define_var(const SEXP symbol, const SEXP value,
@@ -79,7 +79,7 @@ void AnalysisDriver::environment_remove_var(const SEXP symbol, const SEXP rho) {
 
 void AnalysisDriver::serialize() {
     strictness_analysis_.serialize();
-    // object_count_size_analysis_.serialize();
+    object_count_size_analysis_.serialize();
     promise_type_analysis_.serialize();
     promise_evaluation_distance_analysis_.serialize();
     side_effect_analysis_.serialize();

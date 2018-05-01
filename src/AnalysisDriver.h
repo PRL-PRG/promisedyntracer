@@ -1,6 +1,7 @@
 #ifndef __ANALYSIS_DRIVER_H__
 #define __ANALYSIS_DRIVER_H__
 
+#include "ObjectCountSizeAnalysis.h"
 #include "PromiseEvaluationDistanceAnalysis.h"
 #include "PromiseTypeAnalysis.h"
 #include "SideEffectAnalysis.h"
@@ -28,8 +29,7 @@ class AnalysisDriver {
                                 const SEXP rho);
     void environment_lookup_var(const SEXP symbol, const SEXP value,
                                 const SEXP rho);
-    void environment_remove_var(const SEXP symbol,
-                                const SEXP rho);
+    void environment_remove_var(const SEXP symbol, const SEXP rho);
     void serialize();
 
   private:
@@ -37,6 +37,7 @@ class AnalysisDriver {
     PromiseTypeAnalysis promise_type_analysis_;
     SideEffectAnalysis side_effect_analysis_;
     PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
+    ObjectCountSizeAnalysis object_count_size_analysis_;
     std::string output_dir_;
 };
 

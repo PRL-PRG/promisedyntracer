@@ -49,7 +49,7 @@ void StrictnessAnalysis::closure_exit(const closure_info_t &closure_info) {
         call_state.formal_parameter_usage_order);
 }
 
-void StrictnessAnalysis::promise_entry(const prom_info_t &prom_info) {
+void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info) {
     prom_id_t prom_id = prom_info.prom_id;
     auto iter = promises_.find(prom_id);
     if (iter == promises_.end())
@@ -63,11 +63,12 @@ void StrictnessAnalysis::promise_entry(const prom_info_t &prom_info) {
     update_argument_position(call_id, fn_id, formal_parameter_position);
 }
 
-void StrictnessAnalysis::promise_exit(const prom_info_t &prom_info) {
+void StrictnessAnalysis::promise_force_exit(const prom_info_t &prom_info, const SEXP promise) {
     // TODO - remove promsie from map
 }
 
-void StrictnessAnalysis::gc_promise_unmarked(const prom_id_t prom_id) {
+void StrictnessAnalysis::gc_promise_unmarked(const prom_id_t &prom_id,
+                                             const SEXP promise) {
     promises_.erase(prom_id);
 }
 

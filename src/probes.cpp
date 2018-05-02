@@ -397,9 +397,16 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
         builtin_exit_get_info(context, call, op, rho, fn_type, retval);
 #endif
 
+
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
 #endif
+
+    if (info.fn_type == function_type::SPECIAL)
+        analysis_driver(context).special_exit(info);
+    else
+        analysis_driver(context).builtin_exit(info);
+
 
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     auto thing_on_stack = tracer_state(context).full_stack.back();

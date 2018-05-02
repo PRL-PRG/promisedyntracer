@@ -9,7 +9,8 @@ AnalysisDriver::AnalysisDriver(const tracer_state_t &tracer_state,
       promise_evaluation_distance_analysis_(
           PromiseEvaluationDistanceAnalysis(tracer_state, output_dir)),
       side_effect_analysis_(SideEffectAnalysis(tracer_state, output_dir)),
-      output_dir_(output_dir) {}
+      function_return_type_analysis_(
+          FunctionReturnTypeAnalysis(tracer_state, output_dir)) {}
 
 void AnalysisDriver::promise_created(const prom_basic_info_t &prom_basic_info,
                                      const SEXP promise) {
@@ -24,8 +25,8 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
     promise_evaluation_distance_analysis_.closure_entry(closure_info);
 }
 
-void AnalysisDriver::special_entry(const builtin_info_t &builtin_info) {
-    promise_evaluation_distance_analysis_.special_entry(builtin_info);
+void AnalysisDriver::special_entry(const builtin_info_t &special_info) {
+    promise_evaluation_distance_analysis_.special_entry(special_info);
 }
 
 void AnalysisDriver::builtin_entry(const builtin_info_t &builtin_info) {
@@ -34,6 +35,15 @@ void AnalysisDriver::builtin_entry(const builtin_info_t &builtin_info) {
 
 void AnalysisDriver::closure_exit(const closure_info_t &closure_info) {
     strictness_analysis_.closure_exit(closure_info);
+    function_return_type_analysis_.closure_exit(closure_info);
+}
+
+void AnalysisDriver::builtin_exit(const builtin_info_t &builtin_info) {
+    function_return_type_analysis_.builtin_exit(builtin_info);
+}
+
+void AnalysisDriver::special_exit(const builtin_info_t &special_info) {
+    function_return_type_analysis_.special_exit(special_info);
 }
 
 void AnalysisDriver::promise_force_entry(const prom_info_t &prom_info) {
@@ -83,4 +93,5 @@ void AnalysisDriver::serialize() {
     promise_type_analysis_.serialize();
     promise_evaluation_distance_analysis_.serialize();
     side_effect_analysis_.serialize();
+    function_return_type_analysis_.serialize();
 }

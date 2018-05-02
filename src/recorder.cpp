@@ -348,6 +348,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     Timer::getInstance(timer::RECORDER)
         .endSegment(segment::FUNCTION_EXIT_RECORDER_ARGUMENTS);
 #endif
+    info.fn_definition = get_expression(op);
 
     stack_event_t parent_call = get_from_back_of_stack_by_type(
         tracer_state(context).full_stack, stack_type::CALL, 1);

@@ -333,35 +333,43 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     Timer::getInstance(timer::MAIN).reset();
 #endif
 
-    //builtin_info_t info =
-    //    builtin_entry_get_info(context, call, op, rho, fn_type);
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    builtin_info_t info =
+        builtin_entry_get_info(context, call, op, rho, fn_type);
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_RECORDER);
 #endif
 
-    //stack_event_t stack_elem;
-    //stack_elem.type = stack_type::CALL;
-    //stack_elem.call_id = info.call_id;
-    //stack_elem.function_info.function_id = info.fn_id;
-    //stack_elem.enclosing_environment = info.call_ptr;
-    //tracer_state(context).full_stack.push_back(stack_elem);
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    stack_event_t stack_elem;
+    stack_elem.type = stack_type::CALL;
+    stack_elem.call_id = info.call_id;
+    stack_elem.function_info.function_id = info.fn_id;
+    stack_elem.enclosing_environment = info.call_ptr;
+    tracer_state(context).full_stack.push_back(stack_elem);
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_STACK);
 #endif
 
-    //debug_serializer(context).serialize_builtin_entry(info);
-    //tracer_serializer(context).serialize_builtin_entry(context, info);
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    debug_serializer(context).serialize_builtin_entry(info);
+    tracer_serializer(context).serialize_builtin_entry(context, info);
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL);
 #endif
 
-    //tracer_serializer(context).serialize_trace(
-    //    info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
-    //                                           : OPCODE_BUILTIN_BEGIN,
-    //    info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    tracer_serializer(context).serialize_trace(
+        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
+                                               : OPCODE_BUILTIN_BEGIN,
+        info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_TRACE);
@@ -375,47 +383,57 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
     Timer::getInstance(timer::MAIN).reset();
 #endif
 
-    //builtin_info_t info =
-    //    builtin_exit_get_info(context, call, op, rho, fn_type, retval);
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    builtin_info_t info =
+        builtin_exit_get_info(context, call, op, rho, fn_type, retval);
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
 #endif
 
-    //auto thing_on_stack = tracer_state(context).full_stack.back();
-    //if (thing_on_stack.type != stack_type::CALL ||
-    //    thing_on_stack.call_id != info.call_id) {
-    //    dyntrace_log_warning(
-    //        "Object on stack was %s with id %d,"
-    //       " but was expected to be built-in with id %d",
-    //       thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-    //       thing_on_stack.call_id, info.call_id);
-    // }
-    //tracer_state(context).full_stack.pop_back();
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    auto thing_on_stack = tracer_state(context).full_stack.back();
+    if (thing_on_stack.type != stack_type::CALL ||
+        thing_on_stack.call_id != info.call_id) {
+        dyntrace_log_warning(
+            "Object on stack was %s with id %d,"
+           " but was expected to be built-in with id %d",
+           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+           thing_on_stack.call_id, info.call_id);
+    }
+    tracer_state(context).full_stack.pop_back();
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
 #endif
 
-    //debug_serializer(context).serialize_builtin_exit(info);
-    //tracer_serializer(context).serialize_builtin_exit(info);
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    debug_serializer(context).serialize_builtin_exit(info);
+    tracer_serializer(context).serialize_builtin_exit(info);
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);
 #endif
 
-    //tracer_serializer(context).serialize_trace(
-    //    info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
-    //                                           : OPCODE_BUILTIN_FINISH,
-    //    info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    tracer_serializer(context).serialize_trace(
+        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
+                                               : OPCODE_BUILTIN_FINISH,
+        info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_TRACE);
 #endif
 
-    //tracer_serializer(context).serialize_function_environment_action(
-    //    info.fn_id,
-    //    tracer_state(context).remove_function_environment_action(info.fn_id));
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
+    tracer_serializer(context).serialize_function_environment_action(
+        info.fn_id,
+        tracer_state(context).remove_function_environment_action(info.fn_id));
+#endif
 
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);

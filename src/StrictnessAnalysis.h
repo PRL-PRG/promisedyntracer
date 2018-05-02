@@ -16,9 +16,9 @@ class StrictnessAnalysis {
                        const std::string &output_dir);
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
-    void promise_force_entry(const prom_info_t &prom_info);
+    void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
-    void gc_promise_unmarked(const prom_id_t& prom_id, const SEXP promise);
+    void gc_promise_unmarked(const prom_id_t &prom_id, const SEXP promise);
     void serialize();
 
   private:

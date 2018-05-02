@@ -53,7 +53,7 @@ void PromiseEvaluationDistanceAnalysis::builtin_entry(
 }
 
 void PromiseEvaluationDistanceAnalysis::promise_force_entry(
-    const prom_info_t &prom_info) {
+    const prom_info_t &prom_info, const SEXP promise) {
     auto iter = promises_.find(prom_info.prom_id);
     if (iter == promises_.end())
         return;

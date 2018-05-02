@@ -23,7 +23,7 @@ class AnalysisDriver {
     void builtin_entry(const builtin_info_t &builtin_info);
     void builtin_exit(const builtin_info_t &builtin_info);
 
-    void promise_force_entry(const prom_info_t &prom_info);
+    void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
     void gc_promise_unmarked(const prom_id_t &prom_id, const SEXP promise);
     void vector_alloc(const type_gc_info_t &type_gc_info);

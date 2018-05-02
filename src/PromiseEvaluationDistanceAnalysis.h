@@ -16,7 +16,7 @@ class PromiseEvaluationDistanceAnalysis {
     void closure_entry(const closure_info_t &closure_info);
     void special_entry(const builtin_info_t &special_info);
     void builtin_entry(const builtin_info_t &builtin_info);
-    void promise_force_entry(const prom_info_t &prom_info);
+    void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
     void gc_promise_unmarked(const prom_id_t &prom_id, const SEXP promise);
     void serialize();
     inline int get_closure_counter();

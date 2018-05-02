@@ -860,7 +860,7 @@ sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
 
     //const arg_t &argument = info.arguments[index];
 
-    if (argument.type == sexp_type::PROM)
+    if (argument.expression_type == sexp_type::PROM)
         sqlite3_bind_int(insert_promise_association_statement, 1, argument.promise_id);
     else
         sqlite3_bind_null(insert_promise_association_statement, 1);

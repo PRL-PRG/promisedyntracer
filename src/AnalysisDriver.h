@@ -25,7 +25,7 @@ class AnalysisDriver {
 
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
-    void gc_promise_unmarked(const prom_id_t &prom_id, const SEXP promise);
+    void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
     void vector_alloc(const type_gc_info_t &type_gc_info);
     void environment_define_var(const SEXP symbol, const SEXP value,
                                 const SEXP rho);

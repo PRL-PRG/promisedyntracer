@@ -55,11 +55,10 @@ void AnalysisDriver::promise_force_entry(const prom_info_t &prom_info,
 
 void AnalysisDriver::promise_force_exit(const prom_info_t &prom_info,
                                         const SEXP promise) {
-    strictness_analysis_.promise_force_exit(prom_info, promise);
     promise_type_analysis_.promise_force_exit(prom_info, promise);
 }
 
-void AnalysisDriver::gc_promise_unmarked(const prom_id_t &prom_id,
+void AnalysisDriver::gc_promise_unmarked(const prom_id_t prom_id,
                                          const SEXP promise) {
     strictness_analysis_.gc_promise_unmarked(prom_id, promise);
     promise_type_analysis_.gc_promise_unmarked(prom_id, promise);
@@ -93,7 +92,7 @@ void AnalysisDriver::serialize() {
     strictness_analysis_.serialize();
     object_count_size_analysis_.serialize();
     promise_type_analysis_.serialize();
-    promise_evaluation_distance_analysis_.serialize();
+    // promise_evaluation_distance_analysis_.serialize();
     side_effect_analysis_.serialize();
     function_return_type_analysis_.serialize();
 }

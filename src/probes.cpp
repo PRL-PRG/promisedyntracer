@@ -199,6 +199,7 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     stack_elem.type = stack_type::CALL;
     stack_elem.call_id = info.call_id;
     stack_elem.function_info.function_id = info.fn_id;
+    stack_elem.function_info.type = function_type::CLOSURE;
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
 #ifdef RDT_TIMER
@@ -356,6 +357,7 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     stack_elem.type = stack_type::CALL;
     stack_elem.call_id = info.call_id;
     stack_elem.function_info.function_id = info.fn_id;
+    stack_elem.function_info.type = info.fn_type;
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
 #endif

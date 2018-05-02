@@ -71,7 +71,7 @@ void PromiseEvaluationDistanceAnalysis::promise_force_entry(
 }
 
 void PromiseEvaluationDistanceAnalysis::gc_promise_unmarked(
-    const prom_id_t &prom_id, const SEXP promise) {
+    const prom_id_t prom_id, const SEXP promise) {
     promises_.erase(prom_id);
 }
 

@@ -160,7 +160,7 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_NAME);
 #endif
 
-    info.arguments = get_arguments(context, info.call_id, op, rho);
+    get_arguments(info, context, info.call_id, op, rho);
 #ifdef RDT_TIMER
     Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_ENTRY_RECORDER_ARGUMENTS);
 #endif
@@ -231,7 +231,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_NAME);
 #endif
 
-    info.arguments = get_arguments(context, info.call_id, op, rho);
+    get_arguments(info, context, info.call_id, op, rho);
 #ifdef RDT_TIMER
     Timer::getInstance(timer::RECORDER).endSegment(segment::FUNCTION_EXIT_RECORDER_ARGUMENTS);
 #endif

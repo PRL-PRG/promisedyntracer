@@ -22,7 +22,7 @@ prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise) {
 
     unsigned int prom_type = TYPEOF(PRCODE(promise));
     unsigned int orig_type =
-        (prom_type == 21) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
+        (prom_type == BCODESXP) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
     prom_key_t key(prom_addr, prom_type, orig_type);
 
     auto &promise_ids = tracer_state(context).promise_ids;
@@ -161,80 +161,149 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
     return argument_id;
 }
 
-arglist_t get_arguments(dyntrace_context_t *context, call_id_t call_id, SEXP op,
-                        SEXP rho) {
-    arglist_t arguments;
-    int formal_parameter_position;
-    SEXP formals;
-    for (formal_parameter_position = 0, formals = FORMALS(op);
-         formals != R_NilValue;
-         formals = CDR(formals), formal_parameter_position++) {
-        // Retrieve the argument name.
-        SEXP argument_expression = TAG(formals);
-        SEXP promise_expression = R_NilValue;
-        /* We want the promise associated with the symbol.
-           Generally, the argument_expression should be the promise.
-           But if JIT is enabled, its possible for the argument_expression
-           to be unpromised. In this case, it will be a symbol.
-        */
-        if (TYPEOF(argument_expression) == PROMSXP) {
-            promise_expression = argument_expression;
-        } else if (TYPEOF(argument_expression) == SYMSXP) {
-            lookup_result r =
-                find_binding_in_environment(argument_expression, rho);
-            if (r.status == lookup_status::SUCCESS)
-                promise_expression = r.value;
-            else {
-                // So... since this is a function, then I assume we shouldn't
-                // get any arguments that are active bindings or anything like
-                // that. If we do, then we should fail here and re-think our
-                // life choices.
-                string msg = lookup_status_to_string(r.status);
-                dyntrace_log_error("%s", msg.c_str());
-            }
-        }
-        bool default_argument;
-        if (TYPEOF(promise_expression) == DOTSXP) {
-            int i = 0;
-            for (SEXP dots = promise_expression; dots != R_NilValue;
-                 dots = CDR(dots)) {
-                SEXP ddd_argument_expression = TAG(dots);
-                SEXP ddd_promise_expression = CAR(dots);
-                default_argument = (PRENV(ddd_promise_expression) == rho);
-                if (ddd_argument_expression == R_NilValue) {
-                    arguments.push_back(std::make_tuple(
-                        get_argument_id(context, call_id, to_string(i++)),
-                        get_promise_id(context, ddd_promise_expression),
-                        default_argument, formal_parameter_position)); // ...
-                    // argument without a name
-                } else {
-                    string ddd_arg_name = get_name(ddd_argument_expression);
-                    arguments.push_back(
-                        std::make_tuple(
-                            ddd_arg_name,
-                            get_argument_id(context, call_id, ddd_arg_name),
-                            get_promise_id(context, ddd_promise_expression),
-                            default_argument, formal_parameter_position),
-                        true); // this flag says we're inserting a ... argument
-                }
-            }
-        } else {
-            // Retrieve the promise for the argument.
-            // The call SEXP only contains AST to find the actual argument
-            // value, we need to search the environment.
-            string arg_name = get_name(argument_expression);
-            prom_id_t prom_id = get_promise_id(context, promise_expression);
+inline void get_one_argument (closure_info_t &info,
+                              dyntrace_context_t *context, call_id_t call_id,
+                              const SEXP expression, const SEXP environment,
+                              bool dot_argument, int position) {
 
-            default_argument = (PRENV(promise_expression) == rho);
+    arg_t argument;
 
-            arguments.push_back(std::make_tuple(
-                arg_name, get_argument_id(context, call_id, arg_name), prom_id,
-                default_argument, formal_parameter_position));
-        }
+    SEXPTYPE expression_type = TYPEOF(expression);
+    argument.type = static_cast<sexp_type>(expression_type);
+
+    // We want the promise associated with the symbol.
+    // Generally, the argument_expression should be the promise.
+    // But if JIT is enabled, its possible for the argument_expression
+    // to be unpromised. In this case, FIXME?.
+
+    if (expression != R_NilValue) {
+        argument.name = get_name(expression);
     }
 
-    return arguments;
+    argument.id = get_argument_id(context, call_id, argument.name);
+
+    if (expression_type == PROMSXP) {
+        argument.promise_id = get_promise_id(context, expression);
+        argument.default_argument = (PRENV(expression) == environment) ?
+                                    ternary::TRUE :
+                                    ternary::FALSE;
+    } else {
+        argument.promise_id = 0;
+        argument.default_argument = ternary::OMEGA;
+    }
+
+    argument.dot_argument = dot_argument;
+    argument.position = position;
+
+    info.arguments.push_back(argument);
 }
+
+void get_arguments(closure_info_t &info, dyntrace_context_t *context,
+                   const call_id_t call_id, const SEXP op,
+                   const SEXP environment) {
+
+    int formal_position = 0;
+    SEXP formals = FORMALS(op);
+    for (; formals != R_NilValue; formals = CDR(formals), formal_position++) {
+
+        // Retrieve the argument name.
+        SEXP argument_expression = TAG(formals);
+
+        // Encountered a triple-dot argument, break it up further.
+        if (TYPEOF(argument_expression) == DOTSXP) {
+            for (SEXP dots = argument_expression; dots != R_NilValue;
+                 dots = CDR(dots)) {
+                get_one_argument(info, context, call_id, TAG(dots),
+                                 environment, true, formal_position);
+            }
+            return;
+        }
+
+        // The general case: single argument.
+        get_one_argument(info, context, call_id, argument_expression,
+                         environment, true, formal_position);
+    }
+}
+
+//arglist_t get_arguments2(dyntrace_context_t *context, call_id_t call_id, SEXP op,
+//                        SEXP rho) {
+//    arglist_t arguments;
+//    int formal_parameter_position;
+//    SEXP formals;
+//    for (formal_parameter_position = 0, formals = FORMALS(op);
+//         formals != R_NilValue;
+//         formals = CDR(formals), formal_parameter_position++) {
+//        // Retrieve the argument name.
+//        SEXP argument_expression = TAG(formals);
+//        SEXP promise_expression = R_NilValue;
+//        /* We want the promise associated with the symbol.
+//           Generally, the argument_expression should be the promise.
+//           But if JIT is enabled, its possible for the argument_expression
+//           to be unpromised. In this case, it will be a symbol.
+//        */
+//        if (TYPEOF(argument_expression) == PROMSXP) {
+//            promise_expression = argument_expression;
+//        } else if (TYPEOF(argument_expression) == SYMSXP) {
+//            lookup_result r =
+//                find_binding_in_environment(argument_expression, rho);
+//            if (r.status == lookup_status::SUCCESS)
+//                promise_expression = r.value;
+//            else {
+//                // So... since this is a function, then I assume we shouldn't
+//                // get any arguments that are active bindings or anything like
+//                // that. If we do, then we should fail here and re-think our
+//                // life choices.
+//                string msg = lookup_status_to_string(r.status);
+//                dyntrace_log_error("%s", msg.c_str());
+//            }
+//        }
+//        bool default_argument;
+//        if (TYPEOF(promise_expression) == DOTSXP) {
+//            int i = 0;
+//            for (SEXP dots = promise_expression; dots != R_NilValue;
+//                 dots = CDR(dots)) {
+//                SEXP ddd_argument_expression = TAG(dots);
+//                SEXP ddd_promise_expression = CAR(dots);
+//                default_argument = (PRENV(ddd_promise_expression) == rho);
+//                if (ddd_argument_expression == R_NilValue) {
+//                    arguments.push_back(std::make_tuple(
+//                        get_argument_id(context, call_id, to_string(i++)),
+//                        get_promise_id(context, ddd_promise_expression),
+//                        default_argument, formal_parameter_position)); // ...
+//                    // argument without a name
+//                } else {
+//                    string ddd_arg_name = get_name(ddd_argument_expression);
+//                    arguments.push_back({
+//                        get_argument_id(context, call_id, ddd_arg_name),
+//                        ddd_arg_name,
+//                        static_cast<sexp_type>(TYPEOF(ddd_argument_expression)),
+//                        get_promise_id(context, ddd_promise_expression),
+//                        default_argument,
+//                        formal_parameter_position},
+//                    true); // this flag says we're inserting a ... argument
+//                }
+//            }
+//        } else {
+//            // Retrieve the promise for the argument.
+//            // The call SEXP only contains AST to find the actual argument
+//            // value, we need to search the environment.
+//            string arg_name = get_name(argument_expression);
+//            prom_id_t prom_id = get_promise_id(context, promise_expression);
+//
+//            default_argument = (PRENV(promise_expression) == rho);
+//
+//            arguments.push_back({
+//                get_argument_id(context, call_id, arg_name),
+//                arg_name,
+//                static_cast<sexp_type>(TYPEOF(argument_expression)),
+//                prom_id,
+//                default_argument
+//            });
+//        }
+//    }
+//
+//    return arguments;
+//}
 
 string recursive_type_to_string(recursion_type type) {
     switch (type) {

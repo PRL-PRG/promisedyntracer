@@ -210,18 +210,17 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
     auto &fresh_promises = tracer_state(context).fresh_promises;
     // Associate promises with call ID
-    for (auto arg_ref : info.arguments.all()) {
-        const arg_t &argument = arg_ref.get();
-        auto &promise = get<2>(argument);
-        auto it = fresh_promises.find(promise);
+    for (auto argument : info.arguments) {
+        auto &promise = argument.promise_id;
         // if promise environment is same as the caller's environment, then
         // serialize this promise as it is a default argument.
 
         debug_serializer(context).serialize_promise_argument_type(
-            promise, get<3>(argument));
+            promise, argument.default_argument);
         tracer_serializer(context).serialize_promise_argument_type(
-            promise, get<3>(argument));
+            promise, argument.default_argument);
 
+        auto it = fresh_promises.find(promise);
         if (it != fresh_promises.end()) {
             tracer_state(context).promise_origin[promise] = info.call_id;
             fresh_promises.erase(it);

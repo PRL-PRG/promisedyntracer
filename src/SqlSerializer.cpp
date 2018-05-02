@@ -415,8 +415,12 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
         execute(statement);
     }
 
-    for (unsigned int index = 0; index < info.arguments.size(); ++index) {
-        auto statement = populate_insert_argument_statement(info, index);
+    //for (unsigned int index = 0; index < info.arguments.size(); ++index) {
+    int position = 0;
+    for (auto it = info.arguments.begin(); it != info.arguments.end();
+         ++it, ++position) {
+        auto statement = populate_insert_argument_statement(info, *it,
+                                                            position);
     #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
@@ -437,8 +441,10 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
 #endif
     }
 
-    for (unsigned int index = 0; index < info.arguments.size(); ++index) {
-        auto statement = populate_promise_association_statement(info, index);
+    //for (unsigned int index = 0; index < info.arguments.size(); ++index) {
+    for (auto i = info.arguments.begin(); i != info.arguments.end(); ++i) {
+        auto statement = populate_promise_association_statement(info, *i);
+
     #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
@@ -579,13 +585,13 @@ void SqlSerializer::serialize_promise_created(const prom_basic_info_t &info) {
 }
 
 void SqlSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
-                                                    bool default_argument) {
+                                                    ternary default_argument) {
 #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).reset();
 #endif
     sqlite3_bind_int(insert_promise_argument_type_statement, 1, prom_id);
     sqlite3_bind_int(insert_promise_argument_type_statement, 2,
-                     default_argument);
+                     static_cast<int>(default_argument));
 #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
@@ -850,18 +856,17 @@ SqlSerializer::populate_call_return_statement(const call_info_t &info) {
 }
 
 sqlite3_stmt *SqlSerializer::populate_promise_association_statement(
-    const closure_info_t &info, int index) {
+    const closure_info_t &info, const arg_t &argument) {
 
-    const arg_t &argument = info.arguments.all()[index].get();
-    arg_id_t arg_id = get<1>(argument);
-    prom_id_t promise = get<2>(argument);
+    //const arg_t &argument = info.arguments[index];
 
-    if (promise != RID_INVALID)
-        sqlite3_bind_int(insert_promise_association_statement, 1, promise);
+    if (argument.type == sexp_type::PROM)
+        sqlite3_bind_int(insert_promise_association_statement, 1, argument.promise_id);
     else
         sqlite3_bind_null(insert_promise_association_statement, 1);
+
     sqlite3_bind_int(insert_promise_association_statement, 2, info.call_id);
-    sqlite3_bind_int(insert_promise_association_statement, 3, arg_id);
+    sqlite3_bind_int(insert_promise_association_statement, 3, argument.id);
 
     return insert_promise_association_statement;
 }
@@ -910,16 +915,13 @@ SqlSerializer::populate_function_statement(const call_info_t &info) {
 }
 
 sqlite3_stmt *SqlSerializer::populate_insert_argument_statement(
-    const closure_info_t &info, int actual_parameter_position) {
-    const arg_t &argument =
-        info.arguments.all()[actual_parameter_position].get();
-    sqlite3_bind_int(insert_argument_statement, 1, get<1>(argument));
-    sqlite3_bind_text(insert_argument_statement, 2, get<0>(argument).c_str(),
-                      -1, SQLITE_STATIC); // XXX ??
-    sqlite3_bind_int(insert_argument_statement, 3,
-                     actual_parameter_position); // FIXME broken or
-                                                 // unnecessary (pick one)
-    sqlite3_bind_int(insert_argument_statement, 4, get<4>(argument));
+    const closure_info_t &info, const arg_t &argument, int position) {
+    sqlite3_bind_int(insert_argument_statement, 1, argument.id);
+    sqlite3_bind_text(insert_argument_statement, 2, argument.name.c_str(),
+                      -1, SQLITE_STATIC);
+    sqlite3_bind_int(insert_argument_statement, 3, position); // FIXME broken or
+                                                              // unnecessary (pick one)
+    sqlite3_bind_int(insert_argument_statement, 4, argument.position);
     sqlite3_bind_int(insert_argument_statement, 5, info.call_id);
     return insert_argument_statement;
 }

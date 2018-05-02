@@ -1,4 +1,7 @@
 #include "timer.h"
+
+#ifdef RDT_TIMER
+
 using namespace std;
 using namespace std::chrono;
 
@@ -194,3 +197,5 @@ namespace timing {
         return r;
     }
 }
+
+#endif //RDT_TIMER

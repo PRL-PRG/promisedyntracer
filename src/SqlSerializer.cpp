@@ -405,11 +405,11 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
 #endif
 
     if (need_to_insert) {
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         auto statement = populate_function_statement(info);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
         execute(statement);
@@ -421,22 +421,22 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
          ++it, ++position) {
         auto statement = populate_insert_argument_statement(info, *it,
                                                             position);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
 
     {
         auto statement = populate_call_statement(info);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
@@ -445,11 +445,11 @@ void SqlSerializer::serialize_function_entry(dyntrace_context_t *context,
     for (auto i = info.arguments.begin(); i != info.arguments.end(); ++i) {
         auto statement = populate_promise_association_statement(info, *i);
 
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
@@ -485,11 +485,11 @@ void SqlSerializer::serialize_builtin_entry(dyntrace_context_t *context,
 #endif
     if (need_to_insert) {
         auto statement = populate_function_statement(info);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_BIND);
 #endif
         execute(statement);
-    #ifdef RDT_TIMER
+#ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL_EXECUTE);
 #endif
     }
@@ -535,11 +535,11 @@ void SqlSerializer::serialize_force_promise_entry(dyntrace_context_t *context,
     if (info.prom_id < 0) // if this is a promise from the outside
         if (!negative_promise_already_inserted(context, info.prom_id)) {
             auto statement = populate_insert_promise_statement(info);
-        #ifdef RDT_TIMER
+    #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_BIND);
 #endif
             execute(statement);
-        #ifdef RDT_TIMER
+    #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL_EXECUTE);
 #endif
         }

@@ -507,12 +507,10 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
 #endif
 
     prom_info_t info = force_promise_entry_get_info(context, promise);
-
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_RECORDER);
 #endif
-
-    analysis_driver(context).promise_force_entry(info);
+    analysis_driver(context).promise_force_entry(info, promise);
     stack_event_t stack_elem;
     stack_elem.type = stack_type::PROMISE;
     stack_elem.promise_id = info.prom_id;

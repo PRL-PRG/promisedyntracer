@@ -46,9 +46,11 @@ void AnalysisDriver::special_exit(const builtin_info_t &special_info) {
     function_return_type_analysis_.special_exit(special_info);
 }
 
-void AnalysisDriver::promise_force_entry(const prom_info_t &prom_info) {
-    strictness_analysis_.promise_force_entry(prom_info);
-    promise_evaluation_distance_analysis_.promise_force_entry(prom_info);
+void AnalysisDriver::promise_force_entry(const prom_info_t &prom_info,
+                                         const SEXP promise) {
+    strictness_analysis_.promise_force_entry(prom_info, promise);
+    promise_evaluation_distance_analysis_.promise_force_entry(prom_info,
+                                                              promise);
 }
 
 void AnalysisDriver::promise_force_exit(const prom_info_t &prom_info,

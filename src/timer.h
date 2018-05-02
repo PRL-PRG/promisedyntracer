@@ -5,6 +5,7 @@
 #ifndef PROMISEDYNTRACER_TIMER_H
 #define PROMISEDYNTRACER_TIMER_H
 
+#ifdef RDT_TIMER
 namespace timing {
 
     enum segment {
@@ -199,5 +200,5 @@ namespace timing {
     };
 }
 
-
+#endif //RDT_TIMER
 #endif //PROMISEDYNTRACER_TIMER_H

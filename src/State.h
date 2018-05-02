@@ -261,7 +261,9 @@ prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise);
 prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
                           bool negative = false);
 call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
-fn_id_t get_function_id(dyntrace_context_t *context, SEXP func,
+string get_function_definition(dyntrace_context_t *context, const SEXP function);
+void remove_function_definition(dyntrace_context_t *context, const SEXP function);
+fn_id_t get_function_id(dyntrace_context_t *context, const string &def,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);
 
@@ -367,6 +369,8 @@ struct tracer_state_t {
                                // can reset it after each pass if overwrite is
                                // true)
     prom_id_t prom_neg_id_counter;
+
+    unordered_map<SEXP, string> function_definitions;
 
     unordered_map<fn_key_t, fn_id_t> function_ids; // Should be kept across Rdt
                                                    // calls (unless overwrite is

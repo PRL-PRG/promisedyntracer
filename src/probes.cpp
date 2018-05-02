@@ -1,6 +1,11 @@
 #include "probes.h"
 #include "State.h"
 
+#ifdef RDT_TIMER
+#include "timer.h"
+using namespace timing;
+#endif
+
 const std::string OPCODE_CLOSURE_BEGIN = "clb";
 const std::string OPCODE_CLOSURE_FINISH = "clf";
 const std::string OPCODE_BUILTIN_BEGIN = "bub";
@@ -121,6 +126,16 @@ void serialize_execution_time(dyntrace_context_t *context) {
         clock_ticks_to_string(execution_time.probe_S3_dispatch_exit));
     serializer.serialize_metadatum(
         "EXPRESSION", clock_ticks_to_string(execution_time.expression));
+
+#ifdef RDT_TIMER
+    for (int i = 0; i < timer::number_of_timers; i++) {
+        vector<pair<string, string>> times =
+                Timer::getInstance(static_cast<timer>(i)).stats();
+        for (auto i = times.begin(); i != times.end(); ++i) {
+            serializer.serialize_metadatum(i->first, i->second);
+        }
+    }
+#endif
 }
 
 void end(dyntrace_context_t *context) {
@@ -168,8 +183,16 @@ void end(dyntrace_context_t *context) {
 // Triggered when entering function evaluation.
 void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
                     const SEXP rho) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     tracer_state(context).increment_closure_counter();
     closure_info_t info = function_entry_get_info(context, call, op, rho);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_ENTRY_RECORDER);
+#endif
 
     stack_event_t stack_elem;
     stack_elem.type = stack_type::CALL;
@@ -177,6 +200,10 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     stack_elem.function_info.function_id = info.fn_id;
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
+
+#ifdef RDT_TIMER    
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_ENTRY_STACK);
+#endif
 
     debug_serializer(context).serialize_function_entry(info);
     tracer_serializer(context).serialize_function_entry(context, info);
@@ -201,15 +228,31 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
         }
     }
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_ENTRY_WRITE_SQL);
+#endif
+
     tracer_serializer(context).serialize_trace(
         OPCODE_CLOSURE_BEGIN, info.fn_id, info.call_id,
         tracer_state(context).to_environment_id(rho));
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_ENTRY_WRITE_TRACE);
+#endif
 }
 
 void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
                    const SEXP rho, const SEXP retval) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     closure_info_t info =
         function_exit_get_info(context, call, op, rho, retval);
+
+#ifdef RDT_TIMER    
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_EXIT_RECORDER);
+#endif
 
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::CALL ||
@@ -222,14 +265,32 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     }
     tracer_state(context).full_stack.pop_back();
 
+#ifdef RDT_TIMER    
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_EXIT_STACK);
+#endif
+
     debug_serializer(context).serialize_function_exit(info);
     tracer_serializer(context).serialize_function_exit(info);
+
+#ifdef RDT_TIMER    
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_EXIT_WRITE_SQL);
+#endif
+
     tracer_serializer(context).serialize_trace(
         OPCODE_CLOSURE_FINISH, info.fn_id, info.call_id,
         tracer_state(context).to_environment_id(rho));
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_EXIT_WRITE_TRACE);
+#endif
+
     tracer_serializer(context).serialize_function_environment_action(
         info.fn_id,
         tracer_state(context).remove_function_environment_action(info.fn_id));
+
+#ifdef RDT_TIMER    
+    Timer::getInstance(timer::MAIN).endSegment(segment::FUNCTION_EXIT_WRITE_SQL);
+#endif
 }
 
 void builtin_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
@@ -268,59 +329,132 @@ void specialsxp_exit(dyntrace_context_t *context, const SEXP call,
 
 void print_entry_info(dyntrace_context_t *context, const SEXP call,
                       const SEXP op, const SEXP rho, function_type fn_type) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     builtin_info_t info =
         builtin_entry_get_info(context, call, op, rho, fn_type);
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_RECORDER);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     stack_event_t stack_elem;
     stack_elem.type = stack_type::CALL;
     stack_elem.call_id = info.call_id;
     stack_elem.function_info.function_id = info.fn_id;
     stack_elem.enclosing_environment = info.call_ptr;
     tracer_state(context).full_stack.push_back(stack_elem);
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_STACK);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     debug_serializer(context).serialize_builtin_entry(info);
     tracer_serializer(context).serialize_builtin_entry(context, info);
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_SQL);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(context).serialize_trace(
         info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
                                                : OPCODE_BUILTIN_BEGIN,
         info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#endif
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_ENTRY_WRITE_TRACE);
+#endif
 }
 
 void print_exit_info(dyntrace_context_t *context, const SEXP call,
                      const SEXP op, const SEXP rho, function_type fn_type,
                      const SEXP retval) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     builtin_info_t info =
         builtin_exit_get_info(context, call, op, rho, fn_type, retval);
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::CALL ||
         thing_on_stack.call_id != info.call_id) {
         dyntrace_log_warning(
             "Object on stack was %s with id %d,"
-            " but was expected to be built-in with id %d",
-            thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
-            thing_on_stack.call_id, info.call_id);
+           " but was expected to be built-in with id %d",
+           thing_on_stack.type == stack_type::PROMISE ? "promise" : "call",
+           thing_on_stack.call_id, info.call_id);
     }
     tracer_state(context).full_stack.pop_back();
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_STACK);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     debug_serializer(context).serialize_builtin_exit(info);
     tracer_serializer(context).serialize_builtin_exit(info);
+#endif
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(context).serialize_trace(
         info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
                                                : OPCODE_BUILTIN_FINISH,
         info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
+#endif
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_TRACE);
+#endif
+
+#ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(context).serialize_function_environment_action(
         info.fn_id,
         tracer_state(context).remove_function_environment_action(info.fn_id));
+#endif
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::BUILTIN_EXIT_WRITE_SQL);
+#endif
 }
 
 void promise_created(dyntrace_context_t *context, const SEXP prom,
                      const SEXP rho) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_basic_info_t info = create_promise_get_info(context, prom, rho);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CREATE_PROMISE_RECORDER);
+#endif
+
     debug_serializer(context).serialize_promise_created(info);
     tracer_serializer(context).serialize_promise_created(info);
+
     if (info.prom_id >= 0) { // maybe we don't need this check
         prom_lifecycle_info_t prom_gc_info = {
             info.prom_id,
@@ -333,16 +467,32 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CREATE_PROMISE_WRITE_SQL);
+#endif
+
     std::string cre_id = std::string("cre ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(cre_id);
     tracer_serializer(context).serialize_trace(
         OPCODE_PROMISE_CREATE, info.prom_id,
         tracer_state(context).to_environment_id(PRENV(prom)));
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CREATE_PROMISE_WRITE_TRACE);
+#endif
 }
 
 // Promise is being used inside a function body for the first time.
 void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = force_promise_entry_get_info(context, promise);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_RECORDER);
+#endif
 
     stack_event_t stack_elem;
     stack_elem.type = stack_type::PROMISE;
@@ -353,10 +503,19 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
             .enclosing_environment; // FIXME necessary?
     tracer_state(context).full_stack.push_back(stack_elem);
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_STACK);
+#endif
+
     std::string ent_id = std::string("ent ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(ent_id);
     tracer_serializer(context).serialize_trace(
         OPCODE_PROMISE_BEGIN, info.prom_id, info.expression_id);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_TRACE);
+#endif
+
     debug_serializer(context).serialize_force_promise_entry(info);
     tracer_serializer(context).serialize_force_promise_entry(
         context, info, tracer_state(context).clock_id);
@@ -374,10 +533,22 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_ENTRY_WRITE_SQL);
+#endif
 }
 
 void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = force_promise_exit_get_info(context, promise);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_EXIT_RECORDER);
+#endif
 
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::PROMISE ||
@@ -390,10 +561,19 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     }
     tracer_state(context).full_stack.pop_back();
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_EXIT_STACK);
+#endif
+
     std::string ext_id = std::string("ext ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(ext_id);
     tracer_serializer(context).serialize_trace(OPCODE_PROMISE_FINISH,
                                                info.prom_id);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_TRACE);
+#endif
+
     debug_serializer(context).serialize_force_promise_exit(info);
     tracer_serializer(context).serialize_force_promise_exit(
         info, tracer_state(context).clock_id);
@@ -401,14 +581,31 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
     tracer_serializer(context).serialize_promise_environment_action(
         info.prom_id,
         tracer_state(context).remove_promise_environment_action(info.prom_id));
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::FORCE_PROMISE_EXIT_WRITE_SQL);
+#endif
 }
 
 void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_lookup_get_info(context, promise);
     std::string val_id = std::string("val ") + std::to_string(info.prom_id);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_VALUE_RECORDER);
+#endif
+
     debug_serializer(context).serialize_interference_information(val_id);
     tracer_serializer(context).serialize_trace(OPCODE_PROMISE_VALUE,
                                                info.prom_id);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_TRACE);
+#endif
     if (info.prom_id >= 0) {
         debug_serializer(context).serialize_promise_lookup(info);
         tracer_serializer(context).serialize_promise_lookup(
@@ -419,13 +616,31 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int i
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
     }
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_VALUE_WRITE_SQL);
+#endif
 }
 
 void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_RECORDER);
+#endif
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_EXPRESSION,
                                                    info.prom_id);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_TRACE);
+#endif
+
         tracer_serializer(context).serialize_promise_expression_lookup(
             info, tracer_state(context).clock_id);
         tracer_state(context).clock_id++;
@@ -438,14 +653,32 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom, int
             tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_WRITE_SQL);
+#endif
     }
 }
 
 void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_ENVIRONMENT_RECORDER);
+#endif
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_ENVIRONMENT_WRITE_TRACE);
+#endif
+
         //tracer_serializer(context).serialize_promise_environment_lookup(
         //         info, tracer_state(context).clock_id); // FIXME
         tracer_state(context).clock_id++;
@@ -458,6 +691,10 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, in
                 tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_ENVIRONMENT_WRITE_SQL);
+#endif
     }
 }
 
@@ -483,10 +720,24 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, in
 
 
 void promise_expression_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_EXPRESSION_RECORDER);
+#endif
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_EXPRESSION_WRITE_TRACE);
+#endif
+
         //tracer_serializer(context).serialize_promise_environment_lookup(
         //         info, tracer_state(context).clock_id); // FIXME
         tracer_state(context).clock_id++;
@@ -499,11 +750,24 @@ void promise_expression_set(dyntrace_context_t *context, const SEXP prom, int in
                 tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_EXPRESSION_WRITE_SQL);
+#endif
     }
 }
 
 void promise_value_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_VALUE_RECORDER);
+#endif
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
@@ -519,11 +783,24 @@ void promise_value_set(dyntrace_context_t *context, const SEXP prom, int in_forc
                 tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_VALUE_WRITE_SQL);
+#endif
     }
 }
 
 void promise_environment_set(dyntrace_context_t *context, const SEXP prom, int in_force) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_ENVIRONMENT_RECORDER);
+#endif
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
@@ -539,13 +816,25 @@ void promise_environment_set(dyntrace_context_t *context, const SEXP prom, int i
                 tracer_state(context).get_closure_counter()};
         debug_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, in_force);
+
+    #ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_ENVIRONMENT_WRITE_SQL);
+#endif
     }
 }
 
 void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     prom_addr_t addr = get_sexp_address(promise);
     prom_id_t id = get_promise_id(context, promise);
     auto &promise_origin = tracer_state(context).promise_origin;
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_PROMISE_UNMARKED_RECORDER);
+#endif
 
     if (id >= 0) {
         prom_lifecycle_info_t prom_gc_info = {
@@ -559,6 +848,10 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
         tracer_serializer(context).serialize_promise_lifecycle(prom_gc_info, -1);
     }
 
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_PROMISE_UNMARKED_WRITE_SQL);
+#endif
+
     auto iter = promise_origin.find(id);
     if (iter != promise_origin.end()) {
         // If this is one of our traced promises,
@@ -571,14 +864,42 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
         (prom_type == 21) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
     prom_key_t key(addr, prom_type, orig_type);
     tracer_state(context).promise_ids.erase(key);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_PROMISE_UNMARKED_RECORD_KEEPING);
+#endif
+}
+
+void gc_function_unmarked(dyntrace_context_t *context, const SEXP function) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
+    remove_function_definition(context, function);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_FUNCTION_UNMARKED_RECORD_KEEPING);
+#endif
 }
 
 void gc_entry(dyntrace_context_t *context, R_size_t size_needed) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     tracer_state(context).increment_gc_trigger_counter();
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_ENTRY_RECORDER);
+#endif
 }
 
 void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
              double ncells) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     gc_info_t info;
     info.vcells = vcells;
     info.ncells = ncells;
@@ -586,19 +907,45 @@ void gc_exit(dyntrace_context_t *context, int gc_count, double vcells,
     info.builtin_calls = tracer_state(context).get_builtin_calls();
     info.special_calls = tracer_state(context).get_special_calls();
     info.closure_calls = tracer_state(context).get_closure_calls();
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_EXIT_RECORDER);
+#endif
+
     debug_serializer(context).serialize_gc_exit(info);
     tracer_serializer(context).serialize_gc_exit(info);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::GC_EXIT_WRITE_SQL);
+#endif
 }
 
 void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
                   long bytes, const char *srcref) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     type_gc_info_t info{tracer_state(context).get_gc_trigger_counter(),
                         sexptype, length, bytes};
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::VECTOR_ALLOC_RECORDER);
+#endif
+
     debug_serializer(context).serialize_vector_alloc(info);
     tracer_serializer(context).serialize_vector_alloc(info);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::VECTOR_ALLOC_WRITE_SQL);
+#endif
 }
 
 void new_environment(dyntrace_context_t *context, const SEXP rho) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     // fn_id_t fn_id = (tracer_state(context).fun_stack.back().function_id);
     stack_event_t event = get_last_on_stack_by_type(
         tracer_state(context).full_stack, stack_type::CALL);
@@ -607,32 +954,70 @@ void new_environment(dyntrace_context_t *context, const SEXP rho) {
                         : event.function_info.function_id;
 
     env_id_t env_id = tracer_state(context).environment_id_counter++;
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::NEW_ENVIRONMENT_RECORDER);
+#endif
+
     debug_serializer(context).serialize_new_environment(env_id, fn_id);
     tracer_serializer(context).serialize_new_environment(env_id, fn_id);
     tracer_state(context).environments[rho] =
         std::pair<env_id_t, unordered_map<string, var_id_t>>(env_id, {});
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::NEW_ENVIRONMENT_WRITE_SQL);
+#endif
+
     tracer_serializer(context).serialize_trace(OPCODE_ENVIRONMENT_CREATE,
                                                env_id);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::NEW_ENVIRONMENT_WRITE_TRACE);
+#endif
 }
 
 void begin_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     stack_event_t event;
     event.context_id = (rid_t)cptr;
     event.type = stack_type::CONTEXT;
     tracer_state(context).full_stack.push_back(event);
     debug_serializer(context).serialize_begin_ctxt(cptr);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CONTEXT_ENTRY_STACK);
+#endif
 }
 
 void jump_ctxt(dyntrace_context_t *context, const RCNTXT *cptr, const SEXP return_value, int restart) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     unwind_info_t info;
     info.jump_context = ((rid_t) cptr);
     info.restart = restart;
     adjust_stacks(context, info);
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CONTEXT_JUMP_STACK);
+#endif
+
     debug_serializer(context).serialize_unwind(info);
     tracer_serializer(context).serialize_unwind(info);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CONTEXT_JUMP_WRITE_SQL);
+#endif
 }
 
 void end_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     stack_event_t event = tracer_state(context).full_stack.back();
     if (event.type == stack_type::CONTEXT && ((rid_t)cptr) == event.context_id)
         tracer_state(context).full_stack.pop_back();
@@ -641,6 +1026,10 @@ void end_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
                              "stack, but %d is on top of stack.",
                              ((rid_t)cptr), event.context_id);
     debug_serializer(context).serialize_end_ctxt(cptr);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::CONTEXT_EXIT_STACK);
+#endif
 }
 
 void adjust_stacks(dyntrace_context_t *context, unwind_info_t &info) {
@@ -673,6 +1062,10 @@ void adjust_stacks(dyntrace_context_t *context, unwind_info_t &info) {
 
 void environment_action(dyntrace_context_t *context, const SEXP symbol,
                         SEXP value, const SEXP rho, const std::string &action) {
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).reset();
+#endif
+
     bool exists = true;
     prom_id_t promise_id = tracer_state(context).enclosing_promise_id();
     env_id_t environment_id = tracer_state(context).to_environment_id(rho);
@@ -682,21 +1075,35 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
     // std::string exphash = compute_hash(value.c_str());
     // serialize variable iff it has not been seen before.
     // if it has been seen before, then it has already been serialized.
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_RECORDER);
+#endif
+
     if (!exists) {
         debug_serializer(context).serialize_variable(
             variable_id, CHAR(PRINTNAME(symbol)), environment_id);
         tracer_serializer(context).serialize_variable(
             variable_id, CHAR(PRINTNAME(symbol)), environment_id);
     }
+
     debug_serializer(context).serialize_variable_action(promise_id, variable_id,
                                                         action);
     tracer_serializer(context).serialize_variable_action(promise_id,
                                                          variable_id, action);
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_WRITE_SQL);
+#endif
+
     std::string action_id = action + " " + std::to_string(variable_id);
     debug_serializer(context).serialize_interference_information(action_id);
     tracer_serializer(context).serialize_trace(
         action, tracer_state(context).to_environment_id(rho), variable_id,
         CHAR(PRINTNAME(symbol)), sexp_type_to_string((sexp_type)TYPEOF(value)));
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_WRITE_TRACE);
+#endif
 
     size_t stack_size = tracer_state(context).full_stack.size();
     int context_count = 0;
@@ -710,6 +1117,7 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
         if (context_count == 3)
             break;
     }
+
     bool transitive = false;
     for (int i = stack_size - 1; i > bottom_index; --i) {
         stack_event_t exec_context = tracer_state(context).full_stack[i];
@@ -744,6 +1152,10 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
     if (transitive == false) {
         tracer_state(context).update_toplevel_action(action);
     }
+
+#ifdef RDT_TIMER
+    Timer::getInstance(timer::MAIN).endSegment(segment::ENVIRONMENT_ACTION_RECORDER);
+#endif
 }
 
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,

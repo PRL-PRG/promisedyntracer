@@ -62,8 +62,33 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
     return prom_id;
 }
 
-fn_id_t get_function_id(dyntrace_context_t *context, SEXP func, bool builtin) {
-    fn_key_t definition(get_expression(func));
+string get_function_definition(dyntrace_context_t *context, const SEXP function) {
+    auto &definitions = tracer_state(context).function_definitions;
+    auto it = definitions.find(function);
+    if (it != definitions.end()) {
+#ifdef RDT_DEBUG
+        string test = get_expression(function);
+        if (it->second.compare(test) != 0) {
+            cout << "Function definitions are wrong.";
+        }
+#endif
+        return it->second;
+    } else {
+        string definition = get_expression(function);
+        tracer_state(context).function_definitions[function] = definition;
+        return definition;
+    }
+}
+
+void remove_function_definition(dyntrace_context_t *context, const SEXP function) {
+    auto &definitions = tracer_state(context).function_definitions;
+    auto it = definitions.find(function);
+    if (it != definitions.end())
+        tracer_state(context).function_definitions.erase(it);
+}
+
+fn_id_t get_function_id(dyntrace_context_t *context,const string &function_definition, bool builtin) {
+    fn_key_t definition(function_definition);
 
     auto &function_ids = tracer_state(context).function_ids;
     auto it = function_ids.find(definition);

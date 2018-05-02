@@ -161,26 +161,21 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
     return argument_id;
 }
 
-inline void get_one_argument (closure_info_t &info,
-                              dyntrace_context_t *context, call_id_t call_id,
-                              const SEXP expression, const SEXP environment,
-                              bool dot_argument, int position) {
+inline void get_one_argument(closure_info_t &info,
+                             dyntrace_context_t *context, call_id_t call_id,
+                             const SEXP argument_expression,
+                             const SEXP expression,
+                             const SEXP environment, bool dot_argument,
+                             int position) {
 
     arg_t argument;
 
     SEXPTYPE expression_type = TYPEOF(expression);
-    argument.type = static_cast<sexp_type>(expression_type);
+    SEXPTYPE argument_type = TYPEOF(argument_expression);
 
-    // We want the promise associated with the symbol.
-    // Generally, the argument_expression should be the promise.
-    // But if JIT is enabled, its possible for the argument_expression
-    // to be unpromised. In this case, FIXME?.
-
-    if (expression != R_NilValue) {
-        argument.name = get_name(expression);
+    if (argument_expression != R_NilValue) {
+        argument.name = string(get_name(argument_expression));
     }
-
-    argument.id = get_argument_id(context, call_id, argument.name);
 
     if (expression_type == PROMSXP) {
         argument.promise_id = get_promise_id(context, expression);
@@ -192,6 +187,8 @@ inline void get_one_argument (closure_info_t &info,
         argument.default_argument = ternary::OMEGA;
     }
 
+    argument.id = get_argument_id(context, call_id, argument.name);
+    argument.type = static_cast<sexp_type>(argument_type);
     argument.dot_argument = dot_argument;
     argument.position = position;
 
@@ -209,19 +206,46 @@ void get_arguments(closure_info_t &info, dyntrace_context_t *context,
         // Retrieve the argument name.
         SEXP argument_expression = TAG(formals);
 
+        SEXP expression;
+        // We want the promise associated with the symbol.
+        // Generally, the argument_expression should be the promise.
+        // But if JIT is enabled, its possible for the argument_expression
+        // to be unpromised. In this case, FIXME?.
+        if (TYPEOF(argument_expression) == SYMSXP) {
+            lookup_result r = find_binding_in_environment(argument_expression,
+                                                          environment);
+            if (r.status == lookup_status::SUCCESS) {
+                expression = r.value;
+            } else {
+                // So... since this is a function, then I assume we shouldn't
+                // get any arguments that are active bindings or anything like
+                // that. If we do, then we should fail here and re-think our
+                // life choices.
+                string msg = lookup_status_to_string(r.status);
+                dyntrace_log_error("%s", msg.c_str());
+            }
+        }
+        // If the argument already has an associated promise, then use that.
+        // In case we see something else like NILSXP, the various helper functions
+        // below should be geared to deal with it.
+        else {
+            expression = argument_expression;
+        }
+
         // Encountered a triple-dot argument, break it up further.
-        if (TYPEOF(argument_expression) == DOTSXP) {
-            for (SEXP dots = argument_expression; dots != R_NilValue;
+        if (TYPEOF(expression) == DOTSXP) {
+            for (SEXP dots = expression; dots != R_NilValue;
                  dots = CDR(dots)) {
                 get_one_argument(info, context, call_id, TAG(dots),
-                                 environment, true, formal_position);
+                                 environment, CAR(dots), true,
+                                 formal_position);
             }
             return;
         }
 
         // The general case: single argument.
         get_one_argument(info, context, call_id, argument_expression,
-                         environment, true, formal_position);
+                         expression, environment, false, formal_position);
     }
 }
 

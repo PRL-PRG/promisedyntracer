@@ -35,18 +35,30 @@ string DebugSerializer::log_line(const function_type &type) {
     return nullptr;
 }
 
+string DebugSerializer::log_line(const ternary &t) {
+    switch (t) {
+        case ternary::TRUE: return "T";
+        case ternary::FALSE: return "F";
+        case ternary::OMEGA: return "?";
+    }
+    return nullptr;
+}
+
 string DebugSerializer::log_line(const arglist_t &arguments) {
     stringstream line;
     line << "[";
-    auto all = arguments.all();
-    for (auto i = all.begin(); i != all.end(); ++i) {
-        if (i != all.begin())
+    for (auto i = arguments.begin(); i != arguments.end(); ++i) {
+        if (i != arguments.begin())
             line << " ";
 
-        const arg_t argument = ((*i).get());
-        line << "{name=" << get<0>(argument)
-             << " arg_id=" << get<1>(argument)
-             << " prom_id=" << get<2>(argument)
+        const arg_t &argument = *i;
+        line << "{name=" << argument.name
+             << " id=" << argument.id
+             << " type=" << log_line(argument.type)
+             << " default=" << log_line(argument.default_argument)
+             << " dot=" << (argument.dot_argument ? "T" : "F")
+             << " prom_id=" << argument.promise_id
+             << " position=" << argument.position
              << "}";
     }
     line << "]";
@@ -342,11 +354,11 @@ void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
 }
 
 void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
-                                                      bool default_argument) {
+                                                      ternary default_argument) {
     if (!(verbose > 1)) return;
     cerr << prefix()
          << "prom_arg_type prom_id=" << prom_id
-         << " default_argument=" << default_argument
+         << " default_argument=" << log_line(default_argument)
          << print_stack()
          << endl;
 }

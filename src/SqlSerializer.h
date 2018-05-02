@@ -31,7 +31,7 @@ class SqlSerializer {
                                              int clock_id);
     void serialize_promise_lifecycle(const prom_lifecycle_info_t &info, int);
     void serialize_promise_argument_type(const prom_id_t prom_id,
-                                         bool default_argument);
+                                         ternary default_argument);
     void serialize_vector_alloc(const type_gc_info_t &info);
     void serialize_gc_exit(const gc_info_t &info);
     void serialize_unwind(const unwind_info_t &info);
@@ -85,8 +85,8 @@ class SqlSerializer {
     populate_insert_promise_statement(const prom_basic_info_t &info);
 
     sqlite3_stmt *
-    populate_promise_association_statement(const closure_info_t &info,
-                                           int index);
+    populate_promise_association_statement(const closure_info_t &,
+                                           const arg_t &);
 
     sqlite3_stmt *populate_metadata_statement(const string &key,
                                               const string &value);
@@ -94,7 +94,8 @@ class SqlSerializer {
 
     sqlite3_stmt *
     populate_insert_argument_statement(const closure_info_t &info,
-                                       int actual_parameter_position);
+                                       const arg_t &argument,
+                                       int position);
 
     std::string database_filepath;
     int verbose;

@@ -47,7 +47,8 @@ enum class ternary {
 struct arg_t {
     arg_id_t  id;
     string    name;
-    sexp_type type;
+    sexp_type argument_type;
+    sexp_type expression_type;
     prom_id_t promise_id; // only set if sexp_type == PROM
     ternary   default_argument;
     bool      dot_argument;

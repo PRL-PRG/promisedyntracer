@@ -161,7 +161,7 @@ arg_id_t get_argument_id(dyntrace_context_t *context, call_id_t call_id,
     return argument_id;
 }
 
-inline void get_one_argument(closure_info_t &info,
+/*inline*/ void get_one_argument(closure_info_t &info,
                              dyntrace_context_t *context, call_id_t call_id,
                              const SEXP argument_expression,
                              const SEXP expression,
@@ -187,10 +187,14 @@ inline void get_one_argument(closure_info_t &info,
         argument.default_argument = ternary::OMEGA;
     }
 
+    if (dot_argument) {
+        argument.argument_type = sexp_type::DOT;
+    } else {
+        argument.argument_type = static_cast<sexp_type>(argument_type);
+    }
+
     argument.id = get_argument_id(context, call_id, argument.name);
-    argument.argument_type = static_cast<sexp_type>(argument_type);
     argument.expression_type = static_cast<sexp_type>(expression_type);
-    argument.dot_argument = dot_argument;
     argument.position = position;
 
     info.arguments.push_back(argument);
@@ -211,7 +215,7 @@ void get_arguments(closure_info_t &info, dyntrace_context_t *context,
         // We want the promise associated with the symbol.
         // Generally, the argument_expression should be the promise.
         // But if JIT is enabled, its possible for the argument_expression
-        // to be unpromised. In this case, FIXME?.
+        // to be unpromised. In this case, we dereference the argument.
         if (TYPEOF(argument_expression) == SYMSXP) {
             lookup_result r = find_binding_in_environment(argument_expression,
                                                           environment);
@@ -238,7 +242,7 @@ void get_arguments(closure_info_t &info, dyntrace_context_t *context,
             for (SEXP dots = expression; dots != R_NilValue;
                  dots = CDR(dots)) {
                 get_one_argument(info, context, call_id, TAG(dots),
-                                 environment, CAR(dots), true,
+                                 CAR(dots), environment, true,
                                  formal_position);
             }
             return;

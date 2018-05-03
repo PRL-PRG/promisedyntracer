@@ -255,9 +255,11 @@ void SqlSerializer::execute(sqlite3_stmt *statement) {
 
 void SqlSerializer::serialize_promise_lifecycle(
     const prom_lifecycle_info_t &info, int in_force) {
+
 #ifdef RDT_TIMER
     Timer::getInstance(timer::SQL).reset();
 #endif
+
     sqlite3_bind_int(insert_promise_lifecycle_statement, 1, info.promise_id);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 2, info.event);
     sqlite3_bind_int(insert_promise_lifecycle_statement, 3,

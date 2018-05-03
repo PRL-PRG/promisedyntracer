@@ -1,4 +1,5 @@
 #include "recorder.h"
+#include "lookup.h"
 
 #ifdef RDT_TIMER
 #include "timer.h"
@@ -91,6 +92,99 @@ void set_distances_and_lifestyle(dyntrace_context_t *context,
         info.lifestyle = get<0>(lifestyle_info);
         info.effective_distance_from_origin = get<1>(lifestyle_info);
         info.actual_distance_from_origin = get<2>(lifestyle_info);
+    }
+}
+
+/*inline*/ void get_one_argument(closure_info_t &info,
+                                 dyntrace_context_t *context, call_id_t call_id,
+                                 const SEXP argument_expression,
+                                 const SEXP expression,
+                                 const SEXP environment, bool dot_argument,
+                                 int position) {
+
+    arg_t argument;
+
+    SEXPTYPE expression_type = TYPEOF(expression);
+    SEXPTYPE argument_type = TYPEOF(argument_expression);
+
+    if (argument_expression != R_NilValue) {
+        argument.name = string(get_name(argument_expression));
+    }
+
+    if (expression_type == PROMSXP) {
+        argument.promise_id = get_promise_id(context, expression);
+        argument.default_argument = (PRENV(expression) == environment) ?
+                                    ternary::TRUE :
+                                    ternary::FALSE;
+    } else {
+        argument.promise_id = 0;
+        argument.default_argument = ternary::OMEGA;
+    }
+
+    if (dot_argument) {
+        argument.argument_type = sexp_type::DOT;
+    } else {
+        argument.argument_type = static_cast<sexp_type>(argument_type);
+    }
+
+    argument.id = get_argument_id(context, call_id, argument.name);
+    argument.expression_type = static_cast<sexp_type>(expression_type);
+    argument.position = position;
+
+    info.arguments.push_back(argument);
+}
+
+void get_arguments(closure_info_t &info, dyntrace_context_t *context,
+                   const call_id_t call_id, const SEXP op,
+                   const SEXP environment) {
+
+    int formal_position = 0;
+    SEXP formals = FORMALS(op);
+    for (; formals != R_NilValue; formals = CDR(formals), formal_position++) {
+
+        // Retrieve the argument name.
+        SEXP argument_expression = TAG(formals);
+
+        SEXP expression;
+        // We want the promise associated with the symbol.
+        // Generally, the argument_expression should be the promise.
+        // But if JIT is enabled, its possible for the argument_expression
+        // to be unpromised. In this case, we dereference the argument.
+        if (TYPEOF(argument_expression) == SYMSXP) {
+            lookup_result r = find_binding_in_environment(argument_expression,
+                                                          environment);
+            if (r.status == lookup_status::SUCCESS) {
+                expression = r.value;
+            } else {
+                // So... since this is a function, then I assume we shouldn't
+                // get any arguments that are active bindings or anything like
+                // that. If we do, then we should fail here and re-think our
+                // life choices.
+                string msg = lookup_status_to_string(r.status);
+                dyntrace_log_error("%s", msg.c_str());
+            }
+        }
+            // If the argument already has an associated promise, then use that.
+            // In case we see something else like NILSXP, the various helper functions
+            // below should be geared to deal with it.
+        else {
+            expression = argument_expression;
+        }
+
+        // Encountered a triple-dot argument, break it up further.
+        if (TYPEOF(expression) == DOTSXP) {
+            for (SEXP dots = expression; dots != R_NilValue;
+                 dots = CDR(dots)) {
+                get_one_argument(info, context, call_id, TAG(dots),
+                                 CAR(dots), environment, true,
+                                 formal_position);
+            }
+            return;
+        }
+
+        // The general case: single argument.
+        get_one_argument(info, context, call_id, argument_expression,
+                         expression, environment, false, formal_position);
     }
 }
 

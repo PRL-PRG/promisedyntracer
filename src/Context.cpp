@@ -1,9 +1,10 @@
 #include "Context.h"
 
 Context::Context(std::string output_dir, std::string database,
-                 std::string schema, bool truncate, int verbose)
+                 std::string schema, bool truncate, int verbose,
+                 bool enable_analysis)
     : state_(new tracer_state_t()),
-      driver_(new AnalysisDriver(*state_, output_dir)),
+      driver_(new AnalysisDriver(*state_, output_dir, enable_analysis)),
       serializer_(new SqlSerializer(database, schema, truncate, verbose)),
       debugger_(new DebugSerializer(verbose)) {}
 

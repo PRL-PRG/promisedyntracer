@@ -1,6 +1,7 @@
 #ifndef __FUNCTION_STATE_H__
 #define __FUNCTION_STATE_H__
 #include "State.h"
+
 class FunctionState {
   public:
     std::vector<int> parameter_evaluation;

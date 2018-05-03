@@ -13,7 +13,7 @@ class AnalysisDriver {
 
   public:
     AnalysisDriver(const tracer_state_t &tracer_state,
-                   const std::string &output_dir);
+                   const std::string &output_dir, bool is_enabled);
 
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
@@ -58,6 +58,7 @@ class AnalysisDriver {
     PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     ObjectCountSizeAnalysis object_count_size_analysis_;
     FunctionReturnTypeAnalysis function_return_type_analysis_;
+    bool is_enabled;
 };
 
 #endif /* __ANALYSIS_DRIVER_H__ */

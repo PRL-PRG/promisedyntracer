@@ -82,6 +82,58 @@ void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info,
     update_argument_position(call_id, fn_id, formal_parameter_position);
 }
 
+void StrictnessAnalysis::promise_environment_lookup(const prom_info_t &info,
+                                                    const SEXP promise,
+                                                    int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::ENL,
+                                 in_force);
+}
+
+void StrictnessAnalysis::promise_expression_lookup(const prom_info_t &info,
+                                                   const SEXP promise,
+                                                   int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::EXL,
+                                 in_force);
+}
+
+void StrictnessAnalysis::promise_value_lookup(const prom_info_t &info,
+                                              const SEXP promise,
+                                              int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::VAL,
+                                 in_force);
+}
+
+void StrictnessAnalysis::promise_environment_set(const prom_info_t &info,
+                                                 const SEXP promise,
+                                                 int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::ENA,
+                                 in_force);
+}
+
+void StrictnessAnalysis::promise_expression_set(const prom_info_t &info,
+                                                const SEXP promise,
+                                                int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::EXA,
+                                 in_force);
+}
+
+void StrictnessAnalysis::promise_value_set(const prom_info_t &info,
+                                           const SEXP promise, int in_force) {
+    update_promise_argument_slot(info.prom_id, ArgumentPromiseState::VAA,
+                                 in_force);
+}
+
+void StrictnessAnalysis::update_promise_argument_slot(const prom_id_t prom_id,
+                                                      const int slot,
+                                                      int in_force) {
+    if (in_force)
+        return;
+    auto iter = promises_.find(prom_id);
+    if (iter == promises_.end())
+        return;
+    iter->second.increment_slot(slot);
+}
+
 int StrictnessAnalysis::compute_immediate_parent() {
 
     size_t stack_size = tracer_state_.full_stack.size();
@@ -170,8 +222,21 @@ void StrictnessAnalysis::gc_promise_unmarked(const prom_id_t prom_id,
     if (iter == promises_.end())
         return;
     compute_evaluation_distance(promise, iter->second);
-
+    update_promise_slot_access_count(iter->second);
     promises_.erase(prom_id);
+}
+
+void StrictnessAnalysis::update_promise_slot_access_count(
+    const ArgumentPromiseState &promise_state) {
+    std::string key("");
+    for (int i = 0; i < ArgumentPromiseState::SLOT_NAMES.size(); ++i) {
+        key += std::to_string(promise_state.slots[i]) + " , ";
+    }
+    key += promise_state.default_argument ? "da , " : "ca , ";
+    key += promise_state.evaluated ? "Y" : "N";
+    auto result = promise_slot_accesses_.insert(make_pair(key, 1));
+    if (!result.second)
+        ++result.first->second;
 }
 
 bool StrictnessAnalysis::is_executing(call_id_t call_id) {
@@ -212,6 +277,7 @@ void StrictnessAnalysis::serialize() {
 
     for (const auto &key_value : promises_) {
         compute_evaluation_distance(nullptr, key_value.second);
+        update_promise_slot_access_count(key_value.second);
     }
 
     serialize_function_formal_parameter_usage_count();
@@ -219,6 +285,7 @@ void StrictnessAnalysis::serialize() {
     serialize_function_call_count();
     serialize_evaluation_distance();
     serialize_evaluation_context_counts();
+    serialize_promise_slot_accesses();
 }
 
 void StrictnessAnalysis::serialize_function_formal_parameter_usage_count() {
@@ -328,6 +395,26 @@ void StrictnessAnalysis::serialize_evaluation_context_counts() {
     for (int i = 0; i < evaluation_context_counts_.size(); ++i) {
         fout << evaluation_contexts[i] << " , " << evaluation_context_counts_[i]
              << std::endl;
+    }
+
+    fout.close();
+}
+
+void StrictnessAnalysis::serialize_promise_slot_accesses() {
+    std::ofstream fout(output_dir_ + "/promise-slot-accesses.csv",
+                       std::ios::trunc);
+    for (int i = 0; i < ArgumentPromiseState::SLOT_NAMES.size(); ++i) {
+        fout << ArgumentPromiseState::SLOT_NAMES[i] << " , ";
+    }
+
+    fout << "argument_type"
+         << " , "
+         << "evaluated"
+         << " , "
+         << "promise_count" << std::endl;
+
+    for (const auto &key_value : promise_slot_accesses_) {
+        fout << key_value.first << " , " << key_value.second << std::endl;
     }
 
     fout.close();

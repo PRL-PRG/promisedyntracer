@@ -616,6 +616,7 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise, int i
 #endif
 
     prom_info_t info = promise_lookup_get_info(context, promise);
+    analysis_driver(context).promise_value_lookup(info, promise, in_force);
     std::string val_id = std::string("val ") + std::to_string(info.prom_id);
 
 #ifdef RDT_TIMER
@@ -657,6 +658,7 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom, int
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_EXPRESSION_RECORDER);
 #endif
+    analysis_driver(context).promise_expression_lookup(info, prom, in_force);
 
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_EXPRESSION,
@@ -691,10 +693,10 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom, in
 #endif
 
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
-
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::LOOKUP_PROMISE_ENVIRONMENT_RECORDER);
 #endif
+    analysis_driver(context).promise_environment_lookup(info, prom, in_force);
 
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
@@ -758,6 +760,7 @@ void promise_expression_set(dyntrace_context_t *context, const SEXP prom, int in
     Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_EXPRESSION_RECORDER);
 #endif
 
+    analysis_driver(context).promise_expression_set(info, prom, in_force);
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
@@ -796,6 +799,8 @@ void promise_value_set(dyntrace_context_t *context, const SEXP prom, int in_forc
     Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_VALUE_RECORDER);
 #endif
 
+    analysis_driver(context).promise_value_set(info, prom, in_force);
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
                                                    info.prom_id);
@@ -828,6 +833,8 @@ void promise_environment_set(dyntrace_context_t *context, const SEXP prom, int i
 #ifdef RDT_TIMER
     Timer::getInstance(timer::MAIN).endSegment(segment::SET_PROMISE_ENVIRONMENT_RECORDER);
 #endif
+
+    analysis_driver(context).promise_environment_set(info, prom, in_force);
 
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,

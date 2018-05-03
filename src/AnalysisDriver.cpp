@@ -65,6 +65,38 @@ void AnalysisDriver::gc_promise_unmarked(const prom_id_t prom_id,
     promise_evaluation_distance_analysis_.gc_promise_unmarked(prom_id, promise);
 }
 
+void AnalysisDriver::promise_environment_lookup(const prom_info_t &info,
+                                                const SEXP promise,
+                                                int in_force) {
+    strictness_analysis_.promise_environment_lookup(info, promise, in_force);
+}
+
+void AnalysisDriver::promise_expression_lookup(const prom_info_t &info,
+                                               const SEXP promise,
+                                               int in_force) {
+    strictness_analysis_.promise_expression_lookup(info, promise, in_force);
+}
+
+void AnalysisDriver::promise_value_lookup(const prom_info_t &info,
+                                          const SEXP promise, int in_force) {
+    strictness_analysis_.promise_value_lookup(info, promise, in_force);
+}
+
+void AnalysisDriver::promise_environment_set(const prom_info_t &info,
+                                             const SEXP promise, int in_force) {
+    strictness_analysis_.promise_environment_set(info, promise, in_force);
+}
+
+void AnalysisDriver::promise_expression_set(const prom_info_t &info,
+                                            const SEXP promise, int in_force) {
+    strictness_analysis_.promise_expression_set(info, promise, in_force);
+}
+
+void AnalysisDriver::promise_value_set(const prom_info_t &info,
+                                       const SEXP promise, int in_force) {
+    strictness_analysis_.promise_value_set(info, promise, in_force);
+}
+
 void AnalysisDriver::vector_alloc(const type_gc_info_t &type_gc_info) {
     object_count_size_analysis_.vector_alloc(type_gc_info);
 }

@@ -51,7 +51,6 @@ struct arg_t {
     sexp_type expression_type;
     prom_id_t promise_id; // only set if sexp_type == PROM
     ternary   default_argument;
-    bool      dot_argument;
     int       position;
 };
 

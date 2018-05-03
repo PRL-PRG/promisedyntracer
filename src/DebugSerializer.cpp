@@ -57,7 +57,6 @@ string DebugSerializer::log_line(const arglist_t &arguments) {
              << " type=" << log_line(argument.argument_type) << "/"
                          << log_line(argument.expression_type)
              << " default=" << log_line(argument.default_argument)
-             << " dot=" << (argument.dot_argument ? "T" : "F")
              << " prom_id=" << argument.promise_id
              << " position=" << argument.position
              << "}";

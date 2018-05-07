@@ -1,15 +1,14 @@
 #include "Context.h"
 
-Context::Context(std::string output_dir, std::string database,
-                 std::string schema, bool truncate, int verbose,
-                 bool enable_analysis)
+Context::Context(std::string trace_filepath, bool truncate, int verbose,
+                 std::string output_dir, bool enable_analysis)
     : state_(new tracer_state_t()),
+      serializer_(new TraceSerializer(trace_filepath, truncate)),
       driver_(new AnalysisDriver(*state_, output_dir, enable_analysis)),
-      serializer_(new SqlSerializer(database, schema, truncate, verbose)),
       debugger_(new DebugSerializer(verbose)) {}
 
 tracer_state_t &Context::get_state() { return *state_; }
-SqlSerializer &Context::get_serializer() { return *serializer_; }
+TraceSerializer &Context::get_serializer() { return *serializer_; }
 DebugSerializer &Context::get_debug_serializer() {
     if (debugger_->needsState())
         debugger_->setState(&get_state());

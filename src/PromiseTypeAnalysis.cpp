@@ -64,7 +64,7 @@ void PromiseTypeAnalysis::promise_created(
 }
 
 void PromiseTypeAnalysis::closure_entry(const closure_info_t &closure_info) {
-    for (const auto& argument : closure_info.arguments) {
+    for (const auto &argument : closure_info.arguments) {
         prom_id_t promise_id = argument.promise_id;
         int formal_parameter_position = argument.formal_parameter_position;
         bool is_default_argument = argument.default_argument;
@@ -100,6 +100,8 @@ void PromiseTypeAnalysis::gc_promise_unmarked(prom_id_t promise_id,
         if (remove_custom_argument_promise(promise_id) == 0)
             remove_non_argument_promise(promise_id);
 }
+
+void PromiseTypeAnalysis::end(dyntrace_context_t *context) { serialize(); }
 
 void PromiseTypeAnalysis::serialize() {
     std::ofstream fout(output_dir_ + "/promise-type.csv", std::ios::trunc);

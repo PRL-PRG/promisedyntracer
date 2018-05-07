@@ -31,6 +31,10 @@ void FunctionReturnTypeAnalysis::add_return_type(fn_id_t fn_id,
     }
 }
 
+void FunctionReturnTypeAnalysis::end(dyntrace_context_t *context) {
+    serialize();
+}
+
 void FunctionReturnTypeAnalysis::serialize() {
     std::ofstream fout(output_dir_ + "/function-return-type.csv",
                        std::ios::trunc);
@@ -50,6 +54,6 @@ void FunctionReturnTypeAnalysis::serialize() {
                  << key_value.second[i] << std::endl;
         }
     }
-    
+
     fout.close();
 }

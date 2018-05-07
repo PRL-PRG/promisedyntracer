@@ -21,9 +21,10 @@ class PromiseTypeAnalysis {
     inline bool is_default_argument_promise(prom_id_t prom_id);
     inline bool is_custom_argument_promise(prom_id_t prom_id);
     inline bool is_non_argument_promise(prom_id_t prom_id);
-    void serialize();
+    void end(dyntrace_context_t *context);
 
   private:
+    void serialize();
     std::string output_dir_;
     const tracer_state_t &tracer_state_;
     std::set<prom_id_t> default_argument_promises_;

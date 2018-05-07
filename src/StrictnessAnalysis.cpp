@@ -33,7 +33,7 @@ void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
 
     int max_position = 0;
     int actual_argument_position = 0;
-    for (const auto& argument : closure_info.arguments) {
+    for (const auto &argument : closure_info.arguments) {
         prom_id_t promise_id = argument.promise_id;
         int formal_parameter_position = argument.formal_parameter_position;
         bool is_default_argument = argument.default_argument;
@@ -272,6 +272,8 @@ CallState StrictnessAnalysis::pop_from_call_stack(call_id_t call_id) {
     assert(call_state.call_id == call_id);
     return call_state;
 }
+
+void StrictnessAnalysis::end(dyntrace_context_t *context) { serialize(); }
 
 void StrictnessAnalysis::serialize() {
 

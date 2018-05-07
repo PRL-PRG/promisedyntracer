@@ -8,6 +8,7 @@
 #include "SideEffectAnalysis.h"
 #include "State.h"
 #include "StrictnessAnalysis.h"
+#include "MetadataAnalysis.h"
 
 class AnalysisDriver {
 
@@ -15,6 +16,7 @@ class AnalysisDriver {
     AnalysisDriver(const tracer_state_t &tracer_state,
                    const std::string &output_dir, bool is_enabled);
 
+    void begin(dyntrace_context_t *context);
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
     void special_entry(const builtin_info_t &special_info);
@@ -49,7 +51,7 @@ class AnalysisDriver {
     void environment_lookup_var(const SEXP symbol, const SEXP value,
                                 const SEXP rho);
     void environment_remove_var(const SEXP symbol, const SEXP rho);
-    void serialize();
+    void end(dyntrace_context_t *context);
 
   private:
     StrictnessAnalysis strictness_analysis_;
@@ -58,6 +60,7 @@ class AnalysisDriver {
     PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     ObjectCountSizeAnalysis object_count_size_analysis_;
     FunctionReturnTypeAnalysis function_return_type_analysis_;
+    MetadataAnalysis metadata_analysis_;
     bool is_enabled;
 };
 

@@ -11,7 +11,14 @@ AnalysisDriver::AnalysisDriver(const tracer_state_t &tracer_state,
       side_effect_analysis_(SideEffectAnalysis(tracer_state, output_dir)),
       function_return_type_analysis_(
           FunctionReturnTypeAnalysis(tracer_state, output_dir)),
+      metadata_analysis_(MetadataAnalysis(tracer_state, output_dir)),
       is_enabled(is_enabled) {}
+
+void AnalysisDriver::begin(dyntrace_context_t *context) {
+    if (is_enabled) {
+        metadata_analysis_.begin(context);
+    }
+}
 
 void AnalysisDriver::promise_created(const prom_basic_info_t &prom_basic_info,
                                      const SEXP promise) {
@@ -161,12 +168,13 @@ void AnalysisDriver::environment_remove_var(const SEXP symbol, const SEXP rho) {
     }
 }
 
-void AnalysisDriver::serialize() {
+void AnalysisDriver::end(dyntrace_context_t *context) {
     if (is_enabled) {
-        strictness_analysis_.serialize();
-        object_count_size_analysis_.serialize();
-        promise_type_analysis_.serialize();
-        side_effect_analysis_.serialize();
-        function_return_type_analysis_.serialize();
+        strictness_analysis_.end(context);
+        object_count_size_analysis_.end(context);
+        promise_type_analysis_.end(context);
+        side_effect_analysis_.end(context);
+        function_return_type_analysis_.end(context);
+        metadata_analysis_.end(context);
     }
 }

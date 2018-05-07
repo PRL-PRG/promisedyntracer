@@ -3,8 +3,8 @@
 
 #include "AnalysisDriver.h"
 #include "DebugSerializer.h"
-#include "SqlSerializer.h"
 #include "State.h"
+#include "TraceSerializer.h"
 #include <string>
 
 #define tracer_state(context)                                                  \
@@ -23,16 +23,16 @@
 
 class Context {
   public:
-    Context(std::string output_dir, std::string database, std::string schema,
-            bool truncate, int verbose, bool enable_analysis);
+    Context(std::string trace_filepath, bool truncate, int verbose,
+            std::string output_dir, bool enable_analysis);
     tracer_state_t &get_state();
-    SqlSerializer &get_serializer();
+    TraceSerializer &get_serializer();
     DebugSerializer &get_debug_serializer();
     AnalysisDriver &get_analysis_driver();
 
   private:
     tracer_state_t *state_;
-    SqlSerializer *serializer_;
+    TraceSerializer *serializer_;
     DebugSerializer *debugger_;
     AnalysisDriver *driver_;
 };

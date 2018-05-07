@@ -61,6 +61,8 @@ void SideEffectAnalysis::environment_action(
     ++counter[SideEffectAnalysis::GLOBAL];
 }
 
+void SideEffectAnalysis::end(dyntrace_context_t *context) { serialize(); }
+
 void SideEffectAnalysis::serialize() {
 
     std::ofstream fout(output_dir_ + "/scope-side-effect.csv", std::ios::trunc);

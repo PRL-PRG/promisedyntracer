@@ -12,9 +12,10 @@ class ObjectCountSizeAnalysis {
     ObjectCountSizeAnalysis(const tracer_state_t &tracer_state,
                             const std::string &output_dir);
     void vector_alloc(const type_gc_info_t &info);
-    void serialize();
+    void end(dyntrace_context_t *context);
 
   private:
+    void serialize();
     std::vector<int> object_counts_;
     std::vector<unsigned long long int> object_sizes_;
     std::string output_dir_;

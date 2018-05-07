@@ -38,7 +38,7 @@ class StrictnessAnalysis {
     void promise_value_set(const prom_info_t &info, const SEXP promise,
                            int in_force);
     void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
-    void serialize();
+    void end(dyntrace_context_t *context);
 
   private:
     bool is_executing(call_id_t call_id);
@@ -57,6 +57,7 @@ class StrictnessAnalysis {
     void
     update_promise_slot_access_count(const ArgumentPromiseState &promise_state);
 
+    void serialize();
     void serialize_function_formal_parameter_usage_count();
     void serialize_function_formal_parameter_usage_order();
     void serialize_function_call_count();

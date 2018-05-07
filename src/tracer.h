@@ -7,8 +7,8 @@ extern "C" {
 
 #include <Rinternals.h>
 
-SEXP create_dyntracer(SEXP output_dir, SEXP database, SEXP schema,
-                      SEXP truncate, SEXP verbose, SEXP enable_analysis);
+SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP verbose,
+                      SEXP output_dir, SEXP enable_analysis);
 
 SEXP destroy_dyntracer(SEXP tracer);
 

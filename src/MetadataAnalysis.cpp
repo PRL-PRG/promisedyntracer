@@ -84,13 +84,16 @@ void MetadataAnalysis::end(dyntrace_context_t *context) {
     serialize_row(fout, "EXPRESSION",
                   clock_ticks_to_string(execution_time.expression));
 
-#ifdef RDT_TIMER
-    for (int i = 0; i < timer::number_of_timers; i++) {
-        for (const auto &time :
-             Timer::getInstance(static_cast<timer>(i)).stats()) {
-            serialize_row(fout, time.first, time.second);
-        }
+#ifdef DYNTRACE_ENABLE_TIMING
+
+    for (const auto &time : Timer::main_timer().stats()) {
+        serialize_row(fout, time.first, time.second);
     }
+
+    for (const auto &time : Timer::recorder_timer().stats()) {
+        serialize_row(fout, time.first, time.second);
+    }
+
 #endif
 }
 

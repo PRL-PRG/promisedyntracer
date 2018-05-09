@@ -2,9 +2,8 @@
 #define __METADATA_ANALYSIS_H__
 
 #include "State.h"
+#include "Timer.h"
 #include "utilities.h"
-#include "timer.h"
-using namespace timing;
 
 class MetadataAnalysis {
   public:

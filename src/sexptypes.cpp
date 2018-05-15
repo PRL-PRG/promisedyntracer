@@ -155,7 +155,6 @@ std::string full_sexp_type_to_string(full_sexp_type type) {
         } else {
             result << "->";
         }
-        // result << sexp_type_to_string_short(*iterator);
         result << sexp_type_to_string(*iterator);
     }
     return result.str();

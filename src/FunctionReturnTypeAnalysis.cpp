@@ -49,8 +49,7 @@ void FunctionReturnTypeAnalysis::serialize() {
         for (int i = 0; i < MAX_NUM_SEXPTYPE; ++i) {
             if (key_value.second[i] == 0)
                 continue;
-            fout << key_value.first << " , "
-                 << sexp_type_to_string((sexp_type)i) << " , "
+            fout << key_value.first << " , " << rtype(i) << " , "
                  << key_value.second[i] << std::endl;
         }
     }

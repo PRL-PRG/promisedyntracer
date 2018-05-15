@@ -8,7 +8,7 @@ ObjectCountSizeAnalysis::ObjectCountSizeAnalysis(
 
 void ObjectCountSizeAnalysis::vector_alloc(const type_gc_info_t &info) {
     ++object_counts_[info.type];
-    object_sizes_[info.type] += info.length * info.bytes;
+    object_sizes_[info.type] += info.bytes;
 }
 
 void ObjectCountSizeAnalysis::end(dyntrace_context_t *context) { serialize(); }
@@ -25,8 +25,8 @@ void ObjectCountSizeAnalysis::serialize() {
     for (int i = 0; i < MAX_NUM_SEXPTYPE; ++i) {
         if (object_counts_[i] == 0 && object_sizes_[i] == 0)
             continue;
-        fout << sexp_type_to_string((sexp_type)i) << " , " << object_counts_[i]
-             << " , " << object_sizes_[i] << std::endl;
+        fout << rtype(i) << " , " << object_counts_[i] << " , "
+             << object_sizes_[i] << std::endl;
     }
 
     fout.close();

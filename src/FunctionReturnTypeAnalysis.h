@@ -6,6 +6,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include "utilities.h"
 
 class FunctionReturnTypeAnalysis {
   public:

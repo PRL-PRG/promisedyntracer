@@ -118,9 +118,8 @@ void PromiseTypeAnalysis::serialize() {
         for (int i = 0; i < MAX_NUM_SEXPTYPE; ++i) {
             for (int j = 0; j < MAX_NUM_SEXPTYPE; ++j) {
                 if (matrix[i][j] != 0) {
-                    fout << type << " , " << sexp_type_to_string((sexp_type)i)
-                         << " , " << sexp_type_to_string((sexp_type)j) << " , "
-                         << matrix[i][j] << std::endl;
+                    fout << type << " , " << rtype(i) << " , "
+                         << rtype(j) << " , " << matrix[i][j] << std::endl;
                 }
             }
         }

@@ -9,12 +9,12 @@ class MetadataAnalysis {
   public:
     MetadataAnalysis(const tracer_state_t &tracer_state,
                      const std::string &output_dir);
-    void begin(dyntrace_context_t *context);
     void end(dyntrace_context_t *context);
 
   private:
-    void serialize_row(std::ofstream &fout, const std::string &key,
-                       const std::string &value);
+    void serialize_row(std::ofstream &fout,
+                       std::string key,
+                       std::string value);
     std::string output_dir_;
     const tracer_state_t &tracer_state_;
 };

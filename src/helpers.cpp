@@ -62,7 +62,8 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
     return prom_id;
 }
 
-string get_function_definition(dyntrace_context_t *context, const SEXP function) {
+string get_function_definition(dyntrace_context_t *context,
+                               const SEXP function) {
     auto &definitions = tracer_state(context).function_definitions;
     auto it = definitions.find(function);
     if (it != definitions.end()) {
@@ -80,14 +81,16 @@ string get_function_definition(dyntrace_context_t *context, const SEXP function)
     }
 }
 
-void remove_function_definition(dyntrace_context_t *context, const SEXP function) {
+void remove_function_definition(dyntrace_context_t *context,
+                                const SEXP function) {
     auto &definitions = tracer_state(context).function_definitions;
     auto it = definitions.find(function);
     if (it != definitions.end())
         tracer_state(context).function_definitions.erase(it);
 }
 
-fn_id_t get_function_id(dyntrace_context_t *context,const string &function_definition, bool builtin) {
+fn_id_t get_function_id(dyntrace_context_t *context,
+                        const string &function_definition, bool builtin) {
     fn_key_t definition(function_definition);
 
     auto &function_ids = tracer_state(context).function_ids;
@@ -147,7 +150,7 @@ prom_id_t get_parent_promise(dyntrace_context_t *context) {
 
 size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context) {
     size_t result = 0;
-    vector<stack_event_t> & stack = tracer_state(context).full_stack;
+    vector<stack_event_t> &stack = tracer_state(context).full_stack;
     for (auto it = stack.begin(); it != stack.end(); ++it) {
         if (it->type == stack_type::PROMISE)
             result++;

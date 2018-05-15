@@ -16,7 +16,6 @@ AnalysisDriver::AnalysisDriver(const tracer_state_t &tracer_state,
 
 void AnalysisDriver::begin(dyntrace_context_t *context) {
     if (is_enabled) {
-        metadata_analysis_.begin(context);
     }
 }
 

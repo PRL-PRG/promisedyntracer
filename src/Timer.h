@@ -148,10 +148,10 @@ class Timer {
 
 #else /* DYNTRACE_ENABLE_TIMING */
 
-#define MAIN_TIMER_RESET()
-#define MAIN_TIMER_END_SEGMENT(segment_name)
-#define RECORDER_TIMER_RESET()
-#define RECORDER_TIMER_END_SEGMENT(segment_name)
+#define MAIN_TIMER_RESET() {}
+#define MAIN_TIMER_END_SEGMENT(segment_name) {}
+#define RECORDER_TIMER_RESET() {}
+#define RECORDER_TIMER_END_SEGMENT(segment_name) {}
 
 #endif /* DYNTRACE_ENABLE_TIMING */
 

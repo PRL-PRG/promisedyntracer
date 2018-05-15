@@ -2,6 +2,7 @@
 #define __PROMISE_TYPE_ANALYSIS_H__
 
 #include "State.h"
+#include "utilities.h"
 
 class PromiseTypeAnalysis {
   public:

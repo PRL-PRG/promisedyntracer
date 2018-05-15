@@ -4,10 +4,15 @@ MetadataAnalysis::MetadataAnalysis(const tracer_state_t &tracer_state,
                                    const std::string &output_dir)
     : tracer_state_(tracer_state), output_dir_(output_dir) {}
 
-void MetadataAnalysis::begin(dyntrace_context_t *context) {
+void MetadataAnalysis::end(dyntrace_context_t *context) {
     std::ofstream fout(output_dir_ + "/metadata.csv", std::ios::trunc);
+
     environment_variables_t environment_variables =
         context->dyntracing_context->environment_variables;
+
+    execution_time_t execution_time =
+        context->dyntracing_context->execution_time;
+
     serialize_row(fout, "GIT_COMMIT_INFO", GIT_COMMIT_INFO);
     serialize_row(fout, "DYNTRACE_BEGIN_DATETIME",
                   context->dyntracing_context->begin_datetime);
@@ -18,15 +23,8 @@ void MetadataAnalysis::begin(dyntrace_context_t *context) {
     serialize_row(fout, "R_KEEP_PKG_SOURCE",
                   environment_variables.r_keep_pkg_source);
     serialize_row(fout, "RDT_COMPILE_VIGNETTE", getenv("RDT_COMPILE_VIGNETTE"));
-    fout.close();
-}
-
-void MetadataAnalysis::end(dyntrace_context_t *context) {
-    std::ofstream fout(output_dir_ + "/metadata.csv", std::ios::app);
     serialize_row(fout, "DYNTRACE_END_DATETIME",
                   context->dyntracing_context->end_datetime);
-    execution_time_t execution_time =
-        context->dyntracing_context->execution_time;
     serialize_row(fout, "PROBE_FUNCTION_ENTRY",
                   clock_ticks_to_string(execution_time.probe_function_entry));
     serialize_row(fout, "PROBE_FUNCTION_EXIT",
@@ -97,8 +95,8 @@ void MetadataAnalysis::end(dyntrace_context_t *context) {
 #endif
 }
 
-void MetadataAnalysis::serialize_row(std::ofstream &fout,
-                                     const std::string &key,
-                                     const std::string &value) {
-    fout << key << " , " << value << std::endl;
+void MetadataAnalysis::serialize_row(std::ofstream &fout, std::string key,
+                                     std::string value) {
+    fout << key << " , "
+         << "\"" << value << "\"" << std::endl;
 }

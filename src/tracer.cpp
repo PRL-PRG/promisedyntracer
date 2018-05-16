@@ -12,7 +12,7 @@ SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
                       SEXP verbose, SEXP output_dir, SEXP analysis_switch) {
     void *context = new Context(
         sexp_to_string(trace_filepath), sexp_to_bool(truncate),
-        sexp_to_bool(enable_trace), sexp_to_int(verbose),
+        sexp_to_bool(enable_trace), sexp_to_bool(verbose),
         sexp_to_string(output_dir), to_analysis_switch(analysis_switch));
 
     /* calloc initializes the memory to zero. This ensures that probes not

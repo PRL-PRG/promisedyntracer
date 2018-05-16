@@ -25,7 +25,7 @@
 class Context {
   public:
     Context(std::string trace_filepath, bool truncate, bool enable_trace,
-            int verbose, std::string output_dir,
+            bool verbose, std::string output_dir,
             AnalysisSwitch analysis_switch);
     tracer_state_t &get_state();
     TraceSerializer &get_serializer();

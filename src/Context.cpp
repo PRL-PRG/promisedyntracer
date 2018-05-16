@@ -1,7 +1,7 @@
 #include "Context.h"
 
 Context::Context(std::string trace_filepath, bool truncate, bool enable_trace,
-                 int verbose, std::string output_dir,
+                 bool verbose, std::string output_dir,
                  AnalysisSwitch analysis_switch)
     : state_(new tracer_state_t()),
       serializer_(new TraceSerializer(trace_filepath, truncate, enable_trace)),

@@ -7,7 +7,8 @@
 
 class TraceSerializer {
   public:
-    TraceSerializer(std::string trace_filepath, bool truncate = false);
+    TraceSerializer(std::string trace_filepath, bool truncate,
+                    bool enable_trace);
     ~TraceSerializer();
     void serialize_trace(const std::string &opcode, const int id_1);
     void serialize_trace(const std::string &opcode, const int id_1,
@@ -21,10 +22,12 @@ class TraceSerializer {
                          const int id_2, const int id_3);
 
   private:
-    void open_trace(const std::string& trace_filepath, bool truncate);
+    void open_trace(const std::string &trace_filepath, bool truncate);
     void close_trace();
+    inline bool enable_trace() const;
     std::string trace_filepath;
     std::ofstream trace;
+    bool enable_trace_;
 };
 
 #endif /* __TRACE_SERIALIZER_H__ */

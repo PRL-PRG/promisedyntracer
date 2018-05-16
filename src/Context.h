@@ -2,6 +2,7 @@
 #define __CONTEXT_H__
 
 #include "AnalysisDriver.h"
+#include "AnalysisSwitch.h"
 #include "DebugSerializer.h"
 #include "State.h"
 #include "TraceSerializer.h"
@@ -23,8 +24,9 @@
 
 class Context {
   public:
-    Context(std::string trace_filepath, bool truncate, int verbose,
-            std::string output_dir, bool enable_analysis);
+    Context(std::string trace_filepath, bool truncate, bool enable_trace,
+            int verbose, std::string output_dir,
+            AnalysisSwitch analysis_switch);
     tracer_state_t &get_state();
     TraceSerializer &get_serializer();
     DebugSerializer &get_debug_serializer();

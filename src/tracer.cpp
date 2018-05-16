@@ -8,13 +8,12 @@ extern "C" {
 //     1: debug tracer prints calls and promises,
 //     2: debug tracer prints everything
 //     -1: SQL queries,
-SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP verbose,
-                      SEXP output_dir, SEXP enable_analysis) {
-
-    void *context =
-        new Context(sexp_to_string(trace_filepath), sexp_to_bool(truncate),
-                    sexp_to_int(verbose), sexp_to_string(output_dir),
-                    sexp_to_bool(enable_analysis));
+SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
+                      SEXP verbose, SEXP output_dir, SEXP analysis_switch) {
+    void *context = new Context(
+        sexp_to_string(trace_filepath), sexp_to_bool(truncate),
+        sexp_to_bool(enable_trace), sexp_to_int(verbose),
+        sexp_to_string(output_dir), to_analysis_switch(analysis_switch));
 
     /* calloc initializes the memory to zero. This ensures that probes not
        attached will be NULL. Replacing calloc with malloc will cause

@@ -347,19 +347,19 @@ void StrictnessAnalysis::serialize_function_formal_parameter_usage_order() {
 }
 
 void StrictnessAnalysis::serialize_function_call_count() {
-    std::ofstream fout(output_dir_ + "/function-call-count.csv",
-                       std::ios::trunc);
-    fout << "function_id"
-         << " , "
-         << "count" << std::endl;
+    // std::ofstream fout(output_dir_ + "/function-call-count.csv",
+    //                    std::ios::trunc);
+    // fout << "function_id"
+    //      << " , "
+    //      << "count" << std::endl;
 
-    for (auto const &pair : functions_) {
-        fn_id_t fn_id = pair.first;
-        int call_count = pair.second.call_count;
-        fout << fn_id << " , " << call_count << std::endl;
-    }
+    // for (auto const &pair : functions_) {
+    //     fn_id_t fn_id = pair.first;
+    //     int call_count = pair.second.call_count;
+    //     fout << fn_id << " , " << call_count << std::endl;
+    // }
 
-    fout.close();
+    // fout.close();
 }
 
 void StrictnessAnalysis::serialize_evaluation_distance() {

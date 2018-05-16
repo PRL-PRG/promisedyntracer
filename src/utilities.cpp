@@ -116,14 +116,18 @@ static const char *get_filename(SEXP srcref) {
             srcref = VECTOR_ELT(srcref, 0);
         SEXP srcfile = getAttrib(srcref, R_SrcfileSymbol);
         if (TYPEOF(srcfile) == ENVSXP) {
-            lookup_result r = find_binding_in_environment(install("filename"), srcfile); // TODO we should move install("filename") to be executed only once
+            lookup_result r = find_binding_in_environment(
+                install("filename"), srcfile); // TODO we should move
+                                               // install("filename") to be
+                                               // executed only once
             if (r.status == lookup_status::SUCCESS) {
                 SEXP filename = r.value;
                 if (isString(filename) && Rf_length(filename)) {
                     return CHAR(STRING_ELT(filename, 0));
                 }
             } else {
-                // Not sure what the frequency of this is. Making it an error for now, and we'll see what happens.
+                // Not sure what the frequency of this is. Making it an error
+                // for now, and we'll see what happens.
                 string msg = lookup_status_to_string(r.status);
                 dyntrace_log_error("%s", msg.c_str());
             }
@@ -140,9 +144,8 @@ inline string extract_location_information(SEXP srcref) {
 
     if (filename) {
         stringstream result;
-        result << ((strlen(filename) > 0) ? filename : "<console>")
-               << ":" << std::to_string(lineno)
-               << "," << std::to_string(colno);
+        result << ((strlen(filename) > 0) ? filename : "<console>") << ":"
+               << std::to_string(lineno) << "," << std::to_string(colno);
         return result.str();
     } else
         return "";
@@ -158,9 +161,7 @@ string get_definition_location_cpp(SEXP op) {
     return extract_location_information(srcref);
 }
 
-const char *get_call(SEXP call) {
-    return serialize_sexp(call);
-}
+const char *get_call(SEXP call) { return serialize_sexp(call); }
 
 int is_byte_compiled(SEXP op) {
     SEXP body = BODY(op);
@@ -243,14 +244,35 @@ std::string clock_ticks_to_string(clock_t ticks) {
 
 std::string rtype(SEXPTYPE sexptype) {
 
-  std::string type = std::string(type2char(sexptype));
+    std::string type = std::string(type2char(sexptype));
 
-  type[0] = std::toupper(type[0]);
+    type[0] = std::toupper(type[0]);
 
-  if (type == "Language")
-    type = "Function Call";
-  else if (type == "NULL")
-    type = "Null";
+    if (type == "Language")
+        type = "Function Call";
+    else if (type == "NULL")
+        type = "Null";
 
-  return type;
+    return type;
+}
+
+AnalysisSwitch to_analysis_switch(SEXP env) {
+
+    auto get_switch = [&](const std::string analysis_name) {
+        SEXP name =
+            Rf_install(("enable_" + analysis_name + "_analysis").c_str());
+        SEXP value = Rf_findVar(name, env);
+        return (value == R_UnboundValue) ? true : sexp_to_bool(value);
+    };
+
+    AnalysisSwitch analysis_switch;
+
+    analysis_switch.metadata = get_switch("metadata");
+    analysis_switch.object_count_size = get_switch("object_count_size");
+    analysis_switch.function = get_switch("function");
+    analysis_switch.promise = get_switch("promise");
+    analysis_switch.strictness = get_switch("strictness");
+    analysis_switch.side_effect = get_switch("side_effect");
+
+    return analysis_switch;
 }

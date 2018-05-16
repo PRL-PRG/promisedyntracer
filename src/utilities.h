@@ -2,6 +2,7 @@
 #define __UTILITIES_H__
 
 #include "stdlibs.h"
+#include "AnalysisSwitch.h"
 #include <openssl/evp.h>
 
 extern size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE;
@@ -57,4 +58,5 @@ std::string get_expression(SEXP e);
 const char *remove_null(const char *value);
 std::string clock_ticks_to_string(clock_t ticks);
 std::string rtype(SEXPTYPE sexptype);
+AnalysisSwitch to_analysis_switch(SEXP env);
 #endif /* __UTILITIES_H__ */

@@ -1,10 +1,11 @@
 #include "Context.h"
 
-Context::Context(std::string trace_filepath, bool truncate, int verbose,
-                 std::string output_dir, bool enable_analysis)
+Context::Context(std::string trace_filepath, bool truncate, bool enable_trace,
+                 int verbose, std::string output_dir,
+                 AnalysisSwitch analysis_switch)
     : state_(new tracer_state_t()),
-      serializer_(new TraceSerializer(trace_filepath, truncate)),
-      driver_(new AnalysisDriver(*state_, output_dir, enable_analysis)),
+      serializer_(new TraceSerializer(trace_filepath, truncate, enable_trace)),
+      driver_(new AnalysisDriver(*state_, output_dir, analysis_switch)),
       debugger_(new DebugSerializer(verbose)) {}
 
 tracer_state_t &Context::get_state() { return *state_; }

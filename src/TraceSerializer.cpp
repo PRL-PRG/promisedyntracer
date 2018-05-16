@@ -1,12 +1,15 @@
 #include "TraceSerializer.h"
 
-TraceSerializer::TraceSerializer(std::string trace_filepath, bool truncate)
-    : trace_filepath(trace_filepath) {
+TraceSerializer::TraceSerializer(std::string trace_filepath, bool truncate,
+                                 bool enable_trace)
+    : trace_filepath(trace_filepath), enable_trace_(enable_trace) {
     open_trace(trace_filepath, truncate);
 }
 
 void TraceSerializer::open_trace(const std::string &trace_filepath,
                                  bool truncate) {
+    if (!enable_trace())
+        return;
     if (file_exists(trace_filepath)) {
         if (truncate)
             remove(trace_filepath.c_str());
@@ -33,31 +36,36 @@ void TraceSerializer::close_trace() {
 
 void TraceSerializer::serialize_trace(const std::string &opcode,
                                       const int id_1) {
-
-    trace << opcode << " " << id_1 << std::endl;
+    if (enable_trace())
+        trace << opcode << " " << id_1 << std::endl;
 }
 
 void TraceSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                       const std::string id_2) {
-    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+    if (enable_trace())
+        trace << opcode << " " << id_1 << " " << id_2 << std::endl;
 }
 
 void TraceSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                       const int id_2) {
-
-    trace << opcode << " " << id_1 << " " << id_2 << std::endl;
+    if (enable_trace())
+        trace << opcode << " " << id_1 << " " << id_2 << std::endl;
 }
 
 void TraceSerializer::serialize_trace(const std::string &opcode, const int id_1,
                                       const int id_2, const std::string &symbol,
                                       const std::string sexptype) {
-
-    trace << opcode << " " << id_1 << " " << id_2 << " " << symbol << " "
-          << sexptype << std::endl;
+    if (enable_trace())
+        trace << opcode << " " << id_1 << " " << id_2 << " " << symbol << " "
+              << sexptype << std::endl;
 }
 
 void TraceSerializer::serialize_trace(const std::string &opcode,
                                       const fn_id_t &id_1, const int id_2,
                                       const int id_3) {
-    trace << opcode << " " << id_1 << " " << id_2 << " " << id_3 << std::endl;
+    if (enable_trace())
+        trace << opcode << " " << id_1 << " " << id_2 << " " << id_3
+              << std::endl;
 }
+
+inline bool TraceSerializer::enable_trace() const { return enable_trace_; }

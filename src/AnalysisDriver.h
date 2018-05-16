@@ -1,20 +1,22 @@
 #ifndef __ANALYSIS_DRIVER_H__
 #define __ANALYSIS_DRIVER_H__
 
-#include "FunctionReturnTypeAnalysis.h"
+#include "AnalysisSwitch.h"
+#include "FunctionAnalysis.h"
+#include "MetadataAnalysis.h"
 #include "ObjectCountSizeAnalysis.h"
 #include "PromiseEvaluationDistanceAnalysis.h"
 #include "PromiseTypeAnalysis.h"
 #include "SideEffectAnalysis.h"
 #include "State.h"
 #include "StrictnessAnalysis.h"
-#include "MetadataAnalysis.h"
 
 class AnalysisDriver {
 
   public:
     AnalysisDriver(const tracer_state_t &tracer_state,
-                   const std::string &output_dir, bool is_enabled);
+                   const std::string &output_dir,
+                   const AnalysisSwitch analysis_switch);
 
     void begin(dyntrace_context_t *context);
     void closure_entry(const closure_info_t &closure_info);
@@ -53,15 +55,22 @@ class AnalysisDriver {
     void environment_remove_var(const SEXP symbol, const SEXP rho);
     void end(dyntrace_context_t *context);
 
+    inline bool analyze_metadata() const;
+    inline bool analyze_object_count_size() const;
+    inline bool analyze_promises() const;
+    inline bool analyze_functions() const;
+    inline bool analyze_strictness() const;
+    inline bool analyze_side_effects() const;
+
   private:
+    FunctionAnalysis function_analysis_;
     StrictnessAnalysis strictness_analysis_;
     PromiseTypeAnalysis promise_type_analysis_;
     SideEffectAnalysis side_effect_analysis_;
     PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     ObjectCountSizeAnalysis object_count_size_analysis_;
-    FunctionReturnTypeAnalysis function_return_type_analysis_;
     MetadataAnalysis metadata_analysis_;
-    bool is_enabled;
+    AnalysisSwitch analysis_switch_;
 };
 
 #endif /* __ANALYSIS_DRIVER_H__ */

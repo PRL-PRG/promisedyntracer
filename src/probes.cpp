@@ -10,7 +10,6 @@ void begin(dyntrace_context_t *context, const SEXP prom) {
 
 void end(dyntrace_context_t *context) {
     tracer_state(context).finish_pass();
-    debug_serializer(context).serialize_finish_trace();
 
     if (!tracer_state(context).full_stack.empty()) {
         dyntrace_log_warning(

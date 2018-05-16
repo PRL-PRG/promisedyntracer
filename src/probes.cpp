@@ -2,26 +2,6 @@
 #include "State.h"
 #include "Timer.h"
 
-const std::string OPCODE_CLOSURE_BEGIN = "clb";
-const std::string OPCODE_CLOSURE_FINISH = "clf";
-const std::string OPCODE_BUILTIN_BEGIN = "bub";
-const std::string OPCODE_BUILTIN_FINISH = "buf";
-const std::string OPCODE_SPECIAL_BEGIN = "spb";
-const std::string OPCODE_SPECIAL_FINISH = "spf";
-const std::string OPCODE_FUNCTION_CONTEXT_JUMP = "fnj";
-const std::string OPCODE_PROMISE_CREATE = "prc";
-const std::string OPCODE_PROMISE_BEGIN = "prb";
-const std::string OPCODE_PROMISE_FINISH = "prf";
-const std::string OPCODE_PROMISE_VALUE = "prv";
-const std::string OPCODE_PROMISE_CONTEXT_JUMP = "prj";
-const std::string OPCODE_PROMISE_EXPRESSION = "pre";
-const std::string OPCODE_PROMISE_ENVIRONMENT = "pen";
-const std::string OPCODE_ENVIRONMENT_CREATE = "enc";
-const std::string OPCODE_ENVIRONMENT_ASSIGN = "ena";
-const std::string OPCODE_ENVIRONMENT_REMOVE = "enr";
-const std::string OPCODE_ENVIRONMENT_DEFINE = "end";
-const std::string OPCODE_ENVIRONMENT_LOOKUP = "enl";
-
 void begin(dyntrace_context_t *context, const SEXP prom) {
     tracer_state(context).start_pass(context, prom);
     debug_serializer(context).serialize_start_trace();
@@ -84,7 +64,7 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
     }
 
     tracer_serializer(context).serialize_trace(
-        OPCODE_CLOSURE_BEGIN, info.fn_id, info.call_id,
+        TraceSerializer::OPCODE_CLOSURE_BEGIN, info.fn_id, info.call_id,
         tracer_state(context).to_environment_id(rho));
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_ENTRY_WRITE_TRACE);
@@ -118,7 +98,7 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     debug_serializer(context).serialize_function_exit(info);
 
     tracer_serializer(context).serialize_trace(
-        OPCODE_CLOSURE_FINISH, info.fn_id, info.call_id,
+        TraceSerializer::OPCODE_CLOSURE_FINISH, info.fn_id, info.call_id,
         tracer_state(context).to_environment_id(rho));
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_EXIT_WRITE_TRACE);
@@ -194,8 +174,9 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
 
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(context).serialize_trace(
-        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_BEGIN
-                                               : OPCODE_BUILTIN_BEGIN,
+        info.fn_type == function_type::SPECIAL
+            ? TraceSerializer::OPCODE_SPECIAL_BEGIN
+            : TraceSerializer::OPCODE_BUILTIN_BEGIN,
         info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
 #endif
 
@@ -240,8 +221,9 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
 
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(context).serialize_trace(
-        info.fn_type == function_type::SPECIAL ? OPCODE_SPECIAL_FINISH
-                                               : OPCODE_BUILTIN_FINISH,
+        info.fn_type == function_type::SPECIAL
+            ? TraceSerializer::OPCODE_SPECIAL_FINISH
+            : TraceSerializer::OPCODE_BUILTIN_FINISH,
         info.fn_id, info.call_id, tracer_state(context).to_environment_id(rho));
 #endif
 
@@ -277,7 +259,7 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
     std::string cre_id = std::string("cre ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(cre_id);
     tracer_serializer(context).serialize_trace(
-        OPCODE_PROMISE_CREATE, info.prom_id,
+        TraceSerializer::OPCODE_PROMISE_CREATE, info.prom_id,
         tracer_state(context).to_environment_id(PRENV(prom)));
 
     MAIN_TIMER_END_SEGMENT(CREATE_PROMISE_WRITE_TRACE);
@@ -305,7 +287,8 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
     std::string ent_id = std::string("ent ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(ent_id);
     tracer_serializer(context).serialize_trace(
-        OPCODE_PROMISE_BEGIN, info.prom_id, info.expression_id);
+        TraceSerializer::OPCODE_PROMISE_BEGIN, info.prom_id,
+        info.expression_id);
 
     MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_ENTRY_WRITE_TRACE);
 
@@ -349,8 +332,8 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
 
     std::string ext_id = std::string("ext ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(ext_id);
-    tracer_serializer(context).serialize_trace(OPCODE_PROMISE_FINISH,
-                                               info.prom_id);
+    tracer_serializer(context).serialize_trace(
+        TraceSerializer::OPCODE_PROMISE_FINISH, info.prom_id);
 
     MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_EXIT_WRITE_TRACE);
 
@@ -372,8 +355,8 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise,
     MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_RECORDER);
 
     debug_serializer(context).serialize_interference_information(val_id);
-    tracer_serializer(context).serialize_trace(OPCODE_PROMISE_VALUE,
-                                               info.prom_id);
+    tracer_serializer(context).serialize_trace(
+        TraceSerializer::OPCODE_PROMISE_VALUE, info.prom_id);
 
     MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_WRITE_TRACE);
 
@@ -397,8 +380,8 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom,
     analysis_driver(context).promise_expression_lookup(info, prom, in_force);
 
     if (info.prom_id >= 0) {
-        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_EXPRESSION,
-                                                   info.prom_id);
+        tracer_serializer(context).serialize_trace(
+            TraceSerializer::OPCODE_PROMISE_EXPRESSION, info.prom_id);
 
         MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_EXPRESSION_WRITE_TRACE);
 
@@ -425,8 +408,8 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom,
     analysis_driver(context).promise_environment_lookup(info, prom, in_force);
 
     if (info.prom_id >= 0) {
-        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
-                                                   info.prom_id);
+        tracer_serializer(context).serialize_trace(
+            TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
 
         MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_WRITE_TRACE);
 
@@ -449,7 +432,7 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom,
 // in_force) {
 //    prom_info_t info = promise_expression_lookup_get_info(context, prom);
 //    if (info.prom_id >= 0) {
-//        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
+//        tracer_serializer(context).serialize_trace(TraceSerializer::OPCODE_PROMISE_ENVIRONMENT,
 //                                                   info.prom_id);
 //        //tracer_serializer(context).serialize_promise_environment_lookup(
 //        //         info, tracer_state(context).clock_id); // FIXME
@@ -478,8 +461,8 @@ void promise_expression_set(dyntrace_context_t *context, const SEXP prom,
 
     analysis_driver(context).promise_expression_set(info, prom, in_force);
     if (info.prom_id >= 0) {
-        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
-                                                   info.prom_id);
+        tracer_serializer(context).serialize_trace(
+            TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
 
         MAIN_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_WRITE_TRACE);
 
@@ -509,8 +492,8 @@ void promise_value_set(dyntrace_context_t *context, const SEXP prom,
     analysis_driver(context).promise_value_set(info, prom, in_force);
 
     if (info.prom_id >= 0) {
-        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
-                                                   info.prom_id);
+        tracer_serializer(context).serialize_trace(
+            TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
         // tracer_serializer(context).serialize_promise_environment_lookup(
         //         info, tracer_state(context).clock_id); // FIXME
         tracer_state(context).clock_id++;
@@ -537,8 +520,8 @@ void promise_environment_set(dyntrace_context_t *context, const SEXP prom,
     analysis_driver(context).promise_environment_set(info, prom, in_force);
 
     if (info.prom_id >= 0) {
-        tracer_serializer(context).serialize_trace(OPCODE_PROMISE_ENVIRONMENT,
-                                                   info.prom_id);
+        tracer_serializer(context).serialize_trace(
+            TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
         // tracer_serializer(context).serialize_promise_environment_lookup(
         //         info, tracer_state(context).clock_id); // FIXME
         tracer_state(context).clock_id++;
@@ -657,8 +640,8 @@ void new_environment(dyntrace_context_t *context, const SEXP rho) {
     tracer_state(context).environments[rho] =
         std::pair<env_id_t, unordered_map<string, var_id_t>>(env_id, {});
 
-    tracer_serializer(context).serialize_trace(OPCODE_ENVIRONMENT_CREATE,
-                                               env_id);
+    tracer_serializer(context).serialize_trace(
+        TraceSerializer::OPCODE_ENVIRONMENT_CREATE, env_id);
 
     MAIN_TIMER_END_SEGMENT(NEW_ENVIRONMENT_WRITE_TRACE);
 }
@@ -718,11 +701,13 @@ void adjust_stacks(dyntrace_context_t *context, unwind_info_t &info) {
                     event_from_fullstack.context_id);
         else if (event_from_fullstack.type == stack_type::CALL) {
             tracer_serializer(context).serialize_trace(
-                OPCODE_FUNCTION_CONTEXT_JUMP, event_from_fullstack.call_id);
+                TraceSerializer::OPCODE_FUNCTION_CONTEXT_JUMP,
+                event_from_fullstack.call_id);
             info.unwound_calls.push_back(event_from_fullstack.call_id);
         } else if (event_from_fullstack.type == stack_type::PROMISE) {
             tracer_serializer(context).serialize_trace(
-                OPCODE_PROMISE_CONTEXT_JUMP, event_from_fullstack.promise_id);
+                TraceSerializer::OPCODE_PROMISE_CONTEXT_JUMP,
+                event_from_fullstack.promise_id);
             info.unwound_promises.push_back(event_from_fullstack.promise_id);
         } else /* if (event_from_fullstack.type == stack_type::NONE) */
             dyntrace_log_error("NONE object found on tracer's full stack.");
@@ -768,24 +753,27 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
     analysis_driver(context).environment_define_var(symbol, value, rho);
-    environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_DEFINE);
+    environment_action(context, symbol, value, rho,
+                       TraceSerializer::OPCODE_ENVIRONMENT_DEFINE);
 }
 
 void environment_assign_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
     analysis_driver(context).environment_assign_var(symbol, value, rho);
-    environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_ASSIGN);
+    environment_action(context, symbol, value, rho,
+                       TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN);
 }
 
 void environment_remove_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP rho) {
     analysis_driver(context).environment_remove_var(symbol, rho);
     environment_action(context, symbol, R_UnboundValue, rho,
-                       OPCODE_ENVIRONMENT_REMOVE);
+                       TraceSerializer::OPCODE_ENVIRONMENT_REMOVE);
 }
 
 void environment_lookup_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
     analysis_driver(context).environment_lookup_var(symbol, value, rho);
-    environment_action(context, symbol, value, rho, OPCODE_ENVIRONMENT_LOOKUP);
+    environment_action(context, symbol, value, rho,
+                       TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP);
 }

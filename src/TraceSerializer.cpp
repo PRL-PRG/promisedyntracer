@@ -1,5 +1,25 @@
 #include "TraceSerializer.h"
 
+const std::string TraceSerializer::OPCODE_CLOSURE_BEGIN = "clb";
+const std::string TraceSerializer::OPCODE_CLOSURE_FINISH = "clf";
+const std::string TraceSerializer::OPCODE_BUILTIN_BEGIN = "bub";
+const std::string TraceSerializer::OPCODE_BUILTIN_FINISH = "buf";
+const std::string TraceSerializer::OPCODE_SPECIAL_BEGIN = "spb";
+const std::string TraceSerializer::OPCODE_SPECIAL_FINISH = "spf";
+const std::string TraceSerializer::OPCODE_FUNCTION_CONTEXT_JUMP = "fnj";
+const std::string TraceSerializer::OPCODE_PROMISE_CREATE = "prc";
+const std::string TraceSerializer::OPCODE_PROMISE_BEGIN = "prb";
+const std::string TraceSerializer::OPCODE_PROMISE_FINISH = "prf";
+const std::string TraceSerializer::OPCODE_PROMISE_VALUE = "prv";
+const std::string TraceSerializer::OPCODE_PROMISE_CONTEXT_JUMP = "prj";
+const std::string TraceSerializer::OPCODE_PROMISE_EXPRESSION = "pre";
+const std::string TraceSerializer::OPCODE_PROMISE_ENVIRONMENT = "pen";
+const std::string TraceSerializer::OPCODE_ENVIRONMENT_CREATE = "enc";
+const std::string TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN = "ena";
+const std::string TraceSerializer::OPCODE_ENVIRONMENT_REMOVE = "enr";
+const std::string TraceSerializer::OPCODE_ENVIRONMENT_DEFINE = "end";
+const std::string TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP = "enl";
+
 TraceSerializer::TraceSerializer(std::string trace_filepath, bool truncate,
                                  bool enable_trace)
     : trace_filepath(trace_filepath), enable_trace_(enable_trace) {

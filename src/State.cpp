@@ -1,4 +1,5 @@
 #include "State.h"
+#include "TraceSerializer.h"
 #include "utilities.h"
 
 void tracer_state_t::start_pass(dyntrace_context_t *context, const SEXP prom) {
@@ -161,25 +162,25 @@ void tracer_state_t::update_promise_environment_action(prom_id_t promise_id,
         promise_environment_action[promise_id] = {0, 0, 0, 0, 0, 0, 0, 0};
 
     int index = transitive ? 4 : 0;
-    if (action == OPCODE_ENVIRONMENT_DEFINE)
+    if (action == TraceSerializer::OPCODE_ENVIRONMENT_DEFINE)
         index += 0;
-    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN)
         index += 1;
-    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_REMOVE)
         index += 2;
-    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP)
         index += 3;
 
     promise_environment_action[promise_id][index] += 1;
 
     if (!transitive) {
-        if (action == OPCODE_ENVIRONMENT_DEFINE)
+        if (action == TraceSerializer::OPCODE_ENVIRONMENT_DEFINE)
             promise_end += 1;
-        else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN)
             promise_ena += 1;
-        else if (action == OPCODE_ENVIRONMENT_REMOVE)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_REMOVE)
             promise_enr += 1;
-        else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP)
             promise_enl += 1;
     }
 }
@@ -211,25 +212,25 @@ void tracer_state_t::update_function_environment_action(fn_id_t function_id,
         function_environment_action[function_id] = {0, 0, 0, 0, 0, 0, 0, 0};
 
     int index = transitive ? 4 : 0;
-    if (action == OPCODE_ENVIRONMENT_DEFINE)
+    if (action == TraceSerializer::OPCODE_ENVIRONMENT_DEFINE)
         index += 0;
-    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN)
         index += 1;
-    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_REMOVE)
         index += 2;
-    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP)
         index += 3;
 
     function_environment_action[function_id][index] += 1;
 
     if (!transitive) {
-        if (action == OPCODE_ENVIRONMENT_DEFINE)
+        if (action == TraceSerializer::OPCODE_ENVIRONMENT_DEFINE)
             function_end += 1;
-        else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN)
             function_ena += 1;
-        else if (action == OPCODE_ENVIRONMENT_REMOVE)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_REMOVE)
             function_enr += 1;
-        else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+        else if (action == TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP)
             function_enl += 1;
     }
 }
@@ -247,12 +248,12 @@ tracer_state_t::remove_function_environment_action(fn_id_t function_id) {
 }
 
 void tracer_state_t::update_toplevel_action(std::string action) {
-    if (action == OPCODE_ENVIRONMENT_DEFINE)
+    if (action == TraceSerializer::OPCODE_ENVIRONMENT_DEFINE)
         toplevel_end += 1;
-    else if (action == OPCODE_ENVIRONMENT_ASSIGN)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN)
         toplevel_ena += 1;
-    else if (action == OPCODE_ENVIRONMENT_REMOVE)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_REMOVE)
         toplevel_enr += 1;
-    else if (action == OPCODE_ENVIRONMENT_LOOKUP)
+    else if (action == TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP)
         toplevel_enl += 1;
 }

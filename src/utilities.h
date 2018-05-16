@@ -5,28 +5,6 @@
 #include "AnalysisSwitch.h"
 #include <openssl/evp.h>
 
-extern size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE;
-extern size_t SQLITE3_EXPANDED_SQL_BUFFER_SIZE;
-
-extern const std::string OPCODE_CLOSURE_BEGIN;
-extern const std::string OPCODE_CLOSURE_FINISH;
-extern const std::string OPCODE_BUILTIN_BEGIN;
-extern const std::string OPCODE_BUILTIN_FINISH;
-extern const std::string OPCODE_SPECIAL_BEGIN;
-extern const std::string OPCODE_SPECIAL_FINISH;
-extern const std::string OPCODE_FUNCTION_CONTEXT_JUMP;
-extern const std::string OPCODE_PROMISE_CREATE;
-extern const std::string OPCODE_PROMISE_BEGIN;
-extern const std::string OPCODE_PROMISE_FINISH;
-extern const std::string OPCODE_PROMISE_VALUE;
-extern const std::string OPCODE_PROMISE_CONTEXT_JUMP;
-extern const std::string OPCODE_PROMISE_EXPRESSION;
-extern const std::string OPCODE_ENVIRONMENT_CREATE;
-extern const std::string OPCODE_ENVIRONMENT_ASSIGN;
-extern const std::string OPCODE_ENVIRONMENT_REMOVE;
-extern const std::string OPCODE_ENVIRONMENT_DEFINE;
-extern const std::string OPCODE_ENVIRONMENT_LOOKUP;
-
 int get_file_size(std::ifstream &file);
 
 std::string readfile(std::ifstream &file);

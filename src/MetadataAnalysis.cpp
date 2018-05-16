@@ -84,13 +84,15 @@ void MetadataAnalysis::end(dyntrace_context_t *context) {
 
 #ifdef DYNTRACE_ENABLE_TIMING
 
-    for (const auto &time : Timer::main_timer().stats()) {
-        serialize_row(fout, time.first, time.second);
-    }
+    auto timer_serializer = [&](Timer &timer) {
+        for (const auto &time : timer.stats()) {
+            serialize_row(fout, time.first, time.second);
+        }
+    };
 
-    for (const auto &time : Timer::recorder_timer().stats()) {
-        serialize_row(fout, time.first, time.second);
-    }
+    timer_serializer(Timer::main_timer());
+    timer_serializer(Timer::recorder_timer());
+    timer_serializer(Timer::analysis_timer());
 
 #endif
 }

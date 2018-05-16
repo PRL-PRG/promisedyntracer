@@ -3,12 +3,22 @@
 #include "Timer.h"
 
 void begin(dyntrace_context_t *context, const SEXP prom) {
+    MAIN_TIMER_RESET();
+
     tracer_state(context).start_pass(context, prom);
+
     debug_serializer(context).serialize_start_trace();
+
+    MAIN_TIMER_END_SEGMENT(BEGIN_SETUP);
+
     analysis_driver(context).begin(context);
+
+    MAIN_TIMER_END_SEGMENT(BEGIN_ANALYSIS);
 }
 
 void end(dyntrace_context_t *context) {
+    MAIN_TIMER_RESET();
+
     tracer_state(context).finish_pass();
 
     if (!tracer_state(context).full_stack.empty()) {
@@ -19,7 +29,12 @@ void end(dyntrace_context_t *context) {
     }
 
     debug_serializer(context).serialize_finish_trace();
+
+    MAIN_TIMER_END_SEGMENT(END_CHECK);
+
     analysis_driver(context).end(context);
+
+    MAIN_TIMER_END_SEGMENT(END_ANALYSIS);
 }
 
 // Triggered when entering function evaluation.

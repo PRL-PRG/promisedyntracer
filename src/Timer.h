@@ -23,6 +23,7 @@
     XX(FUNCTION_ENTRY_RECORDER_PARENT_PROMISE, )                               \
                                                                                \
     XX(FUNCTION_ENTRY_STACK, )                                                 \
+    XX(FUNCTION_ENTRY_ANALYSIS, )                                              \
     XX(FUNCTION_ENTRY_WRITE_TRACE, )                                           \
                                                                                \
     XX(FUNCTION_EXIT_RECORDER, )                                               \
@@ -39,46 +40,59 @@
     XX(FUNCTION_EXIT_RECORDER_PARENT_PROMISE, )                                \
                                                                                \
     XX(FUNCTION_EXIT_STACK, )                                                  \
+    XX(FUNCTION_EXIT_ANALYSIS, )                                               \
     XX(FUNCTION_EXIT_WRITE_TRACE, )                                            \
                                                                                \
     XX(BUILTIN_ENTRY_RECORDER, )                                               \
     XX(BUILTIN_ENTRY_STACK, )                                                  \
+    XX(BUILTIN_ENTRY_ANALYSIS, )                                               \
     XX(BUILTIN_ENTRY_WRITE_TRACE, )                                            \
                                                                                \
     XX(BUILTIN_EXIT_RECORDER, )                                                \
     XX(BUILTIN_EXIT_STACK, )                                                   \
+    XX(BUILTIN_EXIT_ANALYSIS, )                                                \
     XX(BUILTIN_EXIT_WRITE_TRACE, )                                             \
                                                                                \
     XX(CREATE_PROMISE_RECORDER, )                                              \
+    XX(CREATE_PROMISE_ANALYSIS, )                                              \
     XX(CREATE_PROMISE_WRITE_TRACE, )                                           \
                                                                                \
     XX(FORCE_PROMISE_ENTRY_RECORDER, )                                         \
     XX(FORCE_PROMISE_ENTRY_STACK, )                                            \
+    XX(FORCE_PROMISE_ENTRY_ANALYSIS, )                                         \
     XX(FORCE_PROMISE_ENTRY_WRITE_TRACE, )                                      \
                                                                                \
     XX(FORCE_PROMISE_EXIT_RECORDER, )                                          \
     XX(FORCE_PROMISE_EXIT_STACK, )                                             \
+    XX(FORCE_PROMISE_EXIT_ANALYSIS, )                                          \
     XX(FORCE_PROMISE_EXIT_WRITE_TRACE, )                                       \
                                                                                \
     XX(LOOKUP_PROMISE_VALUE_RECORDER, )                                        \
+    XX(LOOKUP_PROMISE_VALUE_ANALYSIS, )                                        \
     XX(LOOKUP_PROMISE_VALUE_WRITE_TRACE, )                                     \
                                                                                \
     XX(LOOKUP_PROMISE_EXPRESSION_RECORDER, )                                   \
+    XX(LOOKUP_PROMISE_EXPRESSION_ANALYSIS, )                                   \
     XX(LOOKUP_PROMISE_EXPRESSION_WRITE_TRACE, )                                \
                                                                                \
     XX(LOOKUP_PROMISE_ENVIRONMENT_RECORDER, )                                  \
+    XX(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS, )                                  \
     XX(LOOKUP_PROMISE_ENVIRONMENT_WRITE_TRACE, )                               \
                                                                                \
     XX(SET_PROMISE_VALUE_RECORDER, )                                           \
+    XX(SET_PROMISE_VALUE_ANALYSIS, )                                           \
     XX(SET_PROMISE_VALUE_WRITE_TRACE, )                                        \
                                                                                \
     XX(SET_PROMISE_EXPRESSION_RECORDER, )                                      \
+    XX(SET_PROMISE_EXPRESSION_ANALYSIS, )                                      \
     XX(SET_PROMISE_EXPRESSION_WRITE_TRACE, )                                   \
                                                                                \
     XX(SET_PROMISE_ENVIRONMENT_RECORDER, )                                     \
+    XX(SET_PROMISE_ENVIRONMENT_ANALYSIS, )                                     \
     XX(SET_PROMISE_ENVIRONMENT_WRITE_TRACE, )                                  \
                                                                                \
     XX(GC_PROMISE_UNMARKED_RECORDER, )                                         \
+    XX(GC_PROMISE_UNMARKED_ANALYSIS, )                                         \
     XX(GC_PROMISE_UNMARKED_RECORD_KEEPING, )                                   \
                                                                                \
     XX(GC_FUNCTION_UNMARKED_RECORD_KEEPING, )                                  \
@@ -88,6 +102,7 @@
     XX(GC_EXIT_RECORDER, )                                                     \
                                                                                \
     XX(VECTOR_ALLOC_RECORDER, )                                                \
+    XX(VECTOR_ALLOC_ANALYSIS, )                                                \
                                                                                \
     XX(NEW_ENVIRONMENT_RECORDER, )                                             \
     XX(NEW_ENVIRONMENT_WRITE_TRACE, )                                          \
@@ -97,6 +112,7 @@
     XX(CONTEXT_EXIT_STACK, )                                                   \
                                                                                \
     XX(ENVIRONMENT_ACTION_RECORDER, )                                          \
+    XX(ENVIRONMENT_ACTION_ANALYSIS, )                                          \
     XX(ENVIRONMENT_ACTION_WRITE_TRACE, )                                       \
                                                                                \
     XX(TIMER_SEGMENT_COUNT, )

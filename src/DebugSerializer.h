@@ -5,7 +5,7 @@
 
 class DebugSerializer {
 public:
-    DebugSerializer(int verbose = 0);
+    DebugSerializer(bool verbose);
     ~DebugSerializer();
 
     void serialize_start_trace();
@@ -44,7 +44,7 @@ private:
     tracer_state_t * state;
     bool has_state;
     int indentation;
-    int verbose;
+    bool verbose;
     std::string prefix();
     void indent();
     std::string unindent();

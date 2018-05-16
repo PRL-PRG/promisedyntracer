@@ -179,18 +179,12 @@ struct gc_info_t {
     int counter;
     double ncells;
     double vcells;
-    int builtin_calls;
-    int special_calls;
-    int closure_calls;
 };
 
 struct prom_lifecycle_info_t {
     prom_id_t promise_id;
     event_t event;
     int gc_trigger_counter;
-    int builtin_counter;
-    int special_counter;
-    int closure_counter;
 };
 
 struct type_gc_info_t {
@@ -338,62 +332,20 @@ struct tracer_state_t {
                                            // (unless overwrite is true)
     int gc_trigger_counter; // Incremented each time there is a gc_entry
 
-    int builtin_counter; // Increment each time a builtin is called
-    int special_counter; // Increment each time a special is called
-    int closure_counter; // Increment each time a closure is called
-
-    int toplevel_ena;
-    int toplevel_end;
-    int toplevel_enr;
-    int toplevel_enl;
-    int promise_ena;
-    int promise_end;
-    int promise_enr;
-    int promise_enl;
-    int function_ena;
-    int function_end;
-    int function_enr;
-    int function_enl;
-
     unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
         environments;
-    unordered_map<fn_id_t, std::vector<int>> function_environment_action;
-    unordered_map<prom_id_t, std::vector<int>> promise_environment_action;
     void start_pass(dyntrace_context_t *context, const SEXP prom);
     void finish_pass();
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();
 
-    void increment_closure_counter();
-    void increment_special_counter();
-    void increment_builtin_counter();
     void increment_gc_trigger_counter();
 
-    int get_closure_counter() const;
-    int get_special_counter() const;
-    int get_builtin_counter() const;
     int get_gc_trigger_counter() const;
 
-    int get_closure_calls();
-    int get_special_calls();
-    int get_builtin_calls();
-
-    void create_promise_environment_action(prom_id_t promise_id);
-
-    void update_promise_environment_action(prom_id_t promise_id,
-                                           std::string action, bool transitive);
-
-    std::vector<int> remove_promise_environment_action(prom_id_t promise_id);
-
-    void update_function_environment_action(fn_id_t function_id,
-                                            std::string action,
-                                            bool transitive);
-
-    std::vector<int> remove_function_environment_action(fn_id_t function_id);
-
-    void update_toplevel_action(std::string action);
 
     tracer_state_t();
 };
+
 #endif /* __STATE_H__ */

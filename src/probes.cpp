@@ -44,6 +44,8 @@ void function_entry(dyntrace_context_t *context, const SEXP call, const SEXP op,
 
     analysis_driver(context).closure_entry(info);
 
+    MAIN_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS);
+
     debug_serializer(context).serialize_function_entry(info);
 
     auto &fresh_promises = tracer_state(context).fresh_promises;
@@ -94,6 +96,8 @@ void function_exit(dyntrace_context_t *context, const SEXP call, const SEXP op,
     MAIN_TIMER_END_SEGMENT(FUNCTION_EXIT_STACK);
 
     analysis_driver(context).closure_exit(info);
+
+    MAIN_TIMER_END_SEGMENT(FUNCTION_EXIT_ANALYSIS);
 
     debug_serializer(context).serialize_function_exit(info);
 
@@ -154,6 +158,8 @@ void print_entry_info(dyntrace_context_t *context, const SEXP call,
     else
         analysis_driver(context).builtin_entry(info);
 
+    MAIN_TIMER_END_SEGMENT(BUILTIN_ENTRY_ANALYSIS);
+
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     stack_event_t stack_elem;
     stack_elem.type = stack_type::CALL;
@@ -197,6 +203,8 @@ void print_exit_info(dyntrace_context_t *context, const SEXP call,
         analysis_driver(context).special_exit(info);
     else
         analysis_driver(context).builtin_exit(info);
+
+    MAIN_TIMER_END_SEGMENT(BUILTIN_EXIT_ANALYSIS);
 
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     auto thing_on_stack = tracer_state(context).full_stack.back();
@@ -249,6 +257,8 @@ void promise_created(dyntrace_context_t *context, const SEXP prom,
 
     analysis_driver(context).promise_created(info, prom);
 
+    MAIN_TIMER_END_SEGMENT(CREATE_PROMISE_ANALYSIS);
+
     std::string cre_id = std::string("cre ") + std::to_string(info.prom_id);
     debug_serializer(context).serialize_interference_information(cre_id);
     tracer_serializer(context).serialize_trace(
@@ -263,9 +273,13 @@ void promise_force_entry(dyntrace_context_t *context, const SEXP promise) {
     MAIN_TIMER_RESET();
 
     prom_info_t info = force_promise_entry_get_info(context, promise);
+
     MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_ENTRY_RECORDER);
 
     analysis_driver(context).promise_force_entry(info, promise);
+
+    MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_ENTRY_ANALYSIS);
+
     stack_event_t stack_elem;
     stack_elem.type = stack_type::PROMISE;
     stack_elem.promise_id = info.prom_id;
@@ -305,6 +319,8 @@ void promise_force_exit(dyntrace_context_t *context, const SEXP promise) {
 
     analysis_driver(context).promise_force_exit(info, promise);
 
+    MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_EXIT_ANALYSIS);
+
     auto thing_on_stack = tracer_state(context).full_stack.back();
     if (thing_on_stack.type != stack_type::PROMISE ||
         thing_on_stack.promise_id != info.prom_id) {
@@ -335,7 +351,11 @@ void promise_value_lookup(dyntrace_context_t *context, const SEXP promise,
     MAIN_TIMER_RESET();
 
     prom_info_t info = promise_lookup_get_info(context, promise);
+
     analysis_driver(context).promise_value_lookup(info, promise, in_force);
+
+    MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS);
+
     std::string val_id = std::string("val ") + std::to_string(info.prom_id);
 
     MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_RECORDER);
@@ -365,6 +385,8 @@ void promise_expression_lookup(dyntrace_context_t *context, const SEXP prom,
 
     analysis_driver(context).promise_expression_lookup(info, prom, in_force);
 
+    MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_EXPRESSION_ANALYSIS);
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(
             TraceSerializer::OPCODE_PROMISE_EXPRESSION, info.prom_id);
@@ -385,9 +407,12 @@ void promise_environment_lookup(dyntrace_context_t *context, const SEXP prom,
     MAIN_TIMER_RESET();
 
     prom_info_t info = promise_expression_lookup_get_info(context, prom);
+
     MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_RECORDER);
 
     analysis_driver(context).promise_environment_lookup(info, prom, in_force);
+
+    MAIN_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS);
 
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(
@@ -438,6 +463,9 @@ void promise_expression_set(dyntrace_context_t *context, const SEXP prom,
     MAIN_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_RECORDER);
 
     analysis_driver(context).promise_expression_set(info, prom, in_force);
+
+    MAIN_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS);
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(
             TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
@@ -465,6 +493,8 @@ void promise_value_set(dyntrace_context_t *context, const SEXP prom,
 
     analysis_driver(context).promise_value_set(info, prom, in_force);
 
+    MAIN_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS);
+
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(
             TraceSerializer::OPCODE_PROMISE_ENVIRONMENT, info.prom_id);
@@ -488,6 +518,8 @@ void promise_environment_set(dyntrace_context_t *context, const SEXP prom,
     MAIN_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_RECORDER);
 
     analysis_driver(context).promise_environment_set(info, prom, in_force);
+
+    MAIN_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS);
 
     if (info.prom_id >= 0) {
         tracer_serializer(context).serialize_trace(
@@ -520,6 +552,8 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
     }
 
     analysis_driver(context).gc_promise_unmarked(id, promise);
+
+    MAIN_TIMER_END_SEGMENT(GC_PROMISE_UNMARKED_ANALYSIS);
 
     auto iter = promise_origin.find(id);
     if (iter != promise_origin.end()) {
@@ -579,6 +613,8 @@ void vector_alloc(dyntrace_context_t *context, int sexptype, long length,
     debug_serializer(context).serialize_vector_alloc(info);
 
     analysis_driver(context).vector_alloc(info);
+
+    MAIN_TIMER_END_SEGMENT(VECTOR_ALLOC_ANALYSIS);
 }
 
 void new_environment(dyntrace_context_t *context, const SEXP rho) {
@@ -677,8 +713,6 @@ void adjust_stacks(dyntrace_context_t *context, unwind_info_t &info) {
 
 void environment_action(dyntrace_context_t *context, const SEXP symbol,
                         SEXP value, const SEXP rho, const std::string &action) {
-    MAIN_TIMER_RESET();
-
     bool exists = true;
     prom_id_t promise_id = tracer_state(context).enclosing_promise_id();
     env_id_t environment_id = tracer_state(context).to_environment_id(rho);
@@ -706,33 +740,52 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
         CHAR(PRINTNAME(symbol)), sexp_type_to_string((sexp_type)TYPEOF(value)));
 
     MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_WRITE_TRACE);
-    MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_RECORDER);
 }
 
 void environment_define_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    MAIN_TIMER_RESET();
+
     analysis_driver(context).environment_define_var(symbol, value, rho);
+
+    MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_ANALYSIS);
+
     environment_action(context, symbol, value, rho,
                        TraceSerializer::OPCODE_ENVIRONMENT_DEFINE);
 }
 
 void environment_assign_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    MAIN_TIMER_RESET();
+
     analysis_driver(context).environment_assign_var(symbol, value, rho);
+
+    MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_ANALYSIS);
+
     environment_action(context, symbol, value, rho,
                        TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN);
 }
 
 void environment_remove_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP rho) {
+    MAIN_TIMER_RESET();
+
     analysis_driver(context).environment_remove_var(symbol, rho);
+
+    MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_ANALYSIS);
+
     environment_action(context, symbol, R_UnboundValue, rho,
                        TraceSerializer::OPCODE_ENVIRONMENT_REMOVE);
 }
 
 void environment_lookup_var(dyntrace_context_t *context, const SEXP symbol,
                             const SEXP value, const SEXP rho) {
+    MAIN_TIMER_RESET();
+
     analysis_driver(context).environment_lookup_var(symbol, value, rho);
+
+    MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_ANALYSIS);
+
     environment_action(context, symbol, value, rho,
                        TraceSerializer::OPCODE_ENVIRONMENT_LOOKUP);
 }

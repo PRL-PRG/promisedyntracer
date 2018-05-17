@@ -193,9 +193,16 @@ std::string full_sexp_type_to_number_string(full_sexp_type type) {
         if (first) {
             first = false;
         } else {
-            result << ",";
+            result << "->";
         }
         result << *iterator;
     }
     return result.str();
+}
+
+std::string infer_sexptype(SEXP promise) {
+    std::vector<sexptype_t> type_trace;
+    std::string type_string = "";
+    get_full_type(promise, type_trace);
+    return full_sexp_type_to_string(type_trace);
 }

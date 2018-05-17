@@ -25,7 +25,7 @@ void ObjectCountSizeAnalysis::serialize() {
     for (int i = 0; i < MAX_NUM_SEXPTYPE; ++i) {
         if (object_counts_[i] == 0 && object_sizes_[i] == 0)
             continue;
-        fout << rtype(i) << " , " << object_counts_[i] << " , "
+        fout << sexptype_to_string(i) << " , " << object_counts_[i] << " , "
              << object_sizes_[i] << std::endl;
     }
 

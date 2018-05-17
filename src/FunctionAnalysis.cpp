@@ -51,7 +51,7 @@ void FunctionAnalysis::add_function_name(fn_id_t fn_id,
     }
 }
 
-void FunctionAnalysis::add_return_type(fn_id_t fn_id, sexp_type type) {
+void FunctionAnalysis::add_return_type(fn_id_t fn_id, sexptype_t type) {
     auto iter = function_return_types_.find(fn_id);
     if (iter == function_return_types_.end()) {
         std::vector<int> return_type(MAX_NUM_SEXPTYPE);
@@ -118,7 +118,7 @@ void FunctionAnalysis::serialize_function_return_type() {
         for (int i = 0; i < MAX_NUM_SEXPTYPE; ++i) {
             if (key_value.second[i] == 0)
                 continue;
-            fout << key_value.first << " , " << rtype(i) << " , "
+            fout << key_value.first << " , " << sexptype_to_string(i) << " , "
                  << key_value.second[i] << std::endl;
         }
     }

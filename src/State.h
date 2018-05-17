@@ -38,9 +38,9 @@ rid_t get_sexp_address(SEXP e);
 struct arg_t {
     arg_id_t id;
     string name;
-    sexp_type argument_type;
-    sexp_type expression_type;
-    prom_id_t promise_id; // only set if sexp_type == PROM
+    sexptype_t argument_type;
+    sexptype_t expression_type;
+    prom_id_t promise_id; // only set if sexptype_t == PROM
     bool default_argument;
     int formal_parameter_position;
 };
@@ -132,7 +132,7 @@ struct call_info_t {
     recursion_type recursion; // TODO unnecessary?
 
     stack_event_t parent_on_stack;
-    sexp_type return_value_type;
+    sexptype_t return_value_type;
     string call_expression;
 };
 
@@ -148,7 +148,7 @@ struct builtin_info_t : call_info_t {};
 struct prom_basic_info_t {
     prom_id_t prom_id;
 
-    sexp_type prom_type;
+    sexptype_t prom_type;
     full_sexp_type full_type;
 
     prom_id_t in_prom_id;
@@ -164,7 +164,7 @@ struct prom_info_t : prom_basic_info_t {
     lifestyle_type lifestyle;
     int effective_distance_from_origin;
     int actual_distance_from_origin;
-    sexp_type return_type;
+    sexptype_t return_type;
 };
 
 struct unwind_info_t {

@@ -63,62 +63,8 @@ string DebugSerializer::log_line(const arglist_t &arguments) {
     return line.str();
 }
 
-string DebugSerializer::log_line(const sexp_type &type) {
-    switch (type) {
-        case sexp_type::ACTIVE_BINDING:
-            return "active_binding";
-        case sexp_type::ANY:
-            return "ANY";
-        case sexp_type::BCODE:
-            return "BCODE";
-        case sexp_type::BUILTIN:
-            return "BUILTIN";
-        case sexp_type::CHAR:
-            return "CHAR";
-        case sexp_type::CLOS:
-            return "CLOS";
-        case sexp_type::CPLX:
-            return "CPLX";
-        case sexp_type::DOT:
-            return "DOT";
-        case sexp_type::ENV:
-            return "ENV";
-        case sexp_type::EXPR:
-            return "EXPR";
-        case sexp_type::EXTPTR:
-            return "EXTPTR";
-        case sexp_type::INT:
-            return "INT";
-        case sexp_type::LANG:
-            return "LANG";
-        case sexp_type::LGL:
-            return "LGL";
-        case sexp_type::LIST:
-            return "LIST";
-        case sexp_type::NIL:
-            return "NIL";
-        case sexp_type::OMEGA:
-            return "...";
-        case sexp_type::PROM:
-            return "PROM";
-        case sexp_type::RAW:
-            return "RAW";
-        case sexp_type::REAL:
-            return "REAL";
-        case sexp_type::S4:
-            return "S4";
-        case sexp_type::SPECIAL:
-            return "SPECIAL";
-        case sexp_type::STR:
-            return "STR";
-        case sexp_type::SYM:
-            return "SYM";
-        case sexp_type::VEC:
-            return "VEC";
-        case sexp_type::WEAKREF:
-            return "WEAKREF";
-    }
-    return nullptr;
+string DebugSerializer::log_line(const sexptype_t &type) {
+    return sexptype_to_string(type);
 }
 
 string DebugSerializer::log_line(const full_sexp_type &type) {

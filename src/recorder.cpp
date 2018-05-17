@@ -114,13 +114,13 @@ void update_closure_argument(closure_info_t &info, dyntrace_context_t *context,
     }
 
     if (dot_argument) {
-        argument.argument_type = sexp_type::DOT;
+        argument.argument_type = (sexptype_t)DOTSXP;
     } else {
-        argument.argument_type = static_cast<sexp_type>(argument_type);
+        argument.argument_type = static_cast<sexptype_t>(argument_type);
     }
 
     argument.id = get_argument_id(context, call_id, argument.name);
-    argument.expression_type = static_cast<sexp_type>(expression_type);
+    argument.expression_type = static_cast<sexptype_t>(expression_type);
     argument.formal_parameter_position = position;
 
     info.arguments.push_back(argument);
@@ -302,7 +302,7 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
     info.in_prom_id = get_parent_promise(context);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_PARENT_PROMISE);
 
-    info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
+    info.return_value_type = static_cast<sexptype_t>(TYPEOF(retval));
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_OTHER);
 
     return info;
@@ -368,7 +368,7 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
 
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
-    info.return_value_type = static_cast<sexp_type>(TYPEOF(retval));
+    info.return_value_type = static_cast<sexptype_t>(TYPEOF(retval));
 
     return info;
 }
@@ -380,7 +380,7 @@ prom_basic_info_t create_promise_get_info(dyntrace_context_t *context,
     info.prom_id = make_promise_id(context, promise);
     tracer_state(context).fresh_promises.insert(info.prom_id);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
+    info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
 
     get_stack_parent(info, tracer_state(context).full_stack);
@@ -407,9 +407,9 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
+    info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
-    info.return_type = sexp_type::OMEGA;
+    info.return_type = (sexptype_t)OMEGASXP;
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     info.depth = get_no_of_ancestor_promises_on_stack(context);
@@ -434,9 +434,9 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
+    info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
-    info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
+    info.return_type = static_cast<sexptype_t>(TYPEOF(PRVALUE(promise)));
 
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
@@ -457,9 +457,9 @@ prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(promise)));
-    info.full_type.push_back(sexp_type::OMEGA);
-    info.return_type = static_cast<sexp_type>(TYPEOF(PRVALUE(promise)));
+    info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
+    info.full_type.push_back((sexptype_t)OMEGASXP);
+    info.return_type = static_cast<sexptype_t>(TYPEOF(PRVALUE(promise)));
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
@@ -481,9 +481,9 @@ prom_info_t promise_expression_lookup_get_info(dyntrace_context_t *context,
 
     set_distances_and_lifestyle(context, info);
 
-    info.prom_type = static_cast<sexp_type>(TYPEOF(PRCODE(prom)));
-    info.full_type.push_back(sexp_type::OMEGA);
-    info.return_type = static_cast<sexp_type>(TYPEOF(PRCODE(prom)));
+    info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(prom)));
+    info.full_type.push_back((sexptype_t)OMEGASXP);
+    info.return_type = static_cast<sexptype_t>(TYPEOF(PRCODE(prom)));
 
     return info;
 }

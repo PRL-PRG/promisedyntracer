@@ -20,7 +20,7 @@ class FunctionAnalysis {
 
   private:
     void add_function_name(fn_id_t fn_id, const std::string name);
-    void add_return_type(fn_id_t fn_id, sexp_type type);
+    void add_return_type(fn_id_t fn_id, sexptype_t type);
     void add_function_type_and_body(fn_id_t fn_id, const std::string fn_type,
                                     const std::string definition);
     void serialize_function_return_type();

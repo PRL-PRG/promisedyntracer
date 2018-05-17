@@ -53,7 +53,7 @@ private:
     std::string log_line(const stack_event_t &event);
     std::string log_line(const function_type &type);
     std::string log_line(const arglist_t &arguments);
-    std::string log_line(const sexp_type &type);
+    std::string log_line(const sexptype_t &type);
     std::string log_line(const full_sexp_type &type);
     std::string log_line(const builtin_info_t&);
     std::string log_line(const closure_info_t&);

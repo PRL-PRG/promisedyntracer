@@ -242,20 +242,6 @@ std::string clock_ticks_to_string(clock_t ticks) {
     return std::to_string((double)ticks / CLOCKS_PER_SEC);
 }
 
-std::string rtype(SEXPTYPE sexptype) {
-
-    std::string type = std::string(type2char(sexptype));
-
-    type[0] = std::toupper(type[0]);
-
-    if (type == "Language")
-        type = "Function Call";
-    else if (type == "NULL")
-        type = "Null";
-
-    return type;
-}
-
 AnalysisSwitch to_analysis_switch(SEXP env) {
 
     auto get_switch = [&](const std::string analysis_name) {

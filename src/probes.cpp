@@ -751,7 +751,7 @@ void environment_action(dyntrace_context_t *context, const SEXP symbol,
     debug_serializer(context).serialize_interference_information(action_id);
     tracer_serializer(context).serialize_trace(
         action, tracer_state(context).to_environment_id(rho), variable_id,
-        CHAR(PRINTNAME(symbol)), sexp_type_to_string((sexp_type)TYPEOF(value)));
+        CHAR(PRINTNAME(symbol)), sexptype_to_string((sexptype_t)TYPEOF(value)));
 
     MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_WRITE_TRACE);
 }

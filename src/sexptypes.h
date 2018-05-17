@@ -147,5 +147,6 @@ void get_full_type(SEXP promise, full_sexp_type &result);
 std::string full_sexp_type_to_string(full_sexp_type);
 std::string full_sexp_type_to_number_string(full_sexp_type);
 std::string sexptype_to_string(sexptype_t);
+std::string infer_sexptype(SEXP promise);
 
 #endif /* __SEXPTYPES_H__ */

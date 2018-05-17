@@ -26,6 +26,10 @@ class PromiseTypeAnalysis {
 
   private:
     void serialize();
+    void serialize_evaluated_promises();
+    void serialize_unevaluated_promises();
+    void add_unevaluated_promise(const std::string promise_type, SEXP promise);
+
     std::string output_dir_;
     const tracer_state_t &tracer_state_;
     std::set<prom_id_t> default_argument_promises_;
@@ -34,6 +38,7 @@ class PromiseTypeAnalysis {
     int default_argument_promise_types_[MAX_NUM_SEXPTYPE][MAX_NUM_SEXPTYPE];
     int custom_argument_promise_types_[MAX_NUM_SEXPTYPE][MAX_NUM_SEXPTYPE];
     int non_argument_promise_types_[MAX_NUM_SEXPTYPE][MAX_NUM_SEXPTYPE];
+    std::unordered_map<std::string, int> unevaluated_promises_;
 };
 
 #endif /* __PROMISE_TYPE_ANALYSIS_H__ */

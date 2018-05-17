@@ -96,15 +96,38 @@ void PromiseTypeAnalysis::promise_force_exit(const prom_info_t &prom_info,
 
 void PromiseTypeAnalysis::gc_promise_unmarked(prom_id_t promise_id,
                                               const SEXP promise) {
-    if (remove_default_argument_promise(promise_id) == 0)
-        if (remove_custom_argument_promise(promise_id) == 0)
-            remove_non_argument_promise(promise_id);
+    if (is_default_argument_promise(promise_id)) {
+        add_unevaluated_promise("da", promise);
+        remove_default_argument_promise(promise_id);
+    } else if (is_custom_argument_promise(promise_id)) {
+        add_unevaluated_promise("ca", promise);
+        remove_custom_argument_promise(promise_id);
+    } else if (is_non_argument_promise(promise_id)) {
+        add_unevaluated_promise("na", promise);
+        remove_non_argument_promise(promise_id);
+    }
 }
 
 void PromiseTypeAnalysis::end(dyntrace_context_t *context) { serialize(); }
 
+void PromiseTypeAnalysis::add_unevaluated_promise(
+    const std::string promise_type, SEXP promise) {
+    std::string key = promise_type + " , " +
+                      sexptype_to_string(TYPEOF(PRCODE(promise))) + " , " +
+                      infer_sexptype(promise);
+    auto result = unevaluated_promises_.insert(std::make_pair(key, 1));
+    if (!result.second)
+        ++result.first->second;
+}
+
 void PromiseTypeAnalysis::serialize() {
-    std::ofstream fout(output_dir_ + "/promise-type.csv", std::ios::trunc);
+    serialize_unevaluated_promises();
+    serialize_evaluated_promises();
+}
+
+void PromiseTypeAnalysis::serialize_evaluated_promises() {
+    std::ofstream fout(output_dir_ + "/evaluated-promise-type.csv",
+                       std::ios::trunc);
 
     fout << "promise_type"
          << " , "
@@ -129,6 +152,25 @@ void PromiseTypeAnalysis::serialize() {
     serializer(default_argument_promise_types_, "da");
     serializer(custom_argument_promise_types_, "ca");
     serializer(non_argument_promise_types_, "na");
+
+    fout.close();
+}
+
+void PromiseTypeAnalysis::serialize_unevaluated_promises() {
+    std::ofstream fout(output_dir_ + "/unevaluated-promise-type.csv",
+                       std::ios::trunc);
+
+    fout << "promise_type"
+         << " , "
+         << "promise_expression_type"
+         << " , "
+         << "inferred_promise_value_type"
+         << " , "
+         << "count" << std::endl;
+
+    for (auto &key_value : unevaluated_promises_) {
+        fout << key_value.first << " , " << key_value.second;
+    }
 
     fout.close();
 }

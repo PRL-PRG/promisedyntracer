@@ -95,11 +95,12 @@ stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack,
     int rindex = rposition;
     for (vector<stack_event_t>::reverse_iterator i = stack.rbegin();
          i != stack.rend(); ++i)
-        if (type == i->type)
+        if (type == i->type) {
             if (rindex == 0)
                 return *i;
             else
                 rindex--;
+        }
 
     return make_dummy_stack_event();
 }

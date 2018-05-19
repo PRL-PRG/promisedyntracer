@@ -20,8 +20,8 @@ int sexp_to_int(SEXP value);
 std::string sexp_to_string(SEXP value);
 
 template <typename T>
-std::underlying_type_t<T> to_underlying_type(const T &enum_val) {
-    return static_cast<std::underlying_type_t<T>>(enum_val);
+typename std::underlying_type<T>::type to_underlying_type(const T &enum_val) {
+    return static_cast<typename std::underlying_type<T>::type>(enum_val);
 }
 
 std::string compute_hash(const char *data);

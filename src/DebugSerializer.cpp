@@ -132,11 +132,7 @@ string DebugSerializer::log_line(const prom_info_t &info) {
          << " in_call_id=" << info.in_call_id
          << " in_prom_id=" << info.in_prom_id
          << " parent_on_stack=" << log_line(info.parent_on_stack)
-         << " depth=" << info.depth
-         << " actual_distance_from_origin=" << info.actual_distance_from_origin
-         << " effective_distance_from_origin="
-         << info.effective_distance_from_origin;
-    // skipped: lifestyle
+         << " depth=" << info.depth;
     return line.str();
 }
 

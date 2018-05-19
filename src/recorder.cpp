@@ -2,95 +2,6 @@
 #include "Timer.h"
 #include "lookup.h"
 
-recursion_type is_recursive(dyntrace_context_t *context, fn_id_t function) {
-    for (vector<stack_event_t>::reverse_iterator i =
-             tracer_state(context).full_stack.rbegin();
-         i != tracer_state(context).full_stack.rend(); ++i) {
-
-        if (i->type != stack_type::CALL) {
-            continue;
-        }
-
-        if (i->function_info.function_id == function) {
-            return recursion_type::RECURSIVE;
-        }
-
-        if (i->function_info.type == function_type::BUILTIN ||
-            i->function_info.type == function_type::CLOSURE) {
-            return recursion_type::NOT_RECURSIVE;
-        }
-
-        // inside a different function, but one that doesn't matter, recursion
-        // still possible
-    }
-    return recursion_type::UNKNOWN;
-}
-
-tuple<lifestyle_type, int, int>
-judge_promise_lifestyle(dyntrace_context_t *context, call_id_t from_call_id) {
-    int effective_distance = 0;
-    int actual_distance = 0;
-    for (vector<stack_event_t>::reverse_iterator i =
-             tracer_state(context).full_stack.rbegin();
-         i != tracer_state(context).full_stack.rend(); ++i) {
-
-        if (i->type != stack_type::CALL)
-            continue;
-
-        if (i->call_id == from_call_id) {
-            if (effective_distance == 0) {
-                if (actual_distance == 0) {
-                    return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::IMMEDIATE_LOCAL, effective_distance,
-                        actual_distance);
-                } else {
-                    return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::LOCAL, effective_distance,
-                        actual_distance);
-                }
-            } else {
-                if (effective_distance == 1) {
-                    return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::IMMEDIATE_BRANCH_LOCAL,
-                        effective_distance, actual_distance);
-                } else {
-                    return tuple<lifestyle_type, int, int>(
-                        lifestyle_type::BRANCH_LOCAL, effective_distance,
-                        actual_distance);
-                }
-            }
-        }
-
-        if (i->call_id == 0) {
-            return tuple<lifestyle_type, int, int>(
-                lifestyle_type::ESCAPED, -1,
-                -1); // reached root, parent must be in a
-                     // different branch--promise escaped
-        }
-
-        actual_distance++;
-        if (i->function_info.type == function_type::BUILTIN ||
-            i->function_info.type == function_type::CLOSURE) {
-            effective_distance++;
-        }
-    }
-}
-
-void set_distances_and_lifestyle(dyntrace_context_t *context,
-                                 prom_info_t &info) {
-    if (info.in_call_id == info.from_call_id) {
-        info.lifestyle = lifestyle_type::LOCAL;
-        info.effective_distance_from_origin = 0;
-        info.actual_distance_from_origin = 0;
-    } else {
-        auto lifestyle_info =
-            judge_promise_lifestyle(context, info.from_call_id);
-        info.lifestyle = get<0>(lifestyle_info);
-        info.effective_distance_from_origin = get<1>(lifestyle_info);
-        info.actual_distance_from_origin = get<2>(lifestyle_info);
-    }
-}
-
 void update_closure_argument(closure_info_t &info, dyntrace_context_t *context,
                              call_id_t call_id, const SEXP argument_expression,
                              const SEXP expression, const SEXP environment,
@@ -235,9 +146,6 @@ closure_info_t function_entry_get_info(dyntrace_context_t *context,
     update_closure_arguments(info, context, info.call_id, op, rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_ARGUMENTS);
 
-    info.recursion = is_recursive(context, info.fn_id);
-    RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_RECURSIVE);
-
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_PARENT_PROMISE);
@@ -296,9 +204,6 @@ closure_info_t function_exit_get_info(dyntrace_context_t *context,
         parent_call.type == stack_type::NONE ? 0 : parent_call.call_id;
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_PARENT_ID);
 
-    info.recursion = is_recursive(context, info.fn_id);
-    RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_RECURSIVE);
-
     get_stack_parent2(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_PARENT_PROMISE);
@@ -330,7 +235,6 @@ builtin_info_t builtin_entry_get_info(dyntrace_context_t *context,
     info.callsite_location = get_callsite_cpp(0);
     info.call_ptr = get_sexp_address(rho);
     info.call_id = make_funcall_id(context, op);
-    info.recursion = is_recursive(context, info.fn_id);
 
     get_stack_parent(info, tracer_state(context).full_stack);
     info.in_prom_id = get_parent_promise(context);
@@ -358,7 +262,6 @@ builtin_info_t builtin_exit_get_info(dyntrace_context_t *context,
         info.name = name;
     info.fn_type = fn_type;
     info.fn_compiled = is_byte_compiled(op);
-    info.recursion = is_recursive(context, info.fn_id);
     info.definition_location = get_definition_location_cpp(op);
     info.callsite_location = get_callsite_cpp(0);
 
@@ -406,8 +309,6 @@ prom_info_t force_promise_entry_get_info(dyntrace_context_t *context,
     info.in_call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 
-    set_distances_and_lifestyle(context, info);
-
     info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
     info.return_type = (sexptype_t)OMEGASXP;
@@ -433,8 +334,6 @@ prom_info_t force_promise_exit_get_info(dyntrace_context_t *context,
     info.in_call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
 
-    set_distances_and_lifestyle(context, info);
-
     info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     get_full_type(promise, info.full_type);
     info.return_type = static_cast<sexptype_t>(TYPEOF(PRVALUE(promise)));
@@ -455,8 +354,6 @@ prom_info_t promise_lookup_get_info(dyntrace_context_t *context,
         tracer_state(context).full_stack, stack_type::CALL);
     info.in_call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
-
-    set_distances_and_lifestyle(context, info);
 
     info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(promise)));
     info.full_type.push_back((sexptype_t)OMEGASXP);
@@ -479,8 +376,6 @@ prom_info_t promise_expression_lookup_get_info(dyntrace_context_t *context,
         tracer_state(context).full_stack, stack_type::CALL);
     info.in_call_id = elem.type == stack_type::NONE ? 0 : elem.call_id;
     info.from_call_id = tracer_state(context).promise_origin[info.prom_id];
-
-    set_distances_and_lifestyle(context, info);
 
     info.prom_type = static_cast<sexptype_t>(TYPEOF(PRCODE(prom)));
     info.full_type.push_back((sexptype_t)OMEGASXP);

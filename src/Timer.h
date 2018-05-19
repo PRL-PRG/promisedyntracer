@@ -22,7 +22,6 @@
     XX(FUNCTION_ENTRY_RECORDER_NAME, )                                         \
     XX(FUNCTION_ENTRY_RECORDER_ARGUMENTS, )                                    \
     XX(FUNCTION_ENTRY_RECORDER_DEFINITION, )                                   \
-    XX(FUNCTION_ENTRY_RECORDER_RECURSIVE, )                                    \
     XX(FUNCTION_ENTRY_RECORDER_PARENT_PROMISE, )                               \
                                                                                \
     XX(FUNCTION_ENTRY_STACK, )                                                 \
@@ -43,7 +42,6 @@
     XX(FUNCTION_EXIT_RECORDER_NAME, )                                          \
     XX(FUNCTION_EXIT_RECORDER_ARGUMENTS, )                                     \
     XX(FUNCTION_EXIT_RECORDER_DEFINITION, )                                    \
-    XX(FUNCTION_EXIT_RECORDER_RECURSIVE, )                                     \
     XX(FUNCTION_EXIT_RECORDER_PARENT_PROMISE, )                                \
                                                                                \
     XX(FUNCTION_EXIT_STACK, )                                                  \

@@ -127,8 +127,6 @@ struct call_info_t {
         parent_call_id; // the id of the parent call that executed this call
     prom_id_t in_prom_id;
 
-    recursion_type recursion; // TODO unnecessary?
-
     stack_event_t parent_on_stack;
     sexptype_t return_value_type;
     string call_expression;
@@ -159,9 +157,6 @@ struct prom_basic_info_t {
 struct prom_info_t : prom_basic_info_t {
     call_id_t in_call_id;
     call_id_t from_call_id;
-    lifestyle_type lifestyle;
-    int effective_distance_from_origin;
-    int actual_distance_from_origin;
     sexptype_t return_type;
 };
 

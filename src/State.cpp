@@ -10,7 +10,6 @@ void tracer_state_t::start_pass(dyntrace_context_t *context, const SEXP prom) {
 void tracer_state_t::finish_pass() { promise_origin.clear(); }
 
 tracer_state_t::tracer_state_t() {
-    clock_id = 0;
     call_id_counter = 0;
     fn_id_counter = 0;
     prom_id_counter = 0;

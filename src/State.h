@@ -177,12 +177,6 @@ struct gc_info_t {
     double vcells;
 };
 
-struct prom_lifecycle_info_t {
-    prom_id_t promise_id;
-    event_t event;
-    int gc_trigger_counter;
-};
-
 struct type_gc_info_t {
     int gc_trigger_counter;
     int type;
@@ -285,7 +279,6 @@ size_t get_no_of_ancestor_calls_on_stack();
 string recursive_type_to_string(recursion_type);
 
 struct tracer_state_t {
-    int clock_id; // Should be kept across Rdt calls (unless overwrite is true)
     vector<stack_event_t> full_stack; // Should be reset on each tracer pass
 
     // Map from promise IDs to call IDs

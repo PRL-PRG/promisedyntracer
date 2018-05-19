@@ -1,10 +1,10 @@
 #ifndef PROMISEDYNTRACER_DEBUG_SERIALIZER_H
 #define PROMISEDYNTRACER_DEBUG_SERIALIZER_H
-#include <string>
 #include "State.h"
+#include <string>
 
 class DebugSerializer {
-public:
+  public:
     DebugSerializer(bool verbose);
     ~DebugSerializer();
 
@@ -20,7 +20,6 @@ public:
     void serialize_promise_created(const prom_basic_info_t &);
     void serialize_promise_lookup(const prom_info_t &);
     void serialize_promise_expression_lookup(const prom_info_t &);
-    void serialize_promise_lifecycle(const prom_lifecycle_info_t &, int);
     void serialize_promise_argument_type(const prom_id_t prom_id,
                                          bool default_argument);
     void serialize_vector_alloc(const type_gc_info_t &);
@@ -40,8 +39,8 @@ public:
 
     bool needsState();
 
-private:
-    tracer_state_t * state;
+  private:
+    tracer_state_t *state;
     bool has_state;
     int indentation;
     bool verbose;
@@ -49,22 +48,21 @@ private:
     void indent();
     std::string unindent();
 
-    std::string log_line(const RCNTXT * cptr);
+    std::string log_line(const RCNTXT *cptr);
     std::string log_line(const stack_event_t &event);
     std::string log_line(const function_type &type);
     std::string log_line(const arglist_t &arguments);
     std::string log_line(const sexptype_t &type);
     std::string log_line(const full_sexp_type &type);
-    std::string log_line(const builtin_info_t&);
-    std::string log_line(const closure_info_t&);
-    std::string log_line(const prom_basic_info_t&);
-    std::string log_line(const prom_info_t&);
-    std::string log_line(const unwind_info_t&);
-    std::string log_line(const gc_info_t&);
-    std::string log_line(const prom_lifecycle_info_t&, int);
-    std::string log_line(const type_gc_info_t&);
+    std::string log_line(const builtin_info_t &);
+    std::string log_line(const closure_info_t &);
+    std::string log_line(const prom_basic_info_t &);
+    std::string log_line(const prom_info_t &);
+    std::string log_line(const unwind_info_t &);
+    std::string log_line(const gc_info_t &);
+    std::string log_line(const type_gc_info_t &);
 
     std::string print_stack();
 };
 
-#endif //PROMISEDYNTRACER_DEBUG_SERIALIZER_H
+#endif // PROMISEDYNTRACER_DEBUG_SERIALIZER_H

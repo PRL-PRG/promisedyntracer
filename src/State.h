@@ -4,9 +4,17 @@
 #include "sexptypes.h"
 #include "stdlibs.h"
 
-using namespace std;
+using std::string;
+using std::pair;
+using std::tuple;
+using std::map;
+using std::hash;
+using std::get;
+using std::vector;
+using std::unordered_map;
+using std::unordered_set;
 
-#define RID_INVALID (rid_t) - 1
+#define RID_INVALID 0 //(rid_t) - 1
 
 const int RDT_SQL_LOOKUP_PROMISE = 0x0;
 const int RDT_SQL_LOOKUP_PROMISE_EXPRESSION = 0x1;
@@ -18,7 +26,8 @@ typedef intptr_t rsid_t; // hexadecimal
 
 typedef rid_t prom_addr_t; // hexadecimal
 typedef rid_t env_addr_t;  // hexadecimal
-typedef rsid_t prom_id_t;  // hexadecimal
+// typedef rsid_t prom_id_t;  // hexadecimal
+typedef rsid_t prom_id_t;
 typedef rid_t
     call_id_t; // integer TODO this is pedantic, but shouldn't this be int?
 
@@ -100,18 +109,7 @@ struct context_t {
 };
 
 // typedef pair<prom_id_t, call_id_t> prom_stack_elem_t;
-typedef tuple<prom_id_t, unsigned int, unsigned int> prom_key_t;
-
-struct prom_id_triple_hash {
-  public:
-    size_t operator()(const prom_key_t &p) const {
-        auto h1 = hash<prom_id_t>{}(get<0>(p));
-        auto h2 = hash<unsigned int>{}(get<1>(p));
-        auto h3 = hash<unsigned int>{}(get<2>(p));
-        // super simple≥...
-        return (h1 << 16) | (h2 << 8) | h3;
-    }
-};
+typedef prom_addr_t prom_key_t;
 
 struct call_info_t {
     function_type fn_type;
@@ -170,9 +168,7 @@ struct prom_info_t : prom_basic_info_t {
 struct unwind_info_t {
     rid_t jump_context;
     int restart;
-    vector<call_id_t> unwound_calls;
-    vector<prom_id_t> unwound_promises;
-    vector<rid_t> unwound_contexts;
+    vector<stack_event_t> unwound_frames;
 };
 
 struct gc_info_t {
@@ -297,7 +293,7 @@ struct tracer_state_t {
         promise_origin; // Should be reset on each tracer pass
     unordered_set<prom_id_t> fresh_promises;
     // Map from promise address to promise ID;
-    unordered_map<prom_key_t, prom_id_t, prom_id_triple_hash> promise_ids;
+    unordered_map<prom_addr_t, prom_id_t> promise_ids;
     unordered_map<prom_id_t, int> promise_lookup_gc_trigger_counter;
     env_id_t environment_id_counter;
     var_id_t variable_id_counter;
@@ -343,7 +339,6 @@ struct tracer_state_t {
     void increment_gc_trigger_counter();
 
     int get_gc_trigger_counter() const;
-
 
     tracer_state_t();
 };

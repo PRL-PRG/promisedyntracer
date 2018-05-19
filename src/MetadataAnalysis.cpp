@@ -13,16 +13,25 @@ void MetadataAnalysis::end(dyntrace_context_t *context) {
     execution_time_t execution_time =
         context->dyntracing_context->execution_time;
 
+    // environment_variables->r_compile_pkgs = getenv("R_COMPILE_PKGS");
+    // environment_variables->r_disable_bytecode = getenv("R_DISABLE_BYTECODE");
+    // environment_variables->r_enable_jit = getenv("R_ENABLE_JIT");
+    // environment_variables->r_keep_pkg_source = getenv("R_KEEP_PKG_SOURCE");
+
     serialize_row(fout, "GIT_COMMIT_INFO", GIT_COMMIT_INFO);
     serialize_row(fout, "DYNTRACE_BEGIN_DATETIME",
                   context->dyntracing_context->begin_datetime);
-    serialize_row(fout, "R_COMPILE_PKGS", environment_variables.r_compile_pkgs);
-    serialize_row(fout, "R_DISABLE_BYTECODE",
-                  environment_variables.r_disable_bytecode);
-    serialize_row(fout, "R_ENABLE_JIT", environment_variables.r_enable_jit);
-    serialize_row(fout, "R_KEEP_PKG_SOURCE",
-                  environment_variables.r_keep_pkg_source);
-    serialize_row(fout, "RDT_COMPILE_VIGNETTE", getenv("RDT_COMPILE_VIGNETTE"));
+
+    // serialize_row(fout, "R_COMPILE_PKGS",
+    // to_string(getenv("R_COMPILE_PKGS")));
+    // serialize_row(fout, "R_DISABLE_BYTECODE",
+    //               to_string(getenv("R_DISABLE_BYTECODE")));
+    // serialize_row(fout, "R_ENABLE_JIT", to_string(getenv("R_ENABLE_JIT")));
+    // serialize_row(fout, "R_KEEP_PKG_SOURCE",
+    //               to_string(getenv("R_KEEP_PKG_SOURCE")));
+    // serialize_row(fout, "RDT_COMPILE_VIGNETTE",
+    //               to_string(getenv("RDT_COMPILE_VIGNETTE")));
+
     serialize_row(fout, "DYNTRACE_END_DATETIME",
                   context->dyntracing_context->end_datetime);
     serialize_row(fout, "PROBE_FUNCTION_ENTRY",

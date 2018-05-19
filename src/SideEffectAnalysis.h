@@ -1,7 +1,7 @@
 #ifndef __SIDE_EFFECT_ANALYSIS_H__
 #define __SIDE_EFFECT_ANALYSIS_H__
 
-#include "ArgumentPromiseState.h"
+#include "PromiseState.h"
 #include "CallState.h"
 #include "FunctionState.h"
 #include "State.h"

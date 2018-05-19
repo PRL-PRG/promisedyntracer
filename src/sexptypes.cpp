@@ -158,7 +158,7 @@ void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,
                 return;
 
             default: {
-                string msg = lookup_status_to_string(r.status);
+                std::string msg = lookup_status_to_string(r.status);
                 dyntrace_log_warning("%s", msg.c_str());
                 // result.push_back(sexptype_t::OMEGA);
                 return;

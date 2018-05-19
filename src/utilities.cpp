@@ -128,7 +128,7 @@ static const char *get_filename(SEXP srcref) {
             } else {
                 // Not sure what the frequency of this is. Making it an error
                 // for now, and we'll see what happens.
-                string msg = lookup_status_to_string(r.status);
+                std::string msg = lookup_status_to_string(r.status);
                 dyntrace_log_error("%s", msg.c_str());
             }
         }
@@ -137,13 +137,13 @@ static const char *get_filename(SEXP srcref) {
     return NULL;
 }
 
-inline string extract_location_information(SEXP srcref) {
+inline std::string extract_location_information(SEXP srcref) {
     const char *filename = get_filename(srcref);
     int lineno = get_lineno(srcref);
     int colno = get_colno(srcref);
 
     if (filename) {
-        stringstream result;
+        std::stringstream result;
         result << ((strlen(filename) > 0) ? filename : "<console>") << ":"
                << std::to_string(lineno) << "," << std::to_string(colno);
         return result.str();
@@ -151,12 +151,12 @@ inline string extract_location_information(SEXP srcref) {
         return "";
 }
 
-string get_callsite_cpp(int how_far_in_the_past) {
+std::string get_callsite_cpp(int how_far_in_the_past) {
     SEXP srcref = R_GetCurrentSrcref(how_far_in_the_past);
     return extract_location_information(srcref);
 }
 
-string get_definition_location_cpp(SEXP op) {
+std::string get_definition_location_cpp(SEXP op) {
     SEXP srcref = getAttrib(op, R_SrcrefSymbol);
     return extract_location_information(srcref);
 }
@@ -256,9 +256,15 @@ AnalysisSwitch to_analysis_switch(SEXP env) {
     analysis_switch.metadata = get_switch("metadata");
     analysis_switch.object_count_size = get_switch("object_count_size");
     analysis_switch.function = get_switch("function");
-    analysis_switch.promise = get_switch("promise");
+    analysis_switch.promise_type = get_switch("promise_type");
+    analysis_switch.promise_slot_mutation = get_switch("promise_slot_mutation");
+    analysis_switch.promise_evaluation = get_switch("promise_evaluation");
     analysis_switch.strictness = get_switch("strictness");
     analysis_switch.side_effect = get_switch("side_effect");
 
     return analysis_switch;
+}
+
+std::string to_string(const char *str) {
+    return str ? std::string("") : std::string(str);
 }

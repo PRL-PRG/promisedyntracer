@@ -576,11 +576,7 @@ void gc_promise_unmarked(dyntrace_context_t *context, const SEXP promise) {
         promise_origin.erase(iter);
     }
 
-    unsigned int prom_type = TYPEOF(PRCODE(promise));
-    unsigned int orig_type =
-        (prom_type == 21) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
-    prom_key_t key(addr, prom_type, orig_type);
-    tracer_state(context).promise_ids.erase(key);
+    tracer_state(context).promise_ids.erase(addr);
 
     MAIN_TIMER_END_SEGMENT(GC_PROMISE_UNMARKED_RECORD_KEEPING);
 }
@@ -674,8 +670,14 @@ void jump_ctxt(dyntrace_context_t *context, const RCNTXT *cptr,
     unwind_info_t info;
     info.jump_context = ((rid_t)cptr);
     info.restart = restart;
+
     adjust_stacks(context, info);
+
     MAIN_TIMER_END_SEGMENT(CONTEXT_JUMP_STACK);
+
+    analysis_driver(context).context_jump(info);
+
+    MAIN_TIMER_END_SEGMENT(CONTEXT_JUMP_ANALYSIS);
 
     debug_serializer(context).serialize_unwind(info);
 }
@@ -697,28 +699,25 @@ void end_ctxt(dyntrace_context_t *context, const RCNTXT *cptr) {
 
 void adjust_stacks(dyntrace_context_t *context, unwind_info_t &info) {
     while (!tracer_state(context).full_stack.empty()) {
-        stack_event_t event_from_fullstack =
-            (tracer_state(context).full_stack.back());
+        stack_event_t element = (tracer_state(context).full_stack.back());
 
-        // if (info.jump_target == event_from_fullstack.enclosing_environment)
+        // if (info.jump_target == element.enclosing_environment)
         //    break;
-        if (event_from_fullstack.type == stack_type::CONTEXT)
-            if (info.jump_context == event_from_fullstack.context_id)
+        if (element.type == stack_type::CONTEXT)
+            if (info.jump_context == element.context_id)
                 break;
             else
-                info.unwound_contexts.push_back(
-                    event_from_fullstack.context_id);
-        else if (event_from_fullstack.type == stack_type::CALL) {
+                info.unwound_frames.push_back(element);
+        else if (element.type == stack_type::CALL) {
             tracer_serializer(context).serialize_trace(
-                TraceSerializer::OPCODE_FUNCTION_CONTEXT_JUMP,
-                event_from_fullstack.call_id);
-            info.unwound_calls.push_back(event_from_fullstack.call_id);
-        } else if (event_from_fullstack.type == stack_type::PROMISE) {
+                TraceSerializer::OPCODE_FUNCTION_CONTEXT_JUMP, element.call_id);
+            info.unwound_frames.push_back(element);
+        } else if (element.type == stack_type::PROMISE) {
             tracer_serializer(context).serialize_trace(
                 TraceSerializer::OPCODE_PROMISE_CONTEXT_JUMP,
-                event_from_fullstack.promise_id);
-            info.unwound_promises.push_back(event_from_fullstack.promise_id);
-        } else /* if (event_from_fullstack.type == stack_type::NONE) */
+                element.promise_id);
+            info.unwound_frames.push_back(element);
+        } else /* if (element.type == stack_type::NONE) */
             dyntrace_log_error("NONE object found on tracer's full stack.");
 
         tracer_state(context).full_stack.pop_back();

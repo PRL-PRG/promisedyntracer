@@ -1,8 +1,8 @@
 #ifndef __UTILITIES_H__
 #define __UTILITIES_H__
 
-#include "stdlibs.h"
 #include "AnalysisSwitch.h"
+#include "stdlibs.h"
 #include <openssl/evp.h>
 
 int get_file_size(std::ifstream &file);
@@ -36,4 +36,5 @@ std::string get_expression(SEXP e);
 const char *remove_null(const char *value);
 std::string clock_ticks_to_string(clock_t ticks);
 AnalysisSwitch to_analysis_switch(SEXP env);
+std::string to_string(const char *str);
 #endif /* __UTILITIES_H__ */

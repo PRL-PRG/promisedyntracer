@@ -5,7 +5,7 @@
 #include "FunctionAnalysis.h"
 #include "MetadataAnalysis.h"
 #include "ObjectCountSizeAnalysis.h"
-#include "PromiseEvaluationDistanceAnalysis.h"
+#include "PromiseEvaluationAnalysis.h"
 #include "PromiseTypeAnalysis.h"
 #include "SideEffectAnalysis.h"
 #include "State.h"
@@ -14,8 +14,7 @@
 class AnalysisDriver {
 
   public:
-    AnalysisDriver(const tracer_state_t &tracer_state,
-                   const std::string &output_dir,
+    AnalysisDriver(tracer_state_t &tracer_state, const std::string &output_dir,
                    const AnalysisSwitch analysis_switch);
 
     void begin(dyntrace_context_t *context);
@@ -53,21 +52,26 @@ class AnalysisDriver {
     void environment_lookup_var(const SEXP symbol, const SEXP value,
                                 const SEXP rho);
     void environment_remove_var(const SEXP symbol, const SEXP rho);
+    void context_jump(const unwind_info_t &info);
     void end(dyntrace_context_t *context);
 
     inline bool analyze_metadata() const;
     inline bool analyze_object_count_size() const;
-    inline bool analyze_promises() const;
+    inline bool analyze_promise_types() const;
+    inline bool analyze_promise_slot_mutations() const;
+    inline bool analyze_promise_evaluations() const;
     inline bool analyze_functions() const;
     inline bool analyze_strictness() const;
     inline bool analyze_side_effects() const;
+    inline bool map_promises() const;
 
   private:
+    PromiseMapper promise_mapper_;
     FunctionAnalysis function_analysis_;
     StrictnessAnalysis strictness_analysis_;
     PromiseTypeAnalysis promise_type_analysis_;
+    PromiseEvaluationAnalysis promise_evaluation_analysis_;
     SideEffectAnalysis side_effect_analysis_;
-    PromiseEvaluationDistanceAnalysis promise_evaluation_distance_analysis_;
     ObjectCountSizeAnalysis object_count_size_analysis_;
     MetadataAnalysis metadata_analysis_;
     AnalysisSwitch analysis_switch_;

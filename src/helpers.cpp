@@ -8,6 +8,7 @@
 rid_t get_sexp_address(SEXP e) { return (rid_t)e; }
 
 prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise) {
+
     if (promise == R_NilValue)
         return RID_INVALID;
 
@@ -18,22 +19,13 @@ prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise) {
     // Even if the argument is already a promise passed from the caller, it gets
     // re-wrapped.
     prom_addr_t prom_addr = get_sexp_address(promise);
-    prom_id_t prom_id;
-
-    unsigned int prom_type = TYPEOF(PRCODE(promise));
-    unsigned int orig_type =
-        (prom_type == BCODESXP) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
-    prom_key_t key(prom_addr, prom_type, orig_type);
-
     auto &promise_ids = tracer_state(context).promise_ids;
-    auto it = promise_ids.find(key);
+    auto it = promise_ids.find(prom_addr);
     if (it != promise_ids.end()) {
-        prom_id = it->second;
+        return it->second;
     } else {
-        prom_id = make_promise_id(context, promise, true);
+        return make_promise_id(context, promise, true);
     }
-
-    return prom_id;
 }
 
 prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
@@ -49,15 +41,12 @@ prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
     } else {
         prom_id = tracer_state(context).prom_id_counter++;
     }
-    unsigned int prom_type = TYPEOF(PRCODE(promise));
-    unsigned int orig_type =
-        (prom_type == 21) ? TYPEOF(BODY_EXPR(PRCODE(promise))) : 0;
-    prom_key_t key(prom_addr, prom_type, orig_type);
-    tracer_state(context).promise_ids[key] = prom_id;
 
-    auto &already_inserted_negative_promises =
-        tracer_state(context).already_inserted_negative_promises;
-    already_inserted_negative_promises.insert(prom_id);
+    tracer_state(context).promise_ids[prom_addr] = prom_id;
+
+    // auto &already_inserted_negative_promises =
+    //     tracer_state(context).already_inserted_negative_promises;
+    // already_inserted_negative_promises.insert(prom_id);
 
     return prom_id;
 }

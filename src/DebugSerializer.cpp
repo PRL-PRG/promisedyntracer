@@ -151,27 +151,27 @@ string DebugSerializer::log_line(const unwind_info_t &info) {
     stringstream line;
     line << "unwind"
          << " target=" << info.jump_context << " unwound_promises=[";
-    for (auto i = info.unwound_promises.begin();
-         i != info.unwound_promises.end(); ++i) {
-        if (i != info.unwound_promises.begin())
-            line << " ";
-        line << (*i);
-    }
-    line << "] unwound_calls=[";
-    for (auto i = info.unwound_calls.begin(); i != info.unwound_calls.end();
-         ++i) {
-        if (i != info.unwound_calls.begin())
-            line << " ";
-        line << (*i);
-    }
-    line << "] unwound_contexts=[";
-    for (auto i = info.unwound_contexts.begin();
-         i != info.unwound_contexts.end(); ++i) {
-        if (i != info.unwound_contexts.begin())
-            line << " ";
-        line << (*i);
-    }
-    line << "]";
+    // for (auto i = info.unwound_frames.begin();
+    //      i != info.unwound_promises.end(); ++i) {
+    //     if (i != info.unwound_promises.begin())
+    //         line << " ";
+    //     line << (*i);
+    // }
+    // line << "] unwound_calls=[";
+    // for (auto i = info.unwound_calls.begin(); i != info.unwound_calls.end();
+    //      ++i) {
+    //     if (i != info.unwound_calls.begin())
+    //         line << " ";
+    //     line << (*i);
+    // }
+    // line << "] unwound_contexts=[";
+    // for (auto i = info.unwound_contexts.begin();
+    //      i != info.unwound_contexts.end(); ++i) {
+    //     if (i != info.unwound_contexts.begin())
+    //         line << " ";
+    //     line << (*i);
+    // }
+    // line << "]";
     return line.str();
 }
 

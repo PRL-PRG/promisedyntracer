@@ -130,23 +130,25 @@ void update_closure_arguments(closure_info_t &info, dyntrace_context_t *context,
                               const call_id_t call_id, const SEXP op,
                               const SEXP environment) {
 
-    int formal_position = 0;
-    SEXP formals = FORMALS(op);
-    for (; formals != R_NilValue; formals = CDR(formals), formal_position++) {
+    int formal_parameter_position = 0;
+    SEXP arg_name = R_NilValue;
+    SEXP arg_value = R_NilValue;
+
+    for (SEXP formals = FORMALS(op); formals != R_NilValue;
+         formals = CDR(formals), formal_parameter_position++) {
 
         // Retrieve the argument name.
-        SEXP argument_expression = TAG(formals);
+        arg_name = TAG(formals);
 
-        SEXP expression;
         // We want the promise associated with the symbol.
         // Generally, the argument_expression should be the promise.
         // But if JIT is enabled, its possible for the argument_expression
         // to be unpromised. In this case, we dereference the argument.
-        if (TYPEOF(argument_expression) == SYMSXP) {
+        if (TYPEOF(arg_name) == SYMSXP) {
             lookup_result r =
-                find_binding_in_environment(argument_expression, environment);
+                find_binding_in_environment(arg_name, environment);
             if (r.status == lookup_status::SUCCESS) {
-                expression = r.value;
+                arg_value = r.value;
             } else {
                 // So... since this is a function, then I assume we shouldn't
                 // get any arguments that are active bindings or anything like
@@ -161,23 +163,22 @@ void update_closure_arguments(closure_info_t &info, dyntrace_context_t *context,
         // functions
         // below should be geared to deal with it.
         else {
-            expression = argument_expression;
+            arg_value = arg_name;
         }
 
         // Encountered a triple-dot argument, break it up further.
-        if (TYPEOF(expression) == DOTSXP) {
-            for (SEXP dots = expression; dots != R_NilValue; dots = CDR(dots)) {
-                update_closure_argument(info, context, call_id, TAG(dots),
-                                        CAR(dots), environment, true,
-                                        formal_position);
+        if (TYPEOF(arg_value) == DOTSXP) {
+            for (SEXP dot_args = arg_value; dot_args != R_NilValue;
+                 dot_args = CDR(dot_args)) {
+                update_closure_argument(info, context, call_id, TAG(dot_args),
+                                        CAR(dot_args), environment, true,
+                                        formal_parameter_position);
             }
-            return;
         }
 
         // The general case: single argument.
-        update_closure_argument(info, context, call_id, argument_expression,
-                                expression, environment, false,
-                                formal_position);
+        update_closure_argument(info, context, call_id, arg_name, arg_value,
+                                environment, false, formal_parameter_position);
     }
 }
 

@@ -3,8 +3,6 @@
 
 #include "stdlibs.h"
 
-using namespace std;
-
 enum class lookup_status {
     SUCCESS,
     SUCCESS_ACTIVE_BINDING,

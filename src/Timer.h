@@ -27,8 +27,9 @@
                                                                                \
     XX(FUNCTION_ENTRY_STACK, )                                                 \
     XX(FUNCTION_ENTRY_ANALYSIS, )                                              \
+    XX(FUNCTION_ENTRY_ANALYSIS_PROMISE_MAPPER, )                               \
     XX(FUNCTION_ENTRY_ANALYSIS_FUNCTION, )                                     \
-    XX(FUNCTION_ENTRY_ANALYSIS_PROMISE, )                                      \
+    XX(FUNCTION_ENTRY_ANALYSIS_PROMISE_TYPE, )                                 \
     XX(FUNCTION_ENTRY_ANALYSIS_STRICTNESS, )                                   \
     XX(FUNCTION_ENTRY_WRITE_TRACE, )                                           \
                                                                                \
@@ -65,55 +66,66 @@
                                                                                \
     XX(CREATE_PROMISE_RECORDER, )                                              \
     XX(CREATE_PROMISE_ANALYSIS, )                                              \
+    XX(CREATE_PROMISE_ANALYSIS_PROMISE_MAPPER, )                               \
     XX(CREATE_PROMISE_ANALYSIS_FUNCTION, )                                     \
+    XX(CREATE_PROMISE_ANALYSIS_PROMISE_TYPE, )                                 \
     XX(CREATE_PROMISE_WRITE_TRACE, )                                           \
                                                                                \
     XX(FORCE_PROMISE_ENTRY_RECORDER, )                                         \
     XX(FORCE_PROMISE_ENTRY_STACK, )                                            \
     XX(FORCE_PROMISE_ENTRY_ANALYSIS, )                                         \
+    XX(FORCE_PROMISE_ENTRY_ANALYSIS_PROMISE_MAPPER, )                          \
+    XX(FORCE_PROMISE_ENTRY_ANALYSIS_PROMISE_EVALUATION_DISTANCE, )             \
     XX(FORCE_PROMISE_ENTRY_ANALYSIS_STRICTNESS, )                              \
     XX(FORCE_PROMISE_ENTRY_WRITE_TRACE, )                                      \
                                                                                \
     XX(FORCE_PROMISE_EXIT_RECORDER, )                                          \
     XX(FORCE_PROMISE_EXIT_STACK, )                                             \
     XX(FORCE_PROMISE_EXIT_ANALYSIS, )                                          \
-    XX(FORCE_PROMISE_EXIT_ANALYSIS_PROMISE, )                                  \
+    XX(FORCE_PROMISE_EXIT_ANALYSIS_PROMISE_TYPE, )                             \
     XX(FORCE_PROMISE_EXIT_WRITE_TRACE, )                                       \
                                                                                \
     XX(LOOKUP_PROMISE_VALUE_RECORDER, )                                        \
     XX(LOOKUP_PROMISE_VALUE_ANALYSIS, )                                        \
+    XX(LOOKUP_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER, )                         \
     XX(LOOKUP_PROMISE_VALUE_ANALYSIS_STRICTNESS, )                             \
     XX(LOOKUP_PROMISE_VALUE_WRITE_TRACE, )                                     \
                                                                                \
     XX(LOOKUP_PROMISE_EXPRESSION_RECORDER, )                                   \
     XX(LOOKUP_PROMISE_EXPRESSION_ANALYSIS, )                                   \
+    XX(LOOKUP_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER, )                    \
     XX(LOOKUP_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS, )                        \
     XX(LOOKUP_PROMISE_EXPRESSION_WRITE_TRACE, )                                \
                                                                                \
     XX(LOOKUP_PROMISE_ENVIRONMENT_RECORDER, )                                  \
     XX(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS, )                                  \
+    XX(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER, )                   \
     XX(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS, )                       \
     XX(LOOKUP_PROMISE_ENVIRONMENT_WRITE_TRACE, )                               \
                                                                                \
     XX(SET_PROMISE_VALUE_RECORDER, )                                           \
     XX(SET_PROMISE_VALUE_ANALYSIS, )                                           \
+    XX(SET_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER, )                            \
     XX(SET_PROMISE_VALUE_ANALYSIS_STRICTNESS, )                                \
     XX(SET_PROMISE_VALUE_WRITE_TRACE, )                                        \
                                                                                \
     XX(SET_PROMISE_EXPRESSION_RECORDER, )                                      \
     XX(SET_PROMISE_EXPRESSION_ANALYSIS, )                                      \
+    XX(SET_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER, )                       \
     XX(SET_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS, )                           \
     XX(SET_PROMISE_EXPRESSION_WRITE_TRACE, )                                   \
                                                                                \
     XX(SET_PROMISE_ENVIRONMENT_RECORDER, )                                     \
     XX(SET_PROMISE_ENVIRONMENT_ANALYSIS, )                                     \
+    XX(SET_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER, )                      \
     XX(SET_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS, )                          \
     XX(SET_PROMISE_ENVIRONMENT_WRITE_TRACE, )                                  \
                                                                                \
     XX(GC_PROMISE_UNMARKED_RECORDER, )                                         \
     XX(GC_PROMISE_UNMARKED_ANALYSIS, )                                         \
+    XX(GC_PROMISE_UNMARKED_ANALYSIS_PROMISE_MAPPER, )                          \
     XX(GC_PROMISE_UNMARKED_ANALYSIS_STRICTNESS, )                              \
-    XX(GC_PROMISE_UNMARKED_ANALYSIS_PROMISE, )                                 \
+    XX(GC_PROMISE_UNMARKED_ANALYSIS_PROMISE_TYPE, )                            \
     XX(GC_PROMISE_UNMARKED_RECORD_KEEPING, )                                   \
                                                                                \
     XX(GC_FUNCTION_UNMARKED_RECORD_KEEPING, )                                  \
@@ -130,7 +142,11 @@
     XX(NEW_ENVIRONMENT_WRITE_TRACE, )                                          \
                                                                                \
     XX(CONTEXT_ENTRY_STACK, )                                                  \
+                                                                               \
     XX(CONTEXT_JUMP_STACK, )                                                   \
+    XX(CONTEXT_JUMP_ANALYSIS, )                                                \
+    XX(CONTEXT_JUMP_ANALYSIS_STRICTNESS, )                                     \
+                                                                               \
     XX(CONTEXT_EXIT_STACK, )                                                   \
                                                                                \
     XX(ENVIRONMENT_ACTION_RECORDER, )                                          \
@@ -140,10 +156,13 @@
                                                                                \
     XX(END_CHECK, )                                                            \
     XX(END_ANALYSIS, )                                                         \
+    XX(END_ANALYSIS_PROMISE_MAPPER, )                                          \
+    XX(END_ANALYSIS_PROMISE_TYPE, )                                            \
     XX(END_ANALYSIS_METADATA, )                                                \
     XX(END_ANALYSIS_OBJECT_COUNT_SIZE, )                                       \
     XX(END_ANALYSIS_FUNCTION, )                                                \
     XX(END_ANALYSIS_PROMISE, )                                                 \
+    XX(END_ANALYSIS_PROMISE_EVALUATION_DISTANCE, )                             \
     XX(END_ANALYSIS_STRICTNESS, )                                              \
     XX(END_ANALYSIS_SIDE_EFFECT, )                                             \
                                                                                \

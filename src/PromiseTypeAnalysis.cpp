@@ -169,7 +169,7 @@ void PromiseTypeAnalysis::serialize_unevaluated_promises() {
          << "count" << std::endl;
 
     for (auto &key_value : unevaluated_promises_) {
-        fout << key_value.first << " , " << key_value.second;
+        fout << key_value.first << " , " << key_value.second << std::endl;
     }
 
     fout.close();

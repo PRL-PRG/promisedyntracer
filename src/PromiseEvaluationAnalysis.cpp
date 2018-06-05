@@ -44,7 +44,7 @@ void PromiseEvaluationAnalysis::compute_evaluation_distance(
                                   std::to_string(closure_count) + " , " +
                                   std::to_string(special_count) + " , " +
                                   std::to_string(builtin_count) + " , " +
-                                  std::to_string(promise_count) + " , ";
+                                  std::to_string(promise_count);
                 update_evaluation_distance(key);
                 return;
             } else if (exec_context.function_info.type ==
@@ -115,7 +115,7 @@ void PromiseEvaluationAnalysis::serialize_promise_evaluation_distance() {
          << " , "
          << "promise_count"
          << " , "
-         << "promise_count" << std::endl;
+         << "count" << std::endl;
 
     for (const auto &key_value : evaluation_distances_) {
         fout << key_value.first << " , " << key_value.second << std::endl;

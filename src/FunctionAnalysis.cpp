@@ -77,8 +77,6 @@ void FunctionAnalysis::serialize_function_name() {
 
     fout << "function_id"
          << " , "
-         << "function_type"
-         << " , "
          << "function_name"
          << " , "
          << "count" << std::endl;

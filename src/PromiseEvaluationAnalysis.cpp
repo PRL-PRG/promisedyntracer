@@ -66,7 +66,7 @@ void PromiseEvaluationAnalysis::update_evaluation_distance(std::string key) {
         ++result.first->second;
 }
 
-void PromiseEvaluationAnalysis::end(dyntrace_context_t *context) {
+void PromiseEvaluationAnalysis::end(dyntracer_t *dyntracer) {
     serialize();
 }
 
@@ -156,4 +156,5 @@ to_string(PromiseEvaluationAnalysis::EvaluationContext evaluation_context) {
         case PromiseEvaluationAnalysis::EvaluationContext::COUNT:
             return "COUNT";
     }
+    return "UNKNOWN";
 }

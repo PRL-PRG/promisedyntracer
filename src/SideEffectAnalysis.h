@@ -28,7 +28,7 @@ class SideEffectAnalysis {
                                 const SEXP rho);
     void environment_action(const SEXP rho,
                             std::vector<long long int> &counter);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
   private:
     void serialize();

@@ -17,7 +17,7 @@ class AnalysisDriver {
     AnalysisDriver(tracer_state_t &tracer_state, const std::string &output_dir,
                    const AnalysisSwitch analysis_switch);
 
-    void begin(dyntrace_context_t *context);
+    void begin(dyntracer_t *dyntracer);
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
     void special_entry(const builtin_info_t &special_info);
@@ -53,7 +53,7 @@ class AnalysisDriver {
                                 const SEXP rho);
     void environment_remove_var(const SEXP symbol, const SEXP rho);
     void context_jump(const unwind_info_t &info);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
     inline bool analyze_metadata() const;
     inline bool analyze_object_count_size() const;

@@ -37,4 +37,8 @@ const char *remove_null(const char *value);
 std::string clock_ticks_to_string(clock_t ticks);
 AnalysisSwitch to_analysis_switch(SEXP env);
 std::string to_string(const char *str);
+
+inline std::string check_string(const char *s) {
+    return s == NULL ? "<unknown>" : s;
+}
 #endif /* __UTILITIES_H__ */

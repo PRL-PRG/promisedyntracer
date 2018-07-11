@@ -113,7 +113,7 @@ CallState StrictnessAnalysis::pop_from_call_stack(call_id_t call_id) {
     return call_state;
 }
 
-void StrictnessAnalysis::end(dyntrace_context_t *context) { serialize(); }
+void StrictnessAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 void StrictnessAnalysis::serialize() {
 

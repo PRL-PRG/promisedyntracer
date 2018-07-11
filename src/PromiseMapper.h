@@ -33,7 +33,7 @@ class PromiseMapper {
     void promise_value_set(const prom_info_t &info, const SEXP promise,
                            int in_force);
     void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
     PromiseState &find(const prom_id_t prom_id);
 
     iterator begin();

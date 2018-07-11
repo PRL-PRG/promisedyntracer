@@ -49,7 +49,7 @@ SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
     dyntracer->probe_environment_assign_var = environment_assign_var;
     dyntracer->probe_environment_remove_var = environment_remove_var;
     dyntracer->probe_environment_lookup_var = environment_lookup_var;
-    dyntracer->context = context;
+    dyntracer->state = context;
     return dyntracer_to_sexp(dyntracer, "dyntracer.promise");
 }
 
@@ -58,7 +58,7 @@ static void destroy_promise_dyntracer(dyntracer_t *dyntracer) {
        this check ensures that multiple calls to destroy_dyntracer on the same
        object do not crash the process. */
     if (dyntracer) {
-        delete (static_cast<Context *>(dyntracer->context));
+        delete (static_cast<Context *>(dyntracer->state));
         free(dyntracer);
     }
 }

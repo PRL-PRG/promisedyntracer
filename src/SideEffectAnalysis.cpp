@@ -61,7 +61,7 @@ void SideEffectAnalysis::environment_action(
     ++counter[SideEffectAnalysis::GLOBAL];
 }
 
-void SideEffectAnalysis::end(dyntrace_context_t *context) { serialize(); }
+void SideEffectAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 void SideEffectAnalysis::serialize() {
 

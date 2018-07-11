@@ -8,20 +8,6 @@
 #include "TraceSerializer.h"
 #include <string>
 
-#define tracer_state(context)                                                  \
-    ((static_cast<Context *>(context->dyntracer_context))->get_state())
-
-#define tracer_serializer(context)                                             \
-    ((static_cast<Context *>(context->dyntracer_context))->get_serializer())
-
-#define debug_serializer(context)                                              \
-    ((static_cast<Context *>(context->dyntracer_context))                      \
-         ->get_debug_serializer())
-
-#define analysis_driver(context)                                               \
-    ((static_cast<Context *>(context->dyntracer_context))                      \
-         ->get_analysis_driver())
-
 class Context {
   public:
     Context(std::string trace_filepath, bool truncate, bool enable_trace,
@@ -38,5 +24,21 @@ class Context {
     DebugSerializer *debugger_;
     AnalysisDriver *driver_;
 };
+
+inline tracer_state_t &tracer_state(dyntracer_t *dyntracer) {
+    return (static_cast<Context *>(dyntracer->state))->get_state();
+}
+
+inline TraceSerializer &tracer_serializer(dyntracer_t *dyntracer) {
+    return (static_cast<Context *>(dyntracer->state))->get_serializer();
+}
+
+inline DebugSerializer &debug_serializer(dyntracer_t *dyntracer) {
+    return (static_cast<Context *>(dyntracer->state))->get_debug_serializer();
+}
+
+inline AnalysisDriver &analysis_driver(dyntracer_t *dyntracer) {
+    return (static_cast<Context *>(dyntracer->state))->get_analysis_driver();
+}
 
 #endif /* __CONTEXT_H__ */

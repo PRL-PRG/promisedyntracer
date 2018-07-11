@@ -108,7 +108,7 @@ void PromiseTypeAnalysis::gc_promise_unmarked(prom_id_t promise_id,
     }
 }
 
-void PromiseTypeAnalysis::end(dyntrace_context_t *context) { serialize(); }
+void PromiseTypeAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 void PromiseTypeAnalysis::add_unevaluated_promise(
     const std::string promise_type, SEXP promise) {

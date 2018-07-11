@@ -115,4 +115,5 @@ std::string lookup_status_to_string(lookup_status status) {
         case lookup_status::FAIL_USER_DEFINED_DATABASE:
             return "Lookup in environment failed: user defined database";
     }
+    return "Lookup case not handled, search for this string in codebase";
 }

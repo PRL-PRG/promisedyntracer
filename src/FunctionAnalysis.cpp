@@ -34,7 +34,7 @@ void FunctionAnalysis::builtin_exit(const builtin_info_t &builtin_info) {
     add_return_type(builtin_info.fn_id, builtin_info.return_value_type);
 }
 
-void FunctionAnalysis::end(dyntrace_context_t *context) { serialize(); }
+void FunctionAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 void FunctionAnalysis::serialize() {
     serialize_function_name();

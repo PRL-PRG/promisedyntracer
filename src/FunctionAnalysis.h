@@ -16,7 +16,7 @@ class FunctionAnalysis {
     void special_exit(const builtin_info_t &special_info);
     void builtin_entry(const builtin_info_t &builtin_info);
     void builtin_exit(const builtin_info_t &builtin_info);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
   private:
     void add_function_name(fn_id_t fn_id, const std::string name);

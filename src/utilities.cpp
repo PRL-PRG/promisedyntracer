@@ -197,7 +197,7 @@ uint64_t timestamp() {
 
 const char *get_ns_name(SEXP op) {
     SEXP env = CLOENV(op);
-    void (*probe)(dyntrace_context_t *, SEXP, SEXP, SEXP);
+    void (*probe)(dyntracer_t *, SEXP, SEXP, SEXP);
     probe = dyntrace_active_dyntracer->probe_environment_lookup_var;
     dyntrace_active_dyntracer->probe_environment_lookup_var = NULL;
     SEXP spec = R_NamespaceEnvSpec(env);

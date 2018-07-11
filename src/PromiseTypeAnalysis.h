@@ -22,7 +22,7 @@ class PromiseTypeAnalysis {
     inline bool is_default_argument_promise(prom_id_t prom_id);
     inline bool is_custom_argument_promise(prom_id_t prom_id);
     inline bool is_non_argument_promise(prom_id_t prom_id);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
   private:
     void serialize();

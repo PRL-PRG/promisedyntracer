@@ -2,8 +2,8 @@
 #include "TraceSerializer.h"
 #include "utilities.h"
 
-void tracer_state_t::start_pass(dyntrace_context_t *context, const SEXP prom) {
-    prom_id_t prom_id = make_promise_id(context, prom);
+void tracer_state_t::start_pass(dyntracer_t *dyntracer, const SEXP prom) {
+    prom_id_t prom_id = make_promise_id(dyntracer, prom);
     promise_origin[prom_id] = 0;
 }
 

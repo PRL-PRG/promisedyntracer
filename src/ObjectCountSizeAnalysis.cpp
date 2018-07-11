@@ -11,7 +11,7 @@ void ObjectCountSizeAnalysis::vector_alloc(const type_gc_info_t &info) {
     object_sizes_[info.type] += info.bytes;
 }
 
-void ObjectCountSizeAnalysis::end(dyntrace_context_t *context) { serialize(); }
+void ObjectCountSizeAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 void ObjectCountSizeAnalysis::serialize() {
     std::ofstream fout(output_dir_ + "/object-count-size.csv", std::ios::trunc);

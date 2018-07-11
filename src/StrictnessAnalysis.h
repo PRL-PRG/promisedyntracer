@@ -32,7 +32,7 @@ class StrictnessAnalysis {
                            int in_force);
     void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
     void context_jump(const unwind_info_t &info);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
   private:
     bool is_executing(call_id_t call_id);

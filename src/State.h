@@ -179,24 +179,21 @@ struct type_gc_info_t {
     long bytes;
 };
 
-prom_id_t get_promise_id(dyntrace_context_t *context, SEXP promise);
-prom_id_t make_promise_id(dyntrace_context_t *context, SEXP promise,
+prom_id_t get_promise_id(dyntracer_t *dyntracer, SEXP promise);
+prom_id_t make_promise_id(dyntracer_t *dyntracer, SEXP promise,
                           bool negative = false);
-call_id_t make_funcall_id(dyntrace_context_t *context, SEXP);
-string get_function_definition(dyntrace_context_t *context,
-                               const SEXP function);
-void remove_function_definition(dyntrace_context_t *context,
-                                const SEXP function);
-fn_id_t get_function_id(dyntrace_context_t *context, const string &def,
+call_id_t make_funcall_id(dyntracer_t *dyntracer, SEXP);
+string get_function_definition(dyntracer_t *dyntracer, const SEXP function);
+void remove_function_definition(dyntracer_t *dyntracer, const SEXP function);
+fn_id_t get_function_id(dyntracer_t *dyntracer, const string &def,
                         bool builtin = false);
 fn_addr_t get_function_addr(SEXP func);
 
 // Returns false if function already existed, true if it was registered now
-bool register_inserted_function(dyntrace_context_t *context, fn_id_t id);
+bool register_inserted_function(dyntracer_t *dyntracer, fn_id_t id);
 
 bool function_already_inserted(fn_id_t id);
-bool negative_promise_already_inserted(dyntrace_context_t *context,
-                                       prom_id_t id);
+bool negative_promise_already_inserted(dyntracer_t *dyntracer, prom_id_t id);
 template <typename T>
 void get_stack_parent(T &info, vector<stack_event_t> &stack) {
     // put the body here
@@ -259,15 +256,15 @@ stack_event_t get_last_on_stack_by_type(vector<stack_event_t> &stack,
 stack_event_t get_from_back_of_stack_by_type(vector<stack_event_t> &stack,
                                              stack_type type, int rposition);
 
-prom_id_t get_parent_promise(dyntrace_context_t *context);
-arg_id_t get_argument_id(dyntrace_context_t *, call_id_t call_id,
+prom_id_t get_parent_promise(dyntracer_t *dyntracer);
+arg_id_t get_argument_id(dyntracer_t *dyntracer, call_id_t call_id,
                          const string &argument);
 
-void update_closure_arguments(closure_info_t &info, dyntrace_context_t *context,
+void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
                               const call_id_t call_id, const SEXP op,
                               const SEXP environment);
 
-size_t get_no_of_ancestor_promises_on_stack(dyntrace_context_t *context);
+size_t get_no_of_ancestor_promises_on_stack(dyntracer_t *dyntracer);
 size_t get_no_of_ancestors_on_stack();
 size_t get_no_of_ancestor_calls_on_stack();
 
@@ -318,7 +315,7 @@ struct tracer_state_t {
 
     unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
         environments;
-    void start_pass(dyntrace_context_t *context, const SEXP prom);
+    void start_pass(dyntracer_t *dyntracer, const SEXP prom);
     void finish_pass();
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);

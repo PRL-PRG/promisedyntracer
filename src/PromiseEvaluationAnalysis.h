@@ -24,7 +24,7 @@ class PromiseEvaluationAnalysis {
                               const std::string &output_dir,
                               PromiseMapper *promise_mapper);
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
-    void end(dyntrace_context_t *context);
+    void end(dyntracer_t *dyntracer);
 
   private:
     void serialize();

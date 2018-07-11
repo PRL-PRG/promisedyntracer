@@ -85,7 +85,7 @@ void PromiseMapper::gc_promise_unmarked(const prom_id_t prom_id,
     promises_.erase(prom_id);
 }
 
-void PromiseMapper::end(dyntrace_context_t *context) { promises_.clear(); }
+void PromiseMapper::end(dyntracer_t *dyntracer) { promises_.clear(); }
 
 PromiseState &PromiseMapper::find(const prom_id_t prom_id) {
     auto iter = promises_.find(prom_id);

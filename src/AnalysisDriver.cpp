@@ -19,7 +19,7 @@ AnalysisDriver::AnalysisDriver(tracer_state_t &tracer_state,
     std::cout << analysis_switch;
 }
 
-void AnalysisDriver::begin(dyntrace_context_t *context) {}
+void AnalysisDriver::begin(dyntracer_t *dyntracer) {}
 
 void AnalysisDriver::promise_created(const prom_basic_info_t &prom_basic_info,
                                      const SEXP promise) {
@@ -321,48 +321,48 @@ void AnalysisDriver::context_jump(const unwind_info_t &info) {
     ANALYSIS_TIMER_END_SEGMENT(CONTEXT_JUMP_ANALYSIS_STRICTNESS);
 }
 
-void AnalysisDriver::end(dyntrace_context_t *context) {
+void AnalysisDriver::end(dyntracer_t *dyntracer) {
     ANALYSIS_TIMER_RESET();
 
     if (analyze_metadata())
-        metadata_analysis_.end(context);
+        metadata_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_METADATA);
 
     if (analyze_object_count_size())
-        object_count_size_analysis_.end(context);
+        object_count_size_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_OBJECT_COUNT_SIZE);
 
     if (analyze_functions())
-        function_analysis_.end(context);
+        function_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_FUNCTION);
 
     if (analyze_promise_types())
-        promise_type_analysis_.end(context);
+        promise_type_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_PROMISE_TYPE);
 
     if (analyze_promise_evaluations())
-        promise_evaluation_analysis_.end(context);
+        promise_evaluation_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_PROMISE_EVALUATION_DISTANCE);
 
     if (analyze_strictness())
-        strictness_analysis_.end(context);
+        strictness_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_STRICTNESS);
 
     if (analyze_side_effects())
-        side_effect_analysis_.end(context);
+        side_effect_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_SIDE_EFFECT);
 
     // WARNING: This has to be at the end. This removes promises from
     // the mapping. These promises are used by the analysis above.
     if (map_promises())
-        promise_mapper_.end(context);
+        promise_mapper_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_PROMISE_MAPPER);
 }

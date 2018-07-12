@@ -35,9 +35,12 @@ void promise_force_exit(dyntracer_t *dyntracer, const SEXP promise);
 void promise_value_lookup(dyntracer_t *dyntracer, const SEXP promise);
 void promise_expression_lookup(dyntracer_t *dyntracer, const SEXP promise);
 void promise_environment_lookup(dyntracer_t *dyntracer, const SEXP promise);
-void promise_value_set(dyntracer_t *dyntracer, const SEXP promise);
-void promise_expression_set(dyntracer_t *dyntracer, const SEXP promise);
-void promise_environment_set(dyntracer_t *dyntracer, const SEXP promise);
+void promise_value_assign(dyntracer_t *dyntracer, const SEXP promise,
+                          const SEXP value);
+void promise_expression_assign(dyntracer_t *dyntracer, const SEXP promise,
+                               const SEXP expression);
+void promise_environment_assign(dyntracer_t *dyntracer, const SEXP promise,
+                                const SEXP environment);
 void gc_unmark(dyntracer_t *dyntracer, const SEXP expression);
 void gc_promise_unmark(dyntracer_t *dyntracer, const SEXP promise);
 void gc_closure_unmark(dyntracer_t *dyntracer, const SEXP closure);

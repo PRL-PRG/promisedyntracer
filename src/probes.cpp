@@ -401,7 +401,8 @@ void promise_environment_lookup(dyntracer_t *dyntracer, const SEXP prom) {
     }
 }
 
-void promise_expression_set(dyntracer_t *dyntracer, const SEXP prom) {
+void promise_expression_assign(dyntracer_t *dyntracer, const SEXP prom,
+                               const SEXP expression) {
     MAIN_TIMER_RESET();
 
     prom_info_t info = promise_expression_lookup_get_info(dyntracer, prom);
@@ -420,7 +421,8 @@ void promise_expression_set(dyntracer_t *dyntracer, const SEXP prom) {
     }
 }
 
-void promise_value_set(dyntracer_t *dyntracer, const SEXP prom) {
+void promise_value_assign(dyntracer_t *dyntracer, const SEXP prom,
+                          const SEXP value) {
     MAIN_TIMER_RESET();
 
     prom_info_t info = promise_expression_lookup_get_info(dyntracer, prom);
@@ -437,7 +439,8 @@ void promise_value_set(dyntracer_t *dyntracer, const SEXP prom) {
     }
 }
 
-void promise_environment_set(dyntracer_t *dyntracer, const SEXP prom) {
+void promise_environment_assign(dyntracer_t *dyntracer, const SEXP prom,
+                                const SEXP environment) {
 
     MAIN_TIMER_RESET();
 

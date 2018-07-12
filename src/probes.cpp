@@ -455,7 +455,18 @@ void promise_environment_set(dyntracer_t *dyntracer, const SEXP prom) {
     }
 }
 
-void gc_promise_unmarked(dyntracer_t *dyntracer, const SEXP promise) {
+void gc_unmark(dyntracer_t *dyntracer, const SEXP expression) {
+    switch (TYPEOF(expression)) {
+        case PROMSXP:
+            return gc_promise_unmark(dyntracer, expression);
+        case CLOSXP:
+            return gc_closure_unmark(dyntracer, expression);
+        default:
+            return;
+    }
+}
+
+void gc_promise_unmark(dyntracer_t *dyntracer, const SEXP promise) {
     MAIN_TIMER_RESET();
 
     prom_addr_t addr = get_sexp_address(promise);
@@ -480,7 +491,7 @@ void gc_promise_unmarked(dyntracer_t *dyntracer, const SEXP promise) {
     MAIN_TIMER_END_SEGMENT(GC_PROMISE_UNMARKED_RECORD_KEEPING);
 }
 
-void gc_function_unmarked(dyntracer_t *dyntracer, const SEXP function) {
+void gc_closure_unmark(dyntracer_t *dyntracer, const SEXP function) {
     MAIN_TIMER_RESET();
 
     remove_function_definition(dyntracer, function);

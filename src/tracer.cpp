@@ -44,10 +44,10 @@ SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
     dyntracer->probe_context_entry = context_entry;
     dyntracer->probe_context_jump = context_jump;
     dyntracer->probe_context_exit = context_exit;
-    dyntracer->probe_environment_define_var = environment_define_var;
-    dyntracer->probe_environment_assign_var = environment_assign_var;
-    dyntracer->probe_environment_remove_var = environment_remove_var;
-    dyntracer->probe_environment_lookup_var = environment_lookup_var;
+    dyntracer->probe_environment_variable_define = environment_variable_define;
+    dyntracer->probe_environment_variable_assign = environment_variable_assign;
+    dyntracer->probe_environment_variable_remove = environment_variable_remove;
+    dyntracer->probe_environment_variable_lookup = environment_variable_lookup;
     dyntracer->state = context;
     return dyntracer_to_sexp(dyntracer, "dyntracer.promise");
 }

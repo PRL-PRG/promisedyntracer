@@ -35,5 +35,7 @@ std::string to_string(PromiseState::SlotMutation slot_mutation) {
             return "VALUE_ASSIGN";
         case PromiseState::SlotMutation::COUNT:
             return "COUNT";
+        default:
+            return "UNKNOWN_SLOT_MUTATION";
     }
 }

@@ -665,8 +665,8 @@ void environment_action(dyntracer_t *dyntracer, const SEXP symbol, SEXP value,
     MAIN_TIMER_END_SEGMENT(ENVIRONMENT_ACTION_WRITE_TRACE);
 }
 
-void environment_define_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho) {
+void environment_variable_define(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho) {
     MAIN_TIMER_RESET();
 
     analysis_driver(dyntracer).environment_define_var(symbol, value, rho);
@@ -677,8 +677,8 @@ void environment_define_var(dyntracer_t *dyntracer, const SEXP symbol,
                        TraceSerializer::OPCODE_ENVIRONMENT_DEFINE);
 }
 
-void environment_assign_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho) {
+void environment_variable_assign(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho) {
     MAIN_TIMER_RESET();
 
     analysis_driver(dyntracer).environment_assign_var(symbol, value, rho);
@@ -689,8 +689,8 @@ void environment_assign_var(dyntracer_t *dyntracer, const SEXP symbol,
                        TraceSerializer::OPCODE_ENVIRONMENT_ASSIGN);
 }
 
-void environment_remove_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP rho) {
+void environment_variable_remove(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP rho) {
     MAIN_TIMER_RESET();
 
     analysis_driver(dyntracer).environment_remove_var(symbol, rho);
@@ -701,8 +701,8 @@ void environment_remove_var(dyntracer_t *dyntracer, const SEXP symbol,
                        TraceSerializer::OPCODE_ENVIRONMENT_REMOVE);
 }
 
-void environment_lookup_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho) {
+void environment_variable_lookup(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho) {
     MAIN_TIMER_RESET();
 
     analysis_driver(dyntracer).environment_lookup_var(symbol, value, rho);

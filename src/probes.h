@@ -48,10 +48,10 @@ void gc_exit(dyntracer_t *dyntracer, int gc_count, double vcells,
 void vector_alloc(dyntracer_t *dyntracer, int sexptype, long length, long bytes,
                   const char *srcref);
 void new_environment(dyntracer_t *dyntracer, const SEXP rho);
-void begin_ctxt(dyntracer_t *dyntracer, const RCNTXT *);
-void jump_ctxt(dyntracer_t *dyntracer, const RCNTXT *, SEXP return_value,
-               int restart);
-void end_ctxt(dyntracer_t *dyntracer, const RCNTXT *);
+void context_entry(dyntracer_t *dyntracer, const RCNTXT *);
+void context_jump(dyntracer_t *dyntracer, const RCNTXT *, SEXP return_value,
+                  int restart);
+void context_exit(dyntracer_t *dyntracer, const RCNTXT *);
 void environment_define_var(dyntracer_t *dyntracer, const SEXP symbol,
                             const SEXP value, const SEXP rho);
 void environment_assign_var(dyntracer_t *dyntracer, const SEXP symbol,

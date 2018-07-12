@@ -561,7 +561,7 @@ void new_environment(dyntracer_t *dyntracer, const SEXP rho) {
     MAIN_TIMER_END_SEGMENT(NEW_ENVIRONMENT_WRITE_TRACE);
 }
 
-void begin_ctxt(dyntracer_t *dyntracer, const RCNTXT *cptr) {
+void context_entry(dyntracer_t *dyntracer, const RCNTXT *cptr) {
     MAIN_TIMER_RESET();
 
     stack_event_t event;
@@ -573,8 +573,8 @@ void begin_ctxt(dyntracer_t *dyntracer, const RCNTXT *cptr) {
     MAIN_TIMER_END_SEGMENT(CONTEXT_ENTRY_STACK);
 }
 
-void jump_ctxt(dyntracer_t *dyntracer, const RCNTXT *cptr,
-               const SEXP return_value, int restart) {
+void context_jump(dyntracer_t *dyntracer, const RCNTXT *cptr,
+                  const SEXP return_value, int restart) {
     MAIN_TIMER_RESET();
 
     unwind_info_t info;
@@ -592,7 +592,7 @@ void jump_ctxt(dyntracer_t *dyntracer, const RCNTXT *cptr,
     debug_serializer(dyntracer).serialize_unwind(info);
 }
 
-void end_ctxt(dyntracer_t *dyntracer, const RCNTXT *cptr) {
+void context_exit(dyntracer_t *dyntracer, const RCNTXT *cptr) {
     MAIN_TIMER_RESET();
 
     stack_event_t event = tracer_state(dyntracer).full_stack.back();

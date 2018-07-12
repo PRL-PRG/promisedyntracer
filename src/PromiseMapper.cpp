@@ -46,34 +46,32 @@ void PromiseMapper::promise_force_entry(const prom_info_t &prom_info,
 }
 
 void PromiseMapper::promise_environment_lookup(const prom_info_t &prom_info,
-                                               const SEXP promise,
-                                               int in_force) {
+                                               const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 
 void PromiseMapper::promise_expression_lookup(const prom_info_t &prom_info,
-                                              const SEXP promise,
-                                              int in_force) {
+                                              const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 
 void PromiseMapper::promise_value_lookup(const prom_info_t &prom_info,
-                                         const SEXP promise, int in_force) {
+                                         const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 
 void PromiseMapper::promise_environment_set(const prom_info_t &prom_info,
-                                            const SEXP promise, int in_force) {
+                                            const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 
 void PromiseMapper::promise_expression_set(const prom_info_t &prom_info,
-                                           const SEXP promise, int in_force) {
+                                           const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 
 void PromiseMapper::promise_value_set(const prom_info_t &prom_info,
-                                      const SEXP promise, int in_force) {
+                                      const SEXP promise) {
     insert_if_non_local(prom_info.prom_id, promise);
 }
 

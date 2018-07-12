@@ -29,19 +29,13 @@ class AnalysisDriver {
                          const SEXP promise);
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
     void promise_force_exit(const prom_info_t &prom_info, const SEXP promise);
-
-    void promise_environment_lookup(const prom_info_t &info, const SEXP promise,
-                                    int in_force);
-    void promise_expression_lookup(const prom_info_t &info, const SEXP promise,
-                                   int in_force);
-    void promise_value_lookup(const prom_info_t &info, const SEXP promise,
-                              int in_force);
-    void promise_environment_set(const prom_info_t &info, const SEXP promise,
-                                 int in_force);
-    void promise_expression_set(const prom_info_t &info, const SEXP promise,
-                                int in_force);
-    void promise_value_set(const prom_info_t &info, const SEXP promise,
-                           int in_force);
+    void promise_environment_lookup(const prom_info_t &info,
+                                    const SEXP promise);
+    void promise_expression_lookup(const prom_info_t &info, const SEXP promise);
+    void promise_value_lookup(const prom_info_t &info, const SEXP promise);
+    void promise_environment_set(const prom_info_t &info, const SEXP promise);
+    void promise_expression_set(const prom_info_t &info, const SEXP promise);
+    void promise_value_set(const prom_info_t &info, const SEXP promise);
 
     void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
     void vector_alloc(const type_gc_info_t &type_gc_info);

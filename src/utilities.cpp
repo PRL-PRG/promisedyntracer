@@ -198,10 +198,10 @@ uint64_t timestamp() {
 const char *get_ns_name(SEXP op) {
     SEXP env = CLOENV(op);
     void (*probe)(dyntracer_t *, SEXP, SEXP, SEXP);
-    probe = dyntrace_active_dyntracer->probe_environment_lookup_var;
-    dyntrace_active_dyntracer->probe_environment_lookup_var = NULL;
+    probe = dyntrace_active_dyntracer->probe_environment_variable_lookup;
+    dyntrace_active_dyntracer->probe_environment_variable_lookup = NULL;
     SEXP spec = R_NamespaceEnvSpec(env);
-    dyntrace_active_dyntracer->probe_environment_lookup_var = probe;
+    dyntrace_active_dyntracer->probe_environment_variable_lookup = probe;
     if (spec != R_NilValue) {
         if (TYPEOF(spec) == STRSXP && LENGTH(spec) > 0) {
             return CHAR(STRING_ELT(spec, 0));

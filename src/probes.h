@@ -52,13 +52,13 @@ void context_entry(dyntracer_t *dyntracer, const RCNTXT *);
 void context_jump(dyntracer_t *dyntracer, const RCNTXT *, SEXP return_value,
                   int restart);
 void context_exit(dyntracer_t *dyntracer, const RCNTXT *);
-void environment_define_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho);
-void environment_assign_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho);
-void environment_remove_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP rho);
-void environment_lookup_var(dyntracer_t *dyntracer, const SEXP symbol,
-                            const SEXP value, const SEXP rho);
+void environment_variable_define(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho);
+void environment_variable_assign(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho);
+void environment_variable_remove(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP rho);
+void environment_variable_lookup(dyntracer_t *dyntracer, const SEXP symbol,
+                                 const SEXP value, const SEXP rho);
 }
 #endif /* __PROBES_H__ */

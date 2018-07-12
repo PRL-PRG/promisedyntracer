@@ -2,11 +2,6 @@
 #include "TraceSerializer.h"
 #include "utilities.h"
 
-void tracer_state_t::start_pass(dyntracer_t *dyntracer, const SEXP prom) {
-    prom_id_t prom_id = make_promise_id(dyntracer, prom);
-    promise_origin[prom_id] = 0;
-}
-
 void tracer_state_t::finish_pass() { promise_origin.clear(); }
 
 tracer_state_t::tracer_state_t() {

@@ -168,98 +168,95 @@ void AnalysisDriver::gc_promise_unmarked(const prom_id_t prom_id,
 }
 
 void AnalysisDriver::promise_environment_lookup(const prom_info_t &info,
-                                                const SEXP promise,
-                                                int in_force) {
+                                                const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_environment_lookup(info, promise, in_force);
+        promise_mapper_.promise_environment_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
+    // TODO
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_environment_lookup(info, promise,
-    //                                                     in_force);
+    //     strictness_analysis_.promise_environment_lookup(info, promise)
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
 void AnalysisDriver::promise_expression_lookup(const prom_info_t &info,
-                                               const SEXP promise,
-                                               int in_force) {
+                                               const SEXP promise) {
+
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_expression_lookup(info, promise, in_force);
+        promise_mapper_.promise_expression_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
 
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_expression_lookup(info, promise,
-    //     in_force);
+    //     strictness_analysis_.promise_expression_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
 
 void AnalysisDriver::promise_value_lookup(const prom_info_t &info,
-                                          const SEXP promise, int in_force) {
+                                          const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_value_lookup(info, promise, in_force);
+        promise_mapper_.promise_value_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
 
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_value_lookup(info, promise, in_force);
+    //     strictness_analysis_.promise_value_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }
 
 void AnalysisDriver::promise_environment_set(const prom_info_t &info,
-                                             const SEXP promise, int in_force) {
+                                             const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_environment_set(info, promise, in_force);
+        promise_mapper_.promise_environment_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_environment_set(info, promise,
-    //     in_force);
+    //     strictness_analysis_.promise_environment_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
 void AnalysisDriver::promise_expression_set(const prom_info_t &info,
-                                            const SEXP promise, int in_force) {
+                                            const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_expression_set(info, promise, in_force);
+        promise_mapper_.promise_expression_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
 
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_expression_set(info, promise, in_force);
+    //     strictness_analysis_.promise_expression_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
 
 void AnalysisDriver::promise_value_set(const prom_info_t &info,
-                                       const SEXP promise, int in_force) {
+                                       const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
     if (map_promises())
-        promise_mapper_.promise_value_set(info, promise, in_force);
+        promise_mapper_.promise_value_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
 
     // if (analyze_strictness())
-    //     strictness_analysis_.promise_value_set(info, promise, in_force);
+    //     strictness_analysis_.promise_value_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }

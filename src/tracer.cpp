@@ -19,14 +19,14 @@ SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
        attached will be NULL. Replacing calloc with malloc will cause
        segfaults. */
     dyntracer_t *dyntracer = (dyntracer_t *)calloc(1, sizeof(dyntracer_t));
-    dyntracer->probe_begin = begin;
-    dyntracer->probe_end = end;
-    dyntracer->probe_function_entry = function_entry;
-    dyntracer->probe_function_exit = function_exit;
+    dyntracer->probe_dyntrace_entry = dyntrace_entry;
+    dyntracer->probe_dyntrace_exit = dyntrace_exit;
+    dyntracer->probe_closure_entry = closure_entry;
+    dyntracer->probe_closure_exit = closure_exit;
     dyntracer->probe_builtin_entry = builtin_entry;
     dyntracer->probe_builtin_exit = builtin_exit;
-    dyntracer->probe_specialsxp_entry = specialsxp_entry;
-    dyntracer->probe_specialsxp_exit = specialsxp_exit;
+    dyntracer->probe_special_entry = special_entry;
+    dyntracer->probe_special_exit = special_exit;
     dyntracer->probe_gc_promise_unmarked = gc_promise_unmarked;
     dyntracer->probe_gc_function_unmarked = gc_function_unmarked;
     dyntracer->probe_promise_force_entry = promise_force_entry;

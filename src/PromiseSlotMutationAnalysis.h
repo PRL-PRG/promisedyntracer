@@ -19,18 +19,13 @@ class PromiseSlotMutationAnalysis {
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
-    void promise_environment_lookup(const prom_info_t &info, const SEXP promise,
-                                    int in_force);
-    void promise_expression_lookup(const prom_info_t &info, const SEXP promise,
-                                   int in_force);
-    void promise_value_lookup(const prom_info_t &info, const SEXP promise,
-                              int in_force);
-    void promise_environment_set(const prom_info_t &info, const SEXP promise,
-                                 int in_force);
-    void promise_expression_set(const prom_info_t &info, const SEXP promise,
-                                int in_force);
-    void promise_value_set(const prom_info_t &info, const SEXP promise,
-                           int in_force);
+    void promise_environment_lookup(const prom_info_t &info,
+                                    const SEXP promise);
+    void promise_expression_lookup(const prom_info_t &info, const SEXP promise);
+    void promise_value_lookup(const prom_info_t &info, const SEXP promise);
+    void promise_environment_set(const prom_info_t &info, const SEXP promise);
+    void promise_expression_set(const prom_info_t &info, const SEXP promise);
+    void promise_value_set(const prom_info_t &info, const SEXP promise);
     void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
     void end(dyntracer_t *dyntracer);
 
@@ -43,10 +38,9 @@ class PromiseSlotMutationAnalysis {
     int compute_immediate_parent();
 
     void update_promise_argument_slot(const prom_id_t prom_id,
-                                      PromiseState::SlotMutation slot_mutation,
-                                      int in_force);
+                                      PromiseState::SlotMutation slot_mutation);
     void update_promise_slot_access_count(const PromiseState &promise_state);
-
+    bool promise_is_being_forced_(const prom_id_t prom_id);
     void serialize();
     void serialize_promise_slot_accesses();
 

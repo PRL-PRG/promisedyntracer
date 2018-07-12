@@ -13,49 +13,63 @@ void PromiseSlotMutationAnalysis::gc_promise_unmarked(const prom_id_t prom_id,
 }
 
 void PromiseSlotMutationAnalysis::promise_environment_lookup(
-    const prom_info_t &info, const SEXP promise, int in_force) {
+    const prom_info_t &info, const SEXP promise) {
     update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::ENVIRONMENT_LOOKUP, in_force);
+        info.prom_id, PromiseState::SlotMutation::ENVIRONMENT_LOOKUP);
 }
 
 void PromiseSlotMutationAnalysis::promise_expression_lookup(
-    const prom_info_t &info, const SEXP promise, int in_force) {
-    update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::EXPRESSION_LOOKUP, in_force);
+    const prom_info_t &info, const SEXP promise) {
+    update_promise_argument_slot(info.prom_id,
+                                 PromiseState::SlotMutation::EXPRESSION_LOOKUP);
 }
 
 void PromiseSlotMutationAnalysis::promise_value_lookup(const prom_info_t &info,
-                                                       const SEXP promise,
-                                                       int in_force) {
-    update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::VALUE_LOOKUP, in_force);
+                                                       const SEXP promise) {
+
+    update_promise_argument_slot(info.prom_id,
+                                 PromiseState::SlotMutation::VALUE_LOOKUP);
 }
 
 void PromiseSlotMutationAnalysis::promise_environment_set(
-    const prom_info_t &info, const SEXP promise, int in_force) {
+    const prom_info_t &info, const SEXP promise) {
     update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::ENVIRONMENT_ASSIGN, in_force);
+        info.prom_id, PromiseState::SlotMutation::ENVIRONMENT_ASSIGN);
 }
 
 void PromiseSlotMutationAnalysis::promise_expression_set(
-    const prom_info_t &info, const SEXP promise, int in_force) {
-    update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::EXPRESSION_ASSIGN, in_force);
+    const prom_info_t &info, const SEXP promise) {
+    update_promise_argument_slot(info.prom_id,
+                                 PromiseState::SlotMutation::EXPRESSION_ASSIGN);
 }
 
 void PromiseSlotMutationAnalysis::promise_value_set(const prom_info_t &info,
-                                                    const SEXP promise,
-                                                    int in_force) {
-    update_promise_argument_slot(
-        info.prom_id, PromiseState::SlotMutation::VALUE_ASSIGN, in_force);
+                                                    const SEXP promise) {
+
+    update_promise_argument_slot(info.prom_id,
+                                 PromiseState::SlotMutation::VALUE_ASSIGN);
 }
 
 void PromiseSlotMutationAnalysis::update_promise_argument_slot(
-    const prom_id_t prom_id, PromiseState::SlotMutation slot_mutation,
-    int in_force) {
-    if (in_force)
+    const prom_id_t prom_id, PromiseState::SlotMutation slot_mutation) {
+    // if (in_force)
+    //     return;
+    if (promise_is_being_forced_(prom_id))
         return;
     promise_mapper_->find(prom_id).increment_mutation_slot(slot_mutation);
+}
+
+bool PromiseSlotMutationAnalysis::promise_is_being_forced_(
+    const prom_id_t prom_id) {
+    auto stack = tracer_state_.full_stack;
+    for (auto iter = stack.crbegin(); iter != stack.crend(); ++iter) {
+        auto element = *iter;
+        if (element.type == stack_type::PROMISE) {
+            if (element.promise_id == prom_id)
+                return true;
+        }
+    }
+    return false;
 }
 
 void PromiseSlotMutationAnalysis::serialize() {

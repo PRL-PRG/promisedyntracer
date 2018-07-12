@@ -315,7 +315,6 @@ struct tracer_state_t {
 
     unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
         environments;
-    void start_pass(dyntracer_t *dyntracer, const SEXP prom);
     void finish_pass();
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);

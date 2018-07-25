@@ -79,8 +79,9 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
     }
 
     tracer_serializer(dyntracer).serialize(
-        TraceSerializer::OPCODE_FUNCTION_BEGIN, "closure", info.fn_id,
-        info.call_id, tracer_state(dyntracer).to_environment_id(rho));
+        TraceSerializer::OPCODE_FUNCTION_BEGIN, sexptype_to_string(CLOSXP),
+        info.fn_id, info.call_id,
+        tracer_state(dyntracer).to_environment_id(rho));
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_ENTRY_WRITE_TRACE);
 }
@@ -115,8 +116,7 @@ void closure_exit(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
     debug_serializer(dyntracer).serialize_function_exit(info);
 
     tracer_serializer(dyntracer).serialize(
-        TraceSerializer::OPCODE_FUNCTION_FINISH, "closure", info.fn_id,
-        info.call_id, tracer_state(dyntracer).to_environment_id(rho));
+        TraceSerializer::OPCODE_FUNCTION_FINISH, info.call_id, false);
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_EXIT_WRITE_TRACE);
 }
@@ -193,7 +193,8 @@ void print_entry_info(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(dyntracer).serialize(
         TraceSerializer::OPCODE_FUNCTION_BEGIN,
-        info.fn_type == function_type::SPECIAL ? "special" : "builtin",
+        sexptype_to_string(info.fn_type == function_type::SPECIAL ? SPECIALSXP
+                                                                  : BUILTINSXP),
         info.fn_id, info.call_id,
         tracer_state(dyntracer).to_environment_id(rho));
 #endif
@@ -241,10 +242,7 @@ void print_exit_info(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
 
 #ifndef RDT_IGNORE_SPECIALS_AND_BUILTINS
     tracer_serializer(dyntracer).serialize(
-        TraceSerializer::OPCODE_FUNCTION_FINISH,
-        info.fn_type == function_type::SPECIAL ? "special" : "builtin",
-        info.fn_id, info.call_id,
-        tracer_state(dyntracer).to_environment_id(rho));
+        TraceSerializer::OPCODE_FUNCTION_FINISH, info.call_id, false);
 #endif
 
     MAIN_TIMER_END_SEGMENT(BUILTIN_EXIT_WRITE_TRACE);
@@ -350,7 +348,7 @@ void promise_force_exit(dyntracer_t *dyntracer, const SEXP promise) {
     std::string ext_id = std::string("ext ") + std::to_string(info.prom_id);
     debug_serializer(dyntracer).serialize_interference_information(ext_id);
     tracer_serializer(dyntracer).serialize(
-        TraceSerializer::OPCODE_PROMISE_FINISH, info.prom_id);
+        TraceSerializer::OPCODE_PROMISE_FINISH, info.prom_id, false);
 
     MAIN_TIMER_END_SEGMENT(FORCE_PROMISE_EXIT_WRITE_TRACE);
 
@@ -622,6 +620,7 @@ void context_exit(dyntracer_t *dyntracer, const RCNTXT *cptr) {
 }
 
 void adjust_stacks(dyntracer_t *dyntracer, unwind_info_t &info) {
+
     while (!tracer_state(dyntracer).full_stack.empty()) {
         stack_event_t element = (tracer_state(dyntracer).full_stack.back());
 
@@ -634,12 +633,12 @@ void adjust_stacks(dyntracer_t *dyntracer, unwind_info_t &info) {
                 info.unwound_frames.push_back(element);
         else if (element.type == stack_type::CALL) {
             tracer_serializer(dyntracer).serialize(
-                TraceSerializer::OPCODE_FUNCTION_CONTEXT_JUMP, element.call_id);
+                TraceSerializer::OPCODE_FUNCTION_FINISH, element.call_id, true);
             info.unwound_frames.push_back(element);
         } else if (element.type == stack_type::PROMISE) {
             tracer_serializer(dyntracer).serialize(
-                TraceSerializer::OPCODE_PROMISE_CONTEXT_JUMP,
-                element.promise_id);
+                TraceSerializer::OPCODE_PROMISE_FINISH, element.promise_id,
+                true);
             info.unwound_frames.push_back(element);
         } else /* if (element.type == stack_type::NONE) */
             dyntrace_log_error("NONE object found on tracer's full stack.");

@@ -58,8 +58,8 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_PROMISE_TYPE);
 
-    if (analyze_strictness())
-        strictness_analysis_.closure_entry(closure_info);
+    // if (analyze_strictness())
+    //     strictness_analysis_.closure_entry(closure_info);
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_STRICTNESS);
 }
@@ -90,8 +90,8 @@ void AnalysisDriver::closure_exit(const closure_info_t &closure_info) {
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_EXIT_ANALYSIS_FUNCTION);
 
-    if (analyze_strictness())
-        strictness_analysis_.closure_exit(closure_info);
+    // if (analyze_strictness())
+    //     strictness_analysis_.closure_exit(closure_info);
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_EXIT_ANALYSIS_STRICTNESS);
 }
@@ -129,8 +129,8 @@ void AnalysisDriver::promise_force_entry(const prom_info_t &prom_info,
     ANALYSIS_TIMER_END_SEGMENT(
         FORCE_PROMISE_ENTRY_ANALYSIS_PROMISE_EVALUATION_DISTANCE);
 
-    if (analyze_strictness())
-        strictness_analysis_.promise_force_entry(prom_info, promise);
+    // if (analyze_strictness())
+    //     strictness_analysis_.promise_force_entry(prom_info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(FORCE_PROMISE_ENTRY_ANALYSIS_STRICTNESS);
 }
@@ -149,8 +149,8 @@ void AnalysisDriver::gc_promise_unmarked(const prom_id_t prom_id,
                                          const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
-    if (analyze_strictness())
-        strictness_analysis_.gc_promise_unmarked(prom_id, promise);
+    // if (analyze_strictness())
+    //     strictness_analysis_.gc_promise_unmarked(prom_id, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(GC_PROMISE_UNMARKED_ANALYSIS_STRICTNESS);
 
@@ -312,8 +312,8 @@ void AnalysisDriver::environment_remove_var(const SEXP symbol, const SEXP rho) {
 void AnalysisDriver::context_jump(const unwind_info_t &info) {
     ANALYSIS_TIMER_RESET();
 
-    if (analyze_strictness())
-        strictness_analysis_.context_jump(info);
+    // if (analyze_strictness())
+    //     strictness_analysis_.context_jump(info);
 
     ANALYSIS_TIMER_END_SEGMENT(CONTEXT_JUMP_ANALYSIS_STRICTNESS);
 }
@@ -346,8 +346,8 @@ void AnalysisDriver::end(dyntracer_t *dyntracer) {
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_PROMISE_EVALUATION_DISTANCE);
 
-    if (analyze_strictness())
-        strictness_analysis_.end(dyntracer);
+    // if (analyze_strictness())
+    //     strictness_analysis_.end(dyntracer);
 
     ANALYSIS_TIMER_END_SEGMENT(END_ANALYSIS_STRICTNESS);
 

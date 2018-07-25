@@ -75,9 +75,10 @@ lookup_result find_binding_in_environment(const SEXP symbol, const SEXP rho2) {
     if (TYPEOF(rho) == NILSXP)
         return {lookup_status::FAIL_ENVIRONMENT_IS_NIL, rho, R_UnboundValue};
 
-    if (TYPEOF(rho) != ENVSXP)
+    if (TYPEOF(rho) != ENVSXP) {
         return {lookup_status::FAIL_ARGUMENT_IS_NOT_AN_ENVIRONMENT, rho,
                 R_UnboundValue};
+    }
 
 #ifdef USE_GLOBAL_CACHE
     while (rho != R_GlobalEnv && rho != R_EmptyEnv) {

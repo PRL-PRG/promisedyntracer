@@ -1,9 +1,15 @@
 #include "utilities.h"
 #include "base64.h"
 #include "lookup.h"
+#include <algorithm>
 
 size_t SQLITE3_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 size_t SQLITE3_EXPANDED_SQL_BUFFER_SIZE = 2000;
+
+/* https://stackoverflow.com/questions/8206387/using-non-printable-characters-as-a-delimiter-in-php
+ */
+const char RECORD_SEPARATOR = 0x1e;
+const char UNIT_SEPARATOR = 0x1f;
 
 int get_file_size(std::ifstream &file) {
     int position = file.tellg();
@@ -161,19 +167,39 @@ std::string get_definition_location_cpp(SEXP op) {
     return extract_location_information(srcref);
 }
 
-const char *get_call(SEXP call) { return serialize_sexp(call); }
-
 int is_byte_compiled(SEXP op) {
     SEXP body = BODY(op);
     return TYPEOF(body) == BCODESXP;
 }
 
 std::string get_expression(SEXP e) {
-    char *expr = serialize_sexp(e);
-    assert(expr != NULL);
-    std::string expression(expr);
-    free(expr);
+    std::string expression;
+    int linecount = 0;
+    SEXP strvec = serialize_sexp(e, &linecount);
+    for (int i = 0; i < linecount - 1; ++i) {
+        expression.append(CHAR(STRING_ELT(strvec, i))).append("\n");
+    }
+    if (linecount >= 1) {
+        expression.append(CHAR(STRING_ELT(strvec, linecount - 1)));
+    }
     return expression;
+}
+
+std::string escape(const std::string &s) {
+    // https://stackoverflow.com/questions/5612182/convert-string-with-explicit-escape-sequence-into-relative-character
+    std::string res;
+    std::string::const_iterator it = s.begin();
+    while (it != s.end()) {
+        char c = *it++;
+        if (c == '\n') {
+            res += "    ";
+        } else if (c == '\t') {
+            res += "    ";
+        } else {
+            res += c;
+        }
+    }
+    return res;
 }
 
 // returns a monotonic timestamp in microseconds
@@ -232,8 +258,15 @@ std::string compute_hash(const char *data) {
     EVP_DigestFinal_ex(mdctx, md_value, &md_len);
     EVP_MD_CTX_free(mdctx);
 #endif
-    return base64_encode(reinterpret_cast<const unsigned char *>(md_value),
-                         md_len);
+    std::string result{base64_encode(
+        reinterpret_cast<const unsigned char *>(md_value), md_len)};
+
+    // This replacement is done so that the hash can be directly used
+    // as a filename. If this is not done, the / in the hash prevents
+    // it from being used as the name of the file which contains the
+    // function which is hashed.
+    std::replace(result.begin(), result.end(), '/', '#');
+    return result;
 }
 
 const char *remove_null(const char *value) { return value ? value : ""; }
@@ -266,5 +299,5 @@ AnalysisSwitch to_analysis_switch(SEXP env) {
 }
 
 std::string to_string(const char *str) {
-    return str ? std::string("") : std::string(str);
+    return str ? std::string(str) : std::string("");
 }

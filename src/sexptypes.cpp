@@ -3,11 +3,14 @@
 
 const sexptype_t OMEGASXP = 100000;
 const sexptype_t ACTIVESXP = 100001;
+const sexptype_t UNBOUNDSXP = 100002;
 
 std::string sexptype_to_string(sexptype_t sexptype) {
     switch (sexptype) {
         case NILSXP:
             return "Null";
+        case UNBOUNDSXP:
+            return "Unbound";
         case LANGSXP:
             return "Function Call";
         case NEWSXP:
@@ -25,6 +28,13 @@ std::string sexptype_to_string(sexptype_t sexptype) {
             str[0] = std::toupper(str[0]);
             return str;
     }
+}
+
+std::string value_type_to_string(SEXP value) {
+    if (value == R_UnboundValue) {
+        return sexptype_to_string(UNBOUNDSXP);
+    }
+    return sexptype_to_string(static_cast<sexptype_t>(TYPEOF(value)));
 }
 
 void get_full_type_inner(SEXP sexp, SEXP rho, full_sexp_type &result,

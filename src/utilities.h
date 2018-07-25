@@ -5,6 +5,9 @@
 #include "stdlibs.h"
 #include <openssl/evp.h>
 
+extern const char UNIT_SEPARATOR;
+extern const char RECORD_SEPARATOR;
+
 int get_file_size(std::ifstream &file);
 
 std::string readfile(std::ifstream &file);
@@ -29,10 +32,10 @@ const char *get_ns_name(SEXP op);
 const char *get_name(SEXP call);
 std::string get_definition_location_cpp(SEXP op);
 std::string get_callsite_cpp(int);
-const char *get_call(SEXP call);
 int is_byte_compiled(SEXP op);
 // char *to_string(SEXP var);
 std::string get_expression(SEXP e);
+std::string escape(const std::string &s);
 const char *remove_null(const char *value);
 std::string clock_ticks_to_string(clock_t ticks);
 AnalysisSwitch to_analysis_switch(SEXP env);

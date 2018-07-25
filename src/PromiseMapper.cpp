@@ -25,9 +25,18 @@ void PromiseMapper::closure_entry(const closure_info_t &closure_info) {
     int max_position = 0;
     int actual_argument_position = 0;
     for (const auto &argument : closure_info.arguments) {
+        if (argument.value_type != PROMSXP)
+            continue;
         prom_id_t promise_id = argument.promise_id;
         int formal_parameter_position = argument.formal_parameter_position;
         bool is_default_argument = argument.default_argument;
+        if (argument.promise_id < 0) {
+            promises_.insert({argument.promise_id,
+                              PromiseState(argument.promise_id,
+                                           tracer_state_.to_environment_id(
+                                               argument.promise_environment),
+                                           false)});
+        }
         PromiseState &promise_state = promises_.at(promise_id);
         // if this assert fails, it means that the promise with this id
         // has not been seen in promise_created stage. This implies either

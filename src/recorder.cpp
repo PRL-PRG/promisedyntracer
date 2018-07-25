@@ -3,35 +3,39 @@
 #include "lookup.h"
 
 void update_closure_argument(closure_info_t &info, dyntracer_t *dyntracer,
-                             call_id_t call_id, const SEXP argument_expression,
-                             const SEXP expression, const SEXP environment,
+                             call_id_t call_id, const SEXP arg_name,
+                             const SEXP arg_value, const SEXP environment,
                              bool dot_argument, int position) {
 
     arg_t argument;
 
-    SEXPTYPE expression_type = TYPEOF(expression);
-    SEXPTYPE argument_type = TYPEOF(argument_expression);
+    SEXPTYPE arg_value_type = TYPEOF(arg_value);
+    SEXPTYPE arg_name_type = TYPEOF(arg_name);
 
-    if (argument_expression != R_NilValue) {
-        argument.name = string(get_name(argument_expression));
+    if (arg_name != R_NilValue) {
+        argument.name = string(get_name(arg_name));
+    } else {
+        argument.name = "promise_dyntracer::missing_name";
     }
 
-    if (expression_type == PROMSXP) {
-        argument.promise_id = get_promise_id(dyntracer, expression);
-        argument.default_argument = (PRENV(expression) == environment);
+    if (arg_value_type == PROMSXP) {
+        argument.promise_id = get_promise_id(dyntracer, arg_value);
+        argument.default_argument = (PRENV(arg_value) == environment);
+        argument.promise_environment = PRENV(arg_value);
     } else {
         argument.promise_id = 0;
         argument.default_argument = true;
+        argument.promise_environment = NULL;
     }
 
     if (dot_argument) {
-        argument.argument_type = (sexptype_t)DOTSXP;
+        argument.name_type = (sexptype_t)DOTSXP;
     } else {
-        argument.argument_type = static_cast<sexptype_t>(argument_type);
+        argument.name_type = static_cast<sexptype_t>(arg_name_type);
     }
 
     argument.id = get_argument_id(dyntracer, call_id, argument.name);
-    argument.expression_type = static_cast<sexptype_t>(expression_type);
+    argument.value_type = static_cast<sexptype_t>(arg_value_type);
     argument.formal_parameter_position = position;
 
     info.arguments.push_back(argument);
@@ -50,32 +54,7 @@ void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
 
         // Retrieve the argument name.
         arg_name = TAG(formals);
-
-        // We want the promise associated with the symbol.
-        // Generally, the argument_expression should be the promise.
-        // But if JIT is enabled, its possible for the argument_expression
-        // to be unpromised. In this case, we dereference the argument.
-        if (TYPEOF(arg_name) == SYMSXP) {
-            lookup_result r =
-                find_binding_in_environment(arg_name, environment);
-            if (r.status == lookup_status::SUCCESS) {
-                arg_value = r.value;
-            } else {
-                // So... since this is a function, then I assume we shouldn't
-                // get any arguments that are active bindings or anything like
-                // that. If we do, then we should fail here and re-think our
-                // life choices.
-                string msg = lookup_status_to_string(r.status);
-                dyntrace_log_error("%s", msg.c_str());
-            }
-        }
-        // If the argument already has an associated promise, then use that.
-        // In case we see something else like NILSXP, the various helper
-        // functions
-        // below should be geared to deal with it.
-        else {
-            arg_value = arg_name;
-        }
+        arg_value = CAR(formals);
 
         // Encountered a triple-dot argument, break it up further.
         if (TYPEOF(arg_value) == DOTSXP) {
@@ -85,11 +64,33 @@ void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
                                         CAR(dot_args), environment, true,
                                         formal_parameter_position);
             }
-        }
+        } else {
 
-        // The general case: single argument.
-        update_closure_argument(info, dyntracer, call_id, arg_name, arg_value,
-                                environment, false, formal_parameter_position);
+            // We want the promise associated with the symbol.
+            // Generally, the argument value should be the promise.
+            // But if JIT is enabled, its possible for the argument_expression
+            // to be unpromised. In this case, we dereference the argument.
+            if (TYPEOF(arg_value) == SYMSXP) {
+                lookup_result r =
+                    find_binding_in_environment(arg_value, environment);
+                if (r.status == lookup_status::SUCCESS) {
+                    arg_value = r.value;
+                } else {
+                    // So... since this is a function, then I assume we
+                    // shouldn't
+                    // get any arguments that are active bindings or anything
+                    // like
+                    // that. If we do, then we should fail here and re-think our
+                    // life choices.
+                    string msg = lookup_status_to_string(r.status);
+                    dyntrace_log_error("%s", msg.c_str());
+                }
+            }
+            // The general case: single argument.
+            update_closure_argument(info, dyntracer, call_id, arg_name,
+                                    arg_value, environment, false,
+                                    formal_parameter_position);
+        }
     }
 }
 

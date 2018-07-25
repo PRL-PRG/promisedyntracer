@@ -29,7 +29,7 @@ prom_info_t promise_lookup_get_info(dyntracer_t *dyntracer,
                                     const SEXP promise);
 prom_info_t promise_expression_lookup_get_info(dyntracer_t *dyntracer,
                                                const SEXP prom);
-gc_info_t gc_exit_get_info(int gc_count, double vcells, double ncells);
+gc_info_t gc_exit_get_info(int gc_count);
 
 // When doing longjump (exception thrown, etc.) this function gets the
 // target environment

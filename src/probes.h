@@ -18,18 +18,20 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
 void closure_exit(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                   const SEXP args, const SEXP rho, const SEXP retval);
 void print_entry_info(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
-                      const SEXP rho, function_type fn_type);
+                      const SEXP args, const SEXP rho, function_type fn_type);
 void builtin_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                    const SEXP args, const SEXP rho);
 void special_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                    const SEXP args, const SEXP rho);
 void print_exit_info(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
-                     const SEXP rho, function_type fn_type, const SEXP retval);
+                     const SEXP args, const SEXP rho, function_type fn_type,
+                     const SEXP retval);
 void builtin_exit(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                   const SEXP args, const SEXP rho, const SEXP retval);
 void special_exit(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                   const SEXP args, const SEXP rho, const SEXP retval);
-void promise_created(dyntracer_t *dyntracer, const SEXP prom, const SEXP rho);
+void gc_allocate(dyntracer_t *dyntracer, const SEXP object);
+void promise_created(dyntracer_t *dyntracer, const SEXP prom);
 void promise_force_entry(dyntracer_t *dyntracer, const SEXP promise);
 void promise_force_exit(dyntracer_t *dyntracer, const SEXP promise);
 void promise_value_lookup(dyntracer_t *dyntracer, const SEXP promise);
@@ -46,8 +48,7 @@ void gc_promise_unmark(dyntracer_t *dyntracer, const SEXP promise);
 void gc_closure_unmark(dyntracer_t *dyntracer, const SEXP closure);
 void gc_function_unmarked(dyntracer_t *dyntracer, const SEXP function);
 void gc_entry(dyntracer_t *dyntracer, R_size_t size_needed);
-void gc_exit(dyntracer_t *dyntracer, int gc_count, double vcells,
-             double ncells);
+void gc_exit(dyntracer_t *dyntracer, int gc_count);
 void vector_alloc(dyntracer_t *dyntracer, int sexptype, long length, long bytes,
                   const char *srcref);
 void new_environment(dyntracer_t *dyntracer, const SEXP rho);

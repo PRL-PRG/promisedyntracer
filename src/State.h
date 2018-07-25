@@ -47,9 +47,10 @@ rid_t get_sexp_address(SEXP e);
 struct arg_t {
     arg_id_t id;
     string name;
-    sexptype_t argument_type;
-    sexptype_t expression_type;
+    sexptype_t value_type;
+    sexptype_t name_type;
     prom_id_t promise_id; // only set if sexptype_t == PROM
+    SEXP promise_environment;
     bool default_argument;
     int formal_parameter_position;
 };
@@ -168,8 +169,6 @@ struct unwind_info_t {
 
 struct gc_info_t {
     int counter;
-    double ncells;
-    double vcells;
 };
 
 struct type_gc_info_t {

@@ -9,7 +9,6 @@ class TraceSerializer {
   public:
     static const std::string OPCODE_FUNCTION_BEGIN;
     static const std::string OPCODE_FUNCTION_FINISH;
-    static const std::string OPCODE_FUNCTION_CONTEXT_JUMP;
     static const std::string OPCODE_PROMISE_CREATE;
     static const std::string OPCODE_PROMISE_BEGIN;
     static const std::string OPCODE_PROMISE_FINISH;
@@ -19,7 +18,6 @@ class TraceSerializer {
     static const std::string OPCODE_PROMISE_VALUE_ASSIGN;
     static const std::string OPCODE_PROMISE_EXPRESSION_ASSIGN;
     static const std::string OPCODE_PROMISE_ENVIRONMENT_ASSIGN;
-    static const std::string OPCODE_PROMISE_CONTEXT_JUMP;
     static const std::string OPCODE_ENVIRONMENT_CREATE;
     static const std::string OPCODE_ENVIRONMENT_ASSIGN;
     static const std::string OPCODE_ENVIRONMENT_REMOVE;

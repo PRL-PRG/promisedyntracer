@@ -2,6 +2,7 @@
 
 const std::string TraceSerializer::OPCODE_FUNCTION_BEGIN = "fnb";
 const std::string TraceSerializer::OPCODE_FUNCTION_FINISH = "fnf";
+const std::string TraceSerializer::OPCODE_ARGUMENT_PROMISE_ASSOCIATE = "apa";
 const std::string TraceSerializer::OPCODE_PROMISE_CREATE = "prc";
 const std::string TraceSerializer::OPCODE_PROMISE_BEGIN = "prb";
 const std::string TraceSerializer::OPCODE_PROMISE_FINISH = "prf";

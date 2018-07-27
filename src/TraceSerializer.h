@@ -9,6 +9,7 @@ class TraceSerializer {
   public:
     static const std::string OPCODE_FUNCTION_BEGIN;
     static const std::string OPCODE_FUNCTION_FINISH;
+    static const std::string OPCODE_ARGUMENT_PROMISE_ASSOCIATE;
     static const std::string OPCODE_PROMISE_CREATE;
     static const std::string OPCODE_PROMISE_BEGIN;
     static const std::string OPCODE_PROMISE_FINISH;

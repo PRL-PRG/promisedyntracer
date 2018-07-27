@@ -41,7 +41,8 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
                    const SEXP args, const SEXP rho) {
     MAIN_TIMER_RESET();
 
-    closure_info_t info = function_entry_get_info(dyntracer, call, op, rho);
+    closure_info_t info =
+        function_entry_get_info(dyntracer, call, op, args, rho);
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER);
 
@@ -61,7 +62,13 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
 
     debug_serializer(dyntracer).serialize_function_entry(info);
 
+    tracer_serializer(dyntracer).serialize(
+        TraceSerializer::OPCODE_FUNCTION_BEGIN, sexptype_to_string(CLOSXP),
+        info.fn_id, info.call_id,
+        tracer_state(dyntracer).to_environment_id(rho));
+
     auto &fresh_promises = tracer_state(dyntracer).fresh_promises;
+    bool exists = false; // dummy variable, only passed along to to_variable_id
     // Associate promises with call ID
     for (auto argument : info.arguments) {
         auto &promise = argument.promise_id;
@@ -76,12 +83,16 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
             tracer_state(dyntracer).promise_origin[promise] = info.call_id;
             fresh_promises.erase(it);
         }
-    }
 
-    tracer_serializer(dyntracer).serialize(
-        TraceSerializer::OPCODE_FUNCTION_BEGIN, sexptype_to_string(CLOSXP),
-        info.fn_id, info.call_id,
-        tracer_state(dyntracer).to_environment_id(rho));
+        if (argument.value_type == PROMSXP) {
+            tracer_serializer(dyntracer).serialize(
+                TraceSerializer::OPCODE_ARGUMENT_PROMISE_ASSOCIATE, info.fn_id,
+                info.call_id, argument.formal_parameter_position,
+                tracer_state(dyntracer).to_variable_id(argument.name, rho,
+                                                       exists),
+                argument.name, argument.promise_id);
+        }
+    }
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_ENTRY_WRITE_TRACE);
 }
@@ -92,7 +103,7 @@ void closure_exit(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
     MAIN_TIMER_RESET();
 
     closure_info_t info =
-        function_exit_get_info(dyntracer, call, op, rho, retval);
+        function_exit_get_info(dyntracer, call, op, args, rho, retval);
 
     MAIN_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER);
 

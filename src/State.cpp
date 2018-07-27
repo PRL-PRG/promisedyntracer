@@ -35,15 +35,20 @@ env_id_t tracer_state_t::to_environment_id(SEXP rho) {
 }
 
 var_id_t tracer_state_t::to_variable_id(SEXP symbol, SEXP rho, bool &exists) {
+    return to_variable_id(CHAR(PRINTNAME(symbol)), rho, exists);
+}
+
+var_id_t tracer_state_t::to_variable_id(const std::string &symbol, SEXP rho,
+                                        bool &exists) {
     var_id_t variable_id;
     const auto &iter = environments.find(rho);
     assert(iter != environments.end());
     auto &variables = (iter->second).second;
-    const auto &iter2 = variables.find(CHAR(PRINTNAME(symbol)));
+    const auto &iter2 = variables.find(symbol);
     if (iter2 == variables.end()) {
         exists = false;
         variable_id = variable_id_counter++;
-        variables[std::string(CHAR(PRINTNAME(symbol)))] = variable_id;
+        variables[symbol] = variable_id;
     } else {
         exists = true;
         variable_id = iter2->second;

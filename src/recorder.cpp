@@ -42,16 +42,15 @@ void update_closure_argument(closure_info_t &info, dyntracer_t *dyntracer,
 }
 
 void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
-                              const call_id_t call_id, const SEXP op,
+                              const call_id_t call_id, const SEXP args,
                               const SEXP environment) {
 
     int formal_parameter_position = 0;
     SEXP arg_name = R_NilValue;
     SEXP arg_value = R_NilValue;
 
-    for (SEXP formals = FORMALS(op); formals != R_NilValue;
+    for (SEXP formals = args; formals != R_NilValue;
          formals = CDR(formals), formal_parameter_position++) {
-
         // Retrieve the argument name.
         arg_name = TAG(formals);
         arg_value = CAR(formals);
@@ -95,7 +94,8 @@ void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
 }
 
 closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
-                                       const SEXP op, const SEXP rho) {
+                                       const SEXP op, const SEXP args,
+                                       const SEXP rho) {
     RECORDER_TIMER_RESET();
     closure_info_t info;
 
@@ -143,7 +143,7 @@ closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
     }
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_NAME);
 
-    update_closure_arguments(info, dyntracer, info.call_id, op, rho);
+    update_closure_arguments(info, dyntracer, info.call_id, FRAME(rho), rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_ARGUMENTS);
 
     get_stack_parent(info, tracer_state(dyntracer).full_stack);
@@ -154,8 +154,8 @@ closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
 }
 
 closure_info_t function_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
-                                      const SEXP op, const SEXP rho,
-                                      const SEXP retval) {
+                                      const SEXP op, const SEXP args,
+                                      const SEXP rho, const SEXP retval) {
     RECORDER_TIMER_RESET();
     closure_info_t info;
 
@@ -193,7 +193,7 @@ closure_info_t function_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
     }
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_NAME);
 
-    update_closure_arguments(info, dyntracer, info.call_id, op, rho);
+    update_closure_arguments(info, dyntracer, info.call_id, FRAME(rho), rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_ARGUMENTS);
 
     info.fn_definition = get_expression(op);

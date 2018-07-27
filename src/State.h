@@ -260,7 +260,7 @@ arg_id_t get_argument_id(dyntracer_t *dyntracer, call_id_t call_id,
                          const string &argument);
 
 void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
-                              const call_id_t call_id, const SEXP op,
+                              const call_id_t call_id, const SEXP args,
                               const SEXP environment);
 
 size_t get_no_of_ancestor_promises_on_stack(dyntracer_t *dyntracer);
@@ -317,6 +317,7 @@ struct tracer_state_t {
     void finish_pass();
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
+    var_id_t to_variable_id(const std::string &symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();
 
     void increment_gc_trigger_counter();

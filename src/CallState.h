@@ -10,7 +10,7 @@ class CallState {
     std::string formal_parameter_usage_order;
 
     CallState(call_id_t call_id, fn_id_t fn_id)
-        : call_id(call_id), fn_id(fn_id) {}
+        : call_id{call_id}, fn_id{fn_id} {}
 
     inline void
     update_formal_parameter_usage_order(int formal_parameter_position) {

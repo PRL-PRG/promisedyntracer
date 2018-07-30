@@ -13,10 +13,16 @@ class Context {
     Context(std::string trace_filepath, bool truncate, bool enable_trace,
             bool verbose, std::string output_dir,
             AnalysisSwitch analysis_switch);
+
     tracer_state_t &get_state();
+
     TraceSerializer &get_serializer();
+
     DebugSerializer &get_debug_serializer();
+
     AnalysisDriver &get_analysis_driver();
+
+    ~Context();
 
   private:
     tracer_state_t *state_;

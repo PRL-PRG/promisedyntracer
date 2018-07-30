@@ -6,7 +6,6 @@
 class DebugSerializer {
   public:
     DebugSerializer(bool verbose);
-    ~DebugSerializer();
 
     void serialize_start_trace();
     void serialize_finish_trace();

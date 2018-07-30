@@ -488,6 +488,8 @@ void gc_unmark(dyntracer_t *dyntracer, const SEXP expression) {
             return gc_promise_unmark(dyntracer, expression);
         case CLOSXP:
             return gc_closure_unmark(dyntracer, expression);
+        case ENVSXP:
+            return gc_environment_unmark(dyntracer, expression);
         default:
             return;
     }
@@ -524,6 +526,11 @@ void gc_closure_unmark(dyntracer_t *dyntracer, const SEXP function) {
     remove_function_definition(dyntracer, function);
 
     MAIN_TIMER_END_SEGMENT(GC_FUNCTION_UNMARKED_RECORD_KEEPING);
+}
+
+void gc_environment_unmark(dyntracer_t *dyntracer, const SEXP environment) {
+
+    tracer_state(dyntracer).remove_environment(environment);
 }
 
 void gc_entry(dyntracer_t *dyntracer, R_size_t size_needed) {

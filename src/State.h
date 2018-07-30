@@ -312,14 +312,16 @@ struct tracer_state_t {
                                            // (unless overwrite is true)
     int gc_trigger_counter; // Incremented each time there is a gc_entry
 
-    unordered_map<SEXP, std::pair<env_id_t, unordered_map<string, var_id_t>>>
+    std::unordered_map<
+        SEXP, std::pair<env_id_t, std::unordered_map<std::string, var_id_t>>>
         environments;
+
     void finish_pass();
     env_id_t to_environment_id(SEXP rho);
     var_id_t to_variable_id(SEXP symbol, SEXP rho, bool &exists);
     var_id_t to_variable_id(const std::string &symbol, SEXP rho, bool &exists);
     prom_id_t enclosing_promise_id();
-
+    void remove_environment(const SEXP rho);
     void increment_gc_trigger_counter();
 
     int get_gc_trigger_counter() const;

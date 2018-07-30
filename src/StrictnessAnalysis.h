@@ -5,6 +5,7 @@
 #include "FunctionState.h"
 #include "PromiseMapper.h"
 #include "State.h"
+#include "TableWriter.h"
 #include <algorithm>
 #include <tuple>
 #include <unordered_map>
@@ -53,6 +54,8 @@ class StrictnessAnalysis {
 
     std::vector<CallState> call_stack_;
     PromiseMapper *const promise_mapper_;
+    TableWriter position_table_writer_;
+    TableWriter order_table_writer_;
 };
 
 #endif /* __STRICTNESS_ANALYSIS_H__ */

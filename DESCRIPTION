@@ -7,3 +7,4 @@ Authors@R: c(person("Aviral", "Goel", role = c("aut", "cre"), email = "goel.avir
              person("Konrad", "Siek", role = "aut", email = "konrad.siek@gmail.com"))
 Description: Generates traces for promises and other aspects related to laziness
 License: GPL-2
+RoxygenNote: 6.0.1

@@ -21,6 +21,10 @@ int tracer_state_t::get_gc_trigger_counter() const {
     return gc_trigger_counter;
 }
 
+void tracer_state_t::remove_environment(const SEXP rho) {
+    environments.erase(rho);
+}
+
 env_id_t tracer_state_t::to_environment_id(SEXP rho) {
     const auto &iter = environments.find(rho);
     if (iter == environments.end()) {
@@ -40,9 +44,9 @@ var_id_t tracer_state_t::to_variable_id(SEXP symbol, SEXP rho, bool &exists) {
 
 var_id_t tracer_state_t::to_variable_id(const std::string &symbol, SEXP rho,
                                         bool &exists) {
+    to_environment_id(rho);
     var_id_t variable_id;
-    const auto &iter = environments.find(rho);
-    assert(iter != environments.end());
+    const auto &iter{environments.find(rho)};
     auto &variables = (iter->second).second;
     const auto &iter2 = variables.find(symbol);
     if (iter2 == variables.end()) {

@@ -17,3 +17,13 @@ DebugSerializer &Context::get_debug_serializer() {
 }
 
 AnalysisDriver &Context::get_analysis_driver() { return *driver_; }
+
+Context::~Context() {
+
+    delete debugger_;
+    delete driver_;
+    delete serializer_;
+    /* delete state in the end as everything else
+       can store reference to the state */
+    delete state_;
+}

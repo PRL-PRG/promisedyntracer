@@ -8,8 +8,18 @@ StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
     : tracer_state_(tracer_state), output_dir_(output_dir),
       promise_mapper_(promise_mapper),
       functions_(std::unordered_map<fn_id_t, FunctionState>(
-          FUNCTION_MAPPING_BUCKET_SIZE)) {}
+          FUNCTION_MAPPING_BUCKET_SIZE)),
+      position_table_writer_{
+          output_dir + "/" + "function-formal-parameter-usage-count.csv",
+          {"function_id", "formal_parameter_position", "count"}},
+      order_table_writer_{
+          output_dir + "/" + "function-formal-parameter-usage-order.csv",
+          {"function_id", "formal_parameter_position_usage_order", "count"}} {}
 
+/* When we enter a function, push information about it on a custom call stack.
+   We also update the function table to create an entry for this function.
+   This entry contains the evaluation information of the function's arguments.
+ */
 void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
     // push call_id to call_stack
     call_id_t call_id = closure_info.call_id;
@@ -17,6 +27,8 @@ void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
 
     push_on_call_stack(CallState(call_id, fn_id));
 
+    // max_position will contain the number of formal parameters, the
+    // function expects.
     int max_position = 0;
 
     for (const auto &argument : closure_info.arguments) {
@@ -93,6 +105,11 @@ void StrictnessAnalysis::update_argument_position(
     }
 }
 
+/* We remove the call information from the call stack.
+   The call information tells us the usage order of function arguments.
+   This usage order is stored in the function object corresponding to
+   this call. The count for this order is also incremented.
+ */
 void StrictnessAnalysis::remove_stack_frame(call_id_t call_id, fn_id_t fn_id) {
     // pop call_id from call_stack
     CallState call_state = pop_from_call_stack(call_id);
@@ -122,46 +139,17 @@ void StrictnessAnalysis::serialize() {
 }
 
 void StrictnessAnalysis::serialize_function_formal_parameter_usage_count() {
-    std::ofstream fout(output_dir_ +
-                           "/function-formal-parameter-usage-count.csv",
-                       std::ios::trunc);
-    fout << "function_id"
-         << " , "
-         << "formal_parameter_position"
-         << " , "
-         << "usage"
-         << " , "
-         << "count" << std::endl;
-
     for (auto const &pair : functions_) {
         fn_id_t fn_id = pair.first;
         std::vector<int> parameter_evaluation =
             pair.second.parameter_evaluation;
-        std::vector<int> parameter_metaprogramming =
-            pair.second.parameter_metaprogramming;
         for (size_t i = 0; i < parameter_evaluation.size(); ++i) {
-            fout << fn_id << " , " << i << " , "
-                 << "E"
-                 << " , " << parameter_evaluation[i] << std::endl;
-            fout << fn_id << " , " << i << " , "
-                 << "M"
-                 << " , " << parameter_metaprogramming[i] << std::endl;
+            position_table_writer_.write_row(fn_id, i, parameter_evaluation[i]);
         }
     }
-
-    fout.close();
 }
 
 void StrictnessAnalysis::serialize_function_formal_parameter_usage_order() {
-    std::ofstream fout(output_dir_ +
-                           "/function-formal-parameter-usage-order.csv",
-                       std::ios::trunc);
-    fout << "function_id"
-         << " , "
-         << "formal_parameter_position_usage_order"
-         << " , "
-         << "count" << std::endl;
-
     for (auto const &pair : functions_) {
         fn_id_t fn_id = pair.first;
         std::vector<std::string> parameter_usage_order =
@@ -169,10 +157,8 @@ void StrictnessAnalysis::serialize_function_formal_parameter_usage_order() {
         std::vector<int> parameter_usage_order_count =
             pair.second.parameter_usage_order_count;
         for (size_t i = 0; i < parameter_usage_order.size(); ++i) {
-            fout << fn_id << " , " << parameter_usage_order[i] << " , "
-                 << parameter_usage_order_count[i] << std::endl;
+            order_table_writer_.write_row(fn_id, parameter_usage_order[i],
+                                          parameter_usage_order_count[i]);
         }
     }
-
-    fout.close();
 }

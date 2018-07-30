@@ -3,18 +3,15 @@
 AnalysisDriver::AnalysisDriver(tracer_state_t &tracer_state,
                                const std::string &output_dir,
                                const AnalysisSwitch analysis_switch)
-    : analysis_switch_(analysis_switch),
-      promise_mapper_(PromiseMapper(tracer_state, output_dir)),
-      metadata_analysis_(MetadataAnalysis(tracer_state, output_dir)),
-      object_count_size_analysis_(
-          ObjectCountSizeAnalysis(tracer_state, output_dir)),
-      function_analysis_(FunctionAnalysis(tracer_state, output_dir)),
-      promise_evaluation_analysis_(PromiseEvaluationAnalysis(
-          tracer_state, output_dir, &promise_mapper_)),
-      promise_type_analysis_(PromiseTypeAnalysis(tracer_state, output_dir)),
-      strictness_analysis_(
-          StrictnessAnalysis(tracer_state, output_dir, &promise_mapper_)),
-      side_effect_analysis_(SideEffectAnalysis(tracer_state, output_dir)) {
+    : analysis_switch_{analysis_switch},
+      promise_mapper_{tracer_state, output_dir},
+      metadata_analysis_{tracer_state, output_dir},
+      object_count_size_analysis_{tracer_state, output_dir},
+      function_analysis_{tracer_state, output_dir},
+      promise_evaluation_analysis_{tracer_state, output_dir, &promise_mapper_},
+      promise_type_analysis_{tracer_state, output_dir},
+      strictness_analysis_{tracer_state, output_dir, &promise_mapper_},
+      side_effect_analysis_{tracer_state, output_dir} {
 
     std::cout << analysis_switch;
 }
@@ -34,6 +31,9 @@ void AnalysisDriver::promise_created(const prom_basic_info_t &prom_basic_info,
 
     if (analyze_promise_types())
         promise_type_analysis_.promise_created(prom_basic_info, promise);
+
+    if (analyze_side_effects())
+        side_effect_analysis_.promise_created(prom_basic_info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(CREATE_PROMISE_ANALYSIS_PROMISE_TYPE);
 }
@@ -177,10 +177,6 @@ void AnalysisDriver::promise_environment_lookup(const prom_info_t &info,
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
-    // TODO
-    // if (analyze_strictness())
-    //     strictness_analysis_.promise_environment_lookup(info, promise);
-
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
@@ -195,10 +191,6 @@ void AnalysisDriver::promise_expression_lookup(const prom_info_t &info,
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
 
-    // TODO
-    // if (analyze_strictness())
-    //    strictness_analysis_.promise_expression_lookup(info, promise);
-
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
 
@@ -211,9 +203,6 @@ void AnalysisDriver::promise_value_lookup(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
 
-    // TODO
-    // if (analyze_strictness())
-    //     strictness_analysis_.promise_value_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }
@@ -227,10 +216,6 @@ void AnalysisDriver::promise_environment_set(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
-    // TODO
-    // if (analyze_strictness())
-    //    strictness_analysis_.promise_environment_set(info, promise);
-
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
@@ -243,10 +228,6 @@ void AnalysisDriver::promise_expression_set(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
 
-    // TODO
-    // if (analyze_strictness())
-    //     strictness_analysis_.promise_expression_set(info, promise);
-
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
 
@@ -258,10 +239,6 @@ void AnalysisDriver::promise_value_set(const prom_info_t &info,
         promise_mapper_.promise_value_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
-
-    // TODO
-    // if (analyze_strictness())
-    //     strictness_analysis_.promise_value_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }

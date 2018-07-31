@@ -22,6 +22,8 @@ class Context {
 
     AnalysisDriver &get_analysis_driver();
 
+    const std::string &get_output_dir() const;
+
     ~Context();
 
   private:
@@ -29,6 +31,7 @@ class Context {
     TraceSerializer *serializer_;
     DebugSerializer *debugger_;
     AnalysisDriver *driver_;
+    std::string output_dir_;
 };
 
 inline tracer_state_t &tracer_state(dyntracer_t *dyntracer) {
@@ -47,4 +50,7 @@ inline AnalysisDriver &analysis_driver(dyntracer_t *dyntracer) {
     return (static_cast<Context *>(dyntracer->state))->get_analysis_driver();
 }
 
+inline const std::string &tracer_output_dir(dyntracer_t *dyntracer) {
+    return (static_cast<Context *>(dyntracer->state))->get_output_dir();
+}
 #endif /* __CONTEXT_H__ */

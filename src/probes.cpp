@@ -34,6 +34,12 @@ void dyntrace_exit(dyntracer_t *dyntracer, SEXP expression, SEXP environment,
     analysis_driver(dyntracer).end(dyntracer);
 
     MAIN_TIMER_END_SEGMENT(END_ANALYSIS);
+
+    if (!error) {
+        std::ofstream success_file{tracer_output_dir(dyntracer) + "/SUCCESS"};
+        success_file << "SUCCESS";
+        success_file.close();
+    }
 }
 
 // Triggered when entering function evaluation.

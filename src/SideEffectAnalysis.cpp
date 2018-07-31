@@ -78,7 +78,6 @@ void SideEffectAnalysis::environment_lookup_var(const SEXP symbol,
                     side_effect_observers_.insert(exec_context.promise_id);
                 }
             }
-            return;
         }
     }
 }

@@ -5,6 +5,10 @@
 void dyntrace_entry(dyntracer_t *dyntracer, SEXP expression, SEXP environment) {
     MAIN_TIMER_RESET();
 
+    std::ofstream begin_file{tracer_output_dir(dyntracer) + "/BEGIN"};
+    begin_file << "BEGIN";
+    begin_file.close();
+
     debug_serializer(dyntracer).serialize_start_trace();
 
     MAIN_TIMER_END_SEGMENT(BEGIN_SETUP);
@@ -35,7 +39,11 @@ void dyntrace_exit(dyntracer_t *dyntracer, SEXP expression, SEXP environment,
 
     MAIN_TIMER_END_SEGMENT(END_ANALYSIS);
 
-    if (!error) {
+    if (error) {
+        std::ofstream failure_file{tracer_output_dir(dyntracer) + "/FAILURE"};
+        failure_file << "FAILURE";
+        failure_file.close();
+    } else {
         std::ofstream success_file{tracer_output_dir(dyntracer) + "/SUCCESS"};
         success_file << "SUCCESS";
         success_file.close();

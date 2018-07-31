@@ -6,7 +6,7 @@ Context::Context(std::string trace_filepath, bool truncate, bool enable_trace,
     : state_(new tracer_state_t()),
       serializer_(new TraceSerializer(trace_filepath, truncate, enable_trace)),
       driver_(new AnalysisDriver(*state_, output_dir, analysis_switch)),
-      debugger_(new DebugSerializer(verbose)) {}
+      debugger_(new DebugSerializer(verbose)), output_dir_{output_dir} {}
 
 tracer_state_t &Context::get_state() { return *state_; }
 TraceSerializer &Context::get_serializer() { return *serializer_; }
@@ -17,6 +17,8 @@ DebugSerializer &Context::get_debug_serializer() {
 }
 
 AnalysisDriver &Context::get_analysis_driver() { return *driver_; }
+
+const std::string &Context::get_output_dir() const { return output_dir_; }
 
 Context::~Context() {
 

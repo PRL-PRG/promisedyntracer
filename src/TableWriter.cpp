@@ -1,6 +1,6 @@
 #include "TableWriter.h"
 
-const std::string TableWriter::column_separator_ = "#";
+const std::string TableWriter::column_separator_ = " , ";
 const std::string TableWriter::row_separator_ = "\n";
 
 const std::string &TableWriter::get_column_separator() {

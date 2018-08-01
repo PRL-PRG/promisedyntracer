@@ -203,6 +203,7 @@ void AnalysisDriver::promise_value_lookup(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
 
+    strictness_analysis_.promise_value_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }

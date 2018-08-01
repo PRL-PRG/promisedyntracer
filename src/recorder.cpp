@@ -42,18 +42,17 @@ void update_closure_argument(closure_info_t &info, dyntracer_t *dyntracer,
 }
 
 void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
-                              const call_id_t call_id, const SEXP args,
-                              const SEXP environment) {
+                              const call_id_t call_id, const SEXP formals,
+                              const SEXP args, const SEXP environment) {
 
     int formal_parameter_position = 0;
     SEXP arg_name = R_NilValue;
     SEXP arg_value = R_NilValue;
-
-    for (SEXP formals = args; formals != R_NilValue;
-         formals = CDR(formals), formal_parameter_position++) {
+    for (SEXP current_formal = formals; current_formal != R_NilValue;
+         current_formal = CDR(current_formal), formal_parameter_position++) {
         // Retrieve the argument name.
-        arg_name = TAG(formals);
-        arg_value = CAR(formals);
+        arg_name = TAG(current_formal);
+        arg_value = dyntrace_lookup_environment(environment, arg_name);
 
         // Encountered a triple-dot argument, break it up further.
         if (TYPEOF(arg_value) == DOTSXP) {
@@ -143,7 +142,8 @@ closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
     }
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_NAME);
 
-    update_closure_arguments(info, dyntracer, info.call_id, FRAME(rho), rho);
+    update_closure_arguments(info, dyntracer, info.call_id, FORMALS(op),
+                             FRAME(rho), rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_ARGUMENTS);
 
     get_stack_parent(info, tracer_state(dyntracer).full_stack);
@@ -193,7 +193,8 @@ closure_info_t function_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
     }
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_NAME);
 
-    update_closure_arguments(info, dyntracer, info.call_id, FRAME(rho), rho);
+    update_closure_arguments(info, dyntracer, info.call_id, FORMALS(op),
+                             FRAME(rho), rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_ARGUMENTS);
 
     info.fn_definition = get_expression(op);

@@ -2,20 +2,18 @@
 
 PromiseState::PromiseState(prom_id_t id, env_id_t env_id, bool local)
     : local(local), argument(false), id(id), env_id(env_id), fn_id(""),
-      call_id(0), formal_parameter_position(-1), actual_argument_position(-1),
-      default_argument(false), evaluated(false),
+      call_id(0), formal_parameter_position(-1), default_argument(false),
+      evaluated(false),
       mutations(std::vector<int>(to_underlying_type(SlotMutation::COUNT))) {}
 
 void PromiseState::make_function_argument(fn_id_t fn_id, call_id_t call_id,
                                           int formal_parameter_position,
-                                          int actual_argument_position,
                                           bool default_argument) {
     this->argument = true;
     this->local = true;
     this->fn_id = fn_id;
     this->call_id = call_id;
     this->formal_parameter_position = formal_parameter_position;
-    this->actual_argument_position = actual_argument_position;
     this->default_argument = default_argument;
 }
 

@@ -22,7 +22,7 @@ class StrictnessAnalysis {
     void promise_environment_lookup(const prom_info_t &info,
                                     const SEXP promise);
     void promise_expression_lookup(const prom_info_t &info, const SEXP promise);
-    void promise_value_lookup(const prom_info_t &info, const SEXP promise);
+    void promise_value_lookup(const prom_info_t &prom_info, const SEXP promise);
     void promise_environment_set(const prom_info_t &info, const SEXP promise);
     void promise_expression_set(const prom_info_t &info, const SEXP promise);
     void promise_value_set(const prom_info_t &info, const SEXP promise);
@@ -32,8 +32,7 @@ class StrictnessAnalysis {
 
   private:
     bool is_executing(call_id_t call_id);
-    void update_argument_position(call_id_t call_id, fn_id_t fn_id,
-                                  int position);
+    void update_argument_position(call_id_t call_id, int position);
     void push_on_call_stack(CallState call_state);
     CallState pop_from_call_stack(call_id_t call_id);
 

@@ -12,10 +12,9 @@ class FunctionState {
     size_t call_count;
 
     FunctionState(int formal_parameter_count);
-    void increment_parameter_evaluation(int position);
     void increment_parameter_metaprogramming(int position);
     void increment_call();
-    void add_formal_parameter_usage_order(std::string order);
+    void add_formal_parameter_usage_order(const std::vector<int> &usage_order);
 };
 
 #endif /* __FUNCTION_STATE_H__ */

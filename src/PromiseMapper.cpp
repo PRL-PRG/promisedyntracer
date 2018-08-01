@@ -23,7 +23,6 @@ void PromiseMapper::promise_created(const prom_basic_info_t &prom_basic_info,
 
 void PromiseMapper::closure_entry(const closure_info_t &closure_info) {
     int max_position = 0;
-    int actual_argument_position = 0;
     for (const auto &argument : closure_info.arguments) {
         if (argument.value_type != PROMSXP)
             continue;
@@ -45,7 +44,7 @@ void PromiseMapper::closure_entry(const closure_info_t &closure_info) {
         // assert(it != promises_.end());
         promise_state.make_function_argument(
             closure_info.fn_id, closure_info.call_id, formal_parameter_position,
-            actual_argument_position, is_default_argument);
+            is_default_argument);
     }
 }
 

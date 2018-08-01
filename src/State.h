@@ -260,8 +260,8 @@ arg_id_t get_argument_id(dyntracer_t *dyntracer, call_id_t call_id,
                          const string &argument);
 
 void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
-                              const call_id_t call_id, const SEXP args,
-                              const SEXP environment);
+                              const call_id_t call_id, const SEXP formals,
+                              const SEXP args, const SEXP environment);
 
 size_t get_no_of_ancestor_promises_on_stack(dyntracer_t *dyntracer);
 size_t get_no_of_ancestors_on_stack();

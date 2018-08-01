@@ -32,10 +32,21 @@ void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
     int max_position = 0;
 
     for (const auto &argument : closure_info.arguments) {
+
         int formal_parameter_position = argument.formal_parameter_position;
-        // int actual_argument_position = argument.actual_argument_position;
+
         if (formal_parameter_position > max_position)
             max_position = formal_parameter_position;
+
+        /* Process arguments that have been unpromised.
+           Assume that unpromised arguments are forced.
+           Add them to usage order and increment the
+           corresponding formal parameter position.
+        */
+        if (argument.value_type != PROMSXP) {
+            call_stack_.back().update_formal_parameter_usage_order(
+                argument.formal_parameter_position);
+        }
     }
 
     auto fn_iter = functions_.insert(
@@ -55,10 +66,14 @@ void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info,
         call_id_t call_id = promise_state.call_id;
         if (!is_executing(call_id))
             return;
-        fn_id_t fn_id = promise_state.fn_id;
         int formal_parameter_position = promise_state.formal_parameter_position;
-        update_argument_position(call_id, fn_id, formal_parameter_position);
+        update_argument_position(call_id, formal_parameter_position);
     }
+}
+
+void StrictnessAnalysis::promise_value_lookup(const prom_info_t &prom_info,
+                                              const SEXP promise) {
+    promise_force_entry(prom_info, promise);
 }
 
 void StrictnessAnalysis::gc_promise_unmarked(const prom_id_t prom_id,
@@ -86,16 +101,7 @@ bool StrictnessAnalysis::is_executing(call_id_t call_id) {
 }
 
 void StrictnessAnalysis::update_argument_position(
-    call_id_t call_id, fn_id_t fn_id, int formal_parameter_position) {
-    auto it = functions_.find(fn_id);
-    assert(it != functions_.end());
-    // std::cout << std::endl
-    //           << fn_id << " , " << call_id << " , "
-    //           << formal_parameter_position;
-
-    FunctionState function_state = it->second;
-    function_state.increment_parameter_evaluation(formal_parameter_position);
-    it->second = function_state;
+    call_id_t call_id, int formal_parameter_position) {
 
     for (auto it = call_stack_.rbegin(); it != call_stack_.rend(); ++it) {
         if (it->call_id == call_id) {
@@ -116,7 +122,7 @@ void StrictnessAnalysis::remove_stack_frame(call_id_t call_id, fn_id_t fn_id) {
     auto it = functions_.find(fn_id);
     assert(it != functions_.end());
     it->second.add_formal_parameter_usage_order(
-        call_state.formal_parameter_usage_order);
+        call_state.get_formal_parameter_usage_order());
 }
 
 void StrictnessAnalysis::push_on_call_stack(CallState call_state) {

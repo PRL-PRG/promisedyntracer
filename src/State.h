@@ -115,7 +115,7 @@ typedef prom_addr_t prom_key_t;
 struct call_info_t {
     function_type fn_type;
     fn_id_t fn_id;
-    fn_addr_t fn_addr; // TODO unnecessary?
+    SEXP fn_addr; // TODO unnecessary?
     string fn_definition;
     string definition_location;
     string callsite_location;
@@ -131,6 +131,7 @@ struct call_info_t {
     stack_event_t parent_on_stack;
     sexptype_t return_value_type;
     string call_expression;
+    int formal_parameter_count;
 };
 
 typedef vector<arg_t> arglist_t;
@@ -152,7 +153,6 @@ struct prom_basic_info_t {
     stack_event_t parent_on_stack;
     int depth;
     std::string expression;
-    std::string expression_id;
 };
 
 struct prom_info_t : prom_basic_info_t {

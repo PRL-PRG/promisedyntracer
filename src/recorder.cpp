@@ -90,6 +90,8 @@ void update_closure_arguments(closure_info_t &info, dyntracer_t *dyntracer,
                                     formal_parameter_position);
         }
     }
+
+    info.formal_parameter_count = formal_parameter_position;
 }
 
 closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
@@ -111,7 +113,7 @@ closure_info_t function_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
     info.fn_id = get_function_id(dyntracer, info.fn_definition);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_FUNCTION_ID);
 
-    info.fn_addr = get_function_addr(op);
+    info.fn_addr = op;
     info.call_ptr = get_sexp_address(rho);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_ENTRY_RECORDER_OTHER);
 
@@ -171,7 +173,7 @@ closure_info_t function_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
     info.fn_id = get_function_id(dyntracer, info.fn_definition);
     RECORDER_TIMER_END_SEGMENT(FUNCTION_EXIT_RECORDER_FUNCTION_ID);
 
-    info.fn_addr = get_function_addr(op);
+    info.fn_addr = op;
 
     stack_event_t call_event = get_last_on_stack_by_type(
         tracer_state(dyntracer).full_stack, stack_type::CALL);
@@ -219,13 +221,12 @@ builtin_info_t builtin_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
                                       const SEXP op, const SEXP rho,
                                       function_type fn_type) {
     builtin_info_t info;
-
     const char *name = get_name(call);
     if (name != NULL)
         info.name = name;
     info.fn_definition = get_function_definition(dyntracer, op);
     info.fn_id = get_function_id(dyntracer, info.fn_definition, true);
-    info.fn_addr = get_function_addr(op);
+    info.fn_addr = op;
     info.name = info.name;
     info.fn_type = fn_type;
     info.fn_compiled = is_byte_compiled(op);
@@ -239,6 +240,7 @@ builtin_info_t builtin_entry_get_info(dyntracer_t *dyntracer, const SEXP call,
 
     get_stack_parent(info, tracer_state(dyntracer).full_stack);
     info.in_prom_id = get_parent_promise(dyntracer);
+    info.formal_parameter_count = PRIMARITY(op);
 
     return info;
 }
@@ -253,7 +255,7 @@ builtin_info_t builtin_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
         info.name = name;
     info.fn_definition = get_function_definition(dyntracer, op);
     info.fn_id = get_function_id(dyntracer, info.fn_definition, true);
-    info.fn_addr = get_function_addr(op);
+    info.fn_addr = op;
     stack_event_t elem = get_last_on_stack_by_type(
         tracer_state(dyntracer).full_stack, stack_type::CALL);
 
@@ -273,6 +275,7 @@ builtin_info_t builtin_exit_get_info(dyntracer_t *dyntracer, const SEXP call,
     get_stack_parent2(info, tracer_state(dyntracer).full_stack);
     info.in_prom_id = get_parent_promise(dyntracer);
     info.return_value_type = static_cast<sexptype_t>(TYPEOF(retval));
+    info.formal_parameter_count = PRIMARITY(op);
 
     return info;
 }
@@ -291,11 +294,11 @@ prom_basic_info_t create_promise_get_info(dyntracer_t *dyntracer,
     info.in_prom_id = get_parent_promise(dyntracer);
     info.depth = get_no_of_ancestor_promises_on_stack(dyntracer);
     void (*probe)(dyntracer_t *, SEXP);
-    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
-    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
-    info.expression = get_expression(PRCODE(promise));
-    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
-    info.expression_id = compute_hash(info.expression.c_str());
+    // probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    // dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.expression =
+        "not computed for efficiency"; // get_expression(PRCODE(promise));
+    // dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     return info;
 }
 
@@ -316,11 +319,11 @@ prom_info_t force_promise_entry_get_info(dyntracer_t *dyntracer,
     info.in_prom_id = get_parent_promise(dyntracer);
     info.depth = get_no_of_ancestor_promises_on_stack(dyntracer);
     void (*probe)(dyntracer_t *, SEXP);
-    probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
-    dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
-    info.expression = get_expression(PRCODE(promise));
-    dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
-    info.expression_id = compute_hash(info.expression.c_str());
+    // probe = dyntrace_active_dyntracer->probe_promise_expression_lookup;
+    // dyntrace_active_dyntracer->probe_promise_expression_lookup = NULL;
+    info.expression = "not computed for efficiency";
+    get_expression(PRCODE(promise));
+    // dyntrace_active_dyntracer->probe_promise_expression_lookup = probe;
     return info;
 }
 

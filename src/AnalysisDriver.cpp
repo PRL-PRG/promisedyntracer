@@ -48,9 +48,6 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_PROMISE_MAPPER);
 
-    if (analyze_functions())
-        function_analysis_.closure_entry(closure_info);
-
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_FUNCTION);
 
     if (analyze_promise_types())
@@ -67,17 +64,11 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
 void AnalysisDriver::special_entry(const builtin_info_t &special_info) {
     ANALYSIS_TIMER_RESET();
 
-    if (analyze_functions())
-        function_analysis_.special_entry(special_info);
-
     ANALYSIS_TIMER_END_SEGMENT(BUILTIN_ENTRY_ANALYSIS_FUNCTION);
 }
 
 void AnalysisDriver::builtin_entry(const builtin_info_t &builtin_info) {
     ANALYSIS_TIMER_RESET();
-
-    if (analyze_functions())
-        function_analysis_.builtin_entry(builtin_info);
 
     ANALYSIS_TIMER_END_SEGMENT(BUILTIN_ENTRY_ANALYSIS_FUNCTION);
 }
@@ -149,8 +140,8 @@ void AnalysisDriver::gc_promise_unmarked(const prom_id_t prom_id,
                                          const SEXP promise) {
     ANALYSIS_TIMER_RESET();
 
-    if (analyze_strictness())
-        strictness_analysis_.gc_promise_unmarked(prom_id, promise);
+    // if (analyze_strictness())
+    //     strictness_analysis_.gc_promise_unmarked(prom_id, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(GC_PROMISE_UNMARKED_ANALYSIS_STRICTNESS);
 
@@ -177,6 +168,9 @@ void AnalysisDriver::promise_environment_lookup(const prom_info_t &info,
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
+    if (analyze_strictness())
+        strictness_analysis_.promise_environment_lookup(info, promise);
+
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
@@ -190,6 +184,9 @@ void AnalysisDriver::promise_expression_lookup(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(
         LOOKUP_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
+
+    if (analyze_strictness())
+        strictness_analysis_.promise_expression_lookup(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(LOOKUP_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
@@ -217,6 +214,9 @@ void AnalysisDriver::promise_environment_set(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_PROMISE_MAPPER);
 
+    if (analyze_strictness())
+        strictness_analysis_.promise_environment_assign(info, promise);
+
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_ENVIRONMENT_ANALYSIS_STRICTNESS);
 }
 
@@ -229,6 +229,9 @@ void AnalysisDriver::promise_expression_set(const prom_info_t &info,
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_PROMISE_MAPPER);
 
+    if (analyze_strictness())
+        strictness_analysis_.promise_expression_assign(info, promise);
+
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_EXPRESSION_ANALYSIS_STRICTNESS);
 }
 
@@ -240,6 +243,9 @@ void AnalysisDriver::promise_value_set(const prom_info_t &info,
         promise_mapper_.promise_value_set(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_PROMISE_MAPPER);
+
+    if (analyze_strictness())
+        strictness_analysis_.promise_value_assign(info, promise);
 
     ANALYSIS_TIMER_END_SEGMENT(SET_PROMISE_VALUE_ANALYSIS_STRICTNESS);
 }

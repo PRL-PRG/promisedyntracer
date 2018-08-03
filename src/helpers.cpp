@@ -28,8 +28,7 @@ prom_id_t get_promise_id(dyntracer_t *dyntracer, SEXP promise) {
     }
 }
 
-prom_id_t make_promise_id(dyntracer_t *dyntracer, SEXP promise,
-                          bool negative) {
+prom_id_t make_promise_id(dyntracer_t *dyntracer, SEXP promise, bool negative) {
     if (promise == R_NilValue)
         return RID_INVALID;
 
@@ -51,8 +50,7 @@ prom_id_t make_promise_id(dyntracer_t *dyntracer, SEXP promise,
     return prom_id;
 }
 
-string get_function_definition(dyntracer_t *dyntracer,
-                               const SEXP function) {
+string get_function_definition(dyntracer_t *dyntracer, const SEXP function) {
     auto &definitions = tracer_state(dyntracer).function_definitions;
     auto it = definitions.find(function);
     if (it != definitions.end()) {
@@ -70,8 +68,7 @@ string get_function_definition(dyntracer_t *dyntracer,
     }
 }
 
-void remove_function_definition(dyntracer_t *dyntracer,
-                                const SEXP function) {
+void remove_function_definition(dyntracer_t *dyntracer, const SEXP function) {
     auto &definitions = tracer_state(dyntracer).function_definitions;
     auto it = definitions.find(function);
     if (it != definitions.end())
@@ -104,8 +101,7 @@ bool register_inserted_function(dyntracer_t *dyntracer, fn_id_t id) {
     return result.second;
 }
 
-bool negative_promise_already_inserted(dyntracer_t *dyntracer,
-                                       prom_id_t id) {
+bool negative_promise_already_inserted(dyntracer_t *dyntracer, prom_id_t id) {
     auto &already_inserted =
         tracer_state(dyntracer).already_inserted_negative_promises;
     return already_inserted.count(id) > 0;

@@ -9,11 +9,11 @@ StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
       promise_mapper_(promise_mapper),
       functions_(std::unordered_map<fn_id_t, FunctionState>(
           FUNCTION_MAPPING_BUCKET_SIZE)),
-      position_table_writer_{
-          output_dir + "/" + "function-formal-parameter-usage-count.csv",
-          {"function_id", "formal_parameter_position", "count"}},
+      position_table_writer_{output_dir + "/" + "parameter-usage-count.csv",
+                             {"function_id", "formal_parameter_position",
+                              "default", "use", "count"}},
       order_table_writer_{
-          output_dir + "/" + "function-formal-parameter-usage-order.csv",
+          output_dir + "/" + "parameter-usage-order.csv",
           {"function_id", "formal_parameter_position_usage_order", "count"}} {}
 
 /* When we enter a function, push information about it on a custom call stack.
@@ -25,60 +25,29 @@ void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
     call_id_t call_id = closure_info.call_id;
     fn_id_t fn_id = closure_info.fn_id;
 
-    push_on_call_stack(CallState(call_id, fn_id));
+    push_on_call_stack(
+        CallState(call_id, fn_id, closure_info.formal_parameter_count));
 
-    // max_position will contain the number of formal parameters, the
-    // function expects.
-    int max_position = 0;
+    auto fn_iter = functions_.insert(std::make_pair(
+        fn_id, FunctionState(closure_info.formal_parameter_count)));
+    fn_iter.first->second.increment_call();
 
     for (const auto &argument : closure_info.arguments) {
-
-        int formal_parameter_position = argument.formal_parameter_position;
-
-        if (formal_parameter_position > max_position)
-            max_position = formal_parameter_position;
-
         /* Process arguments that have been unpromised.
            Assume that unpromised arguments are forced.
            Add them to usage order and increment the
            corresponding formal parameter position.
         */
         if (argument.value_type != PROMSXP) {
-            call_stack_.back().update_formal_parameter_usage_order(
-                argument.formal_parameter_position);
+            call_stack_.back().add_use(argument.formal_parameter_position,
+                                       argument.default_argument,
+                                       PromiseUse::Force);
         }
     }
-
-    auto fn_iter = functions_.insert(
-        std::make_pair(fn_id, FunctionState(max_position + 1)));
-    fn_iter.first->second.increment_call();
 }
 
 void StrictnessAnalysis::closure_exit(const closure_info_t &closure_info) {
     remove_stack_frame(closure_info.call_id, closure_info.fn_id);
-}
-
-void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info,
-                                             const SEXP promise) {
-    prom_id_t prom_id = prom_info.prom_id;
-    PromiseState &promise_state = promise_mapper_->find(prom_id);
-    if (promise_state.local && promise_state.argument) {
-        call_id_t call_id = promise_state.call_id;
-        if (!is_executing(call_id))
-            return;
-        int formal_parameter_position = promise_state.formal_parameter_position;
-        update_argument_position(call_id, formal_parameter_position);
-    }
-}
-
-void StrictnessAnalysis::promise_value_lookup(const prom_info_t &prom_info,
-                                              const SEXP promise) {
-    promise_force_entry(prom_info, promise);
-}
-
-void StrictnessAnalysis::gc_promise_unmarked(const prom_id_t prom_id,
-                                             const SEXP promise) {
-    PromiseState &promise_state = promise_mapper_->find(prom_id);
 }
 
 void StrictnessAnalysis::context_jump(const unwind_info_t &info) {
@@ -87,26 +56,6 @@ void StrictnessAnalysis::context_jump(const unwind_info_t &info) {
             element.function_info.type == function_type::CLOSURE) {
             remove_stack_frame(element.call_id,
                                element.function_info.function_id);
-        }
-    }
-}
-
-bool StrictnessAnalysis::is_executing(call_id_t call_id) {
-    for (auto it = call_stack_.crbegin(); it != call_stack_.crend(); ++it) {
-        if (it->call_id == call_id) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void StrictnessAnalysis::update_argument_position(
-    call_id_t call_id, int formal_parameter_position) {
-
-    for (auto it = call_stack_.rbegin(); it != call_stack_.rend(); ++it) {
-        if (it->call_id == call_id) {
-            it->update_formal_parameter_usage_order(formal_parameter_position);
-            break;
         }
     }
 }
@@ -120,9 +69,13 @@ void StrictnessAnalysis::remove_stack_frame(call_id_t call_id, fn_id_t fn_id) {
     // pop call_id from call_stack
     CallState call_state = pop_from_call_stack(call_id);
     auto it = functions_.find(fn_id);
-    assert(it != functions_.end());
-    it->second.add_formal_parameter_usage_order(
-        call_state.get_formal_parameter_usage_order());
+    if (it == functions_.end()) {
+        std::cerr << "Function: " << fn_id << " and "
+                  << "call " << call_id << " not found." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    it->second.add_uses(call_state.get_uses());
+    it->second.add_order(call_state.get_order());
 }
 
 void StrictnessAnalysis::push_on_call_stack(CallState call_state) {
@@ -132,7 +85,13 @@ void StrictnessAnalysis::push_on_call_stack(CallState call_state) {
 CallState StrictnessAnalysis::pop_from_call_stack(call_id_t call_id) {
     CallState call_state = call_stack_.back();
     call_stack_.pop_back();
-    assert(call_state.call_id == call_id);
+
+    if (call_state.call_id != call_id) {
+        std::cerr << "call " << call_id << " does not match "
+                  << call_state.call_id << " on stack." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
     return call_state;
 }
 
@@ -147,10 +106,17 @@ void StrictnessAnalysis::serialize() {
 void StrictnessAnalysis::serialize_function_formal_parameter_usage_count() {
     for (auto const &pair : functions_) {
         fn_id_t fn_id = pair.first;
-        std::vector<int> parameter_evaluation =
-            pair.second.parameter_evaluation;
-        for (size_t i = 0; i < parameter_evaluation.size(); ++i) {
-            position_table_writer_.write_row(fn_id, i, parameter_evaluation[i]);
+        const auto &uses{pair.second.get_uses()};
+        for (std::size_t parameter = 0; parameter < uses.size(); ++parameter) {
+            for (std::size_t type = 0; type < 2; ++type) {
+                for (std::size_t use = 0;
+                     use < to_underlying_type(PromiseUse::Count); ++use) {
+                    position_table_writer_.write_row(
+                        fn_id, parameter, type,
+                        to_string(static_cast<PromiseUse>(use)),
+                        uses[parameter][type][use]);
+                }
+            }
         }
     }
 }
@@ -158,13 +124,73 @@ void StrictnessAnalysis::serialize_function_formal_parameter_usage_count() {
 void StrictnessAnalysis::serialize_function_formal_parameter_usage_order() {
     for (auto const &pair : functions_) {
         fn_id_t fn_id = pair.first;
-        std::vector<std::string> parameter_usage_order =
-            pair.second.parameter_usage_order;
-        std::vector<int> parameter_usage_order_count =
-            pair.second.parameter_usage_order_count;
-        for (size_t i = 0; i < parameter_usage_order.size(); ++i) {
-            order_table_writer_.write_row(fn_id, parameter_usage_order[i],
-                                          parameter_usage_order_count[i]);
+        const auto &orders_{pair.second.get_orders()};
+        const auto &order_counts_{pair.second.get_order_counts()};
+        for (std::size_t i = 0; i < orders_.size(); ++i) {
+            order_table_writer_.write_row(fn_id, orders_[i], order_counts_[i]);
         }
     }
+}
+
+void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info,
+                                             const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::Force);
+}
+
+void StrictnessAnalysis::promise_value_lookup(const prom_info_t &prom_info,
+                                              const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::ValueLookup);
+}
+
+void StrictnessAnalysis::promise_value_assign(const prom_info_t &prom_info,
+                                              const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::ValueAssign);
+}
+
+void StrictnessAnalysis::promise_environment_lookup(
+    const prom_info_t &prom_info, const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::EnvironmentLookup);
+}
+void StrictnessAnalysis::promise_environment_assign(
+    const prom_info_t &prom_info, const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::EnvironmentAssign);
+}
+void StrictnessAnalysis::promise_expression_lookup(const prom_info_t &prom_info,
+                                                   const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::ExpressionLookup);
+}
+void StrictnessAnalysis::promise_expression_assign(const prom_info_t &prom_info,
+                                                   const SEXP promise) {
+    _update_argument_usage(prom_info, promise, PromiseUse::ExpressionAssign);
+}
+
+void StrictnessAnalysis::_update_argument_usage(const prom_info_t &prom_info,
+                                                const SEXP promise,
+                                                PromiseUse use) {
+
+    PromiseState &promise_state{promise_mapper_->find(prom_info.prom_id)};
+
+    /* if promise is not an argument, then don't process it. */
+    if (!promise_state.argument) {
+        return;
+    }
+
+    call_id_t call_id = promise_state.call_id;
+
+    auto it{call_stack_.rbegin()};
+
+    for (; it != call_stack_.rend(); ++it) {
+        if (it->call_id == call_id) {
+            break;
+        }
+    }
+
+    /* this implies an escaped promise, the promise is alive but not
+       the function invocation that got this promise as its argument */
+    if (it == call_stack_.rend()) {
+        return;
+    }
+
+    it->add_use(promise_state.formal_parameter_position,
+                promise_state.default_argument, use);
 }

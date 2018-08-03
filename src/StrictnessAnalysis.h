@@ -19,20 +19,20 @@ class StrictnessAnalysis {
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);
-    void promise_environment_lookup(const prom_info_t &info,
-                                    const SEXP promise);
-    void promise_expression_lookup(const prom_info_t &info, const SEXP promise);
     void promise_value_lookup(const prom_info_t &prom_info, const SEXP promise);
-    void promise_environment_set(const prom_info_t &info, const SEXP promise);
-    void promise_expression_set(const prom_info_t &info, const SEXP promise);
-    void promise_value_set(const prom_info_t &info, const SEXP promise);
-    void gc_promise_unmarked(const prom_id_t prom_id, const SEXP promise);
+    void promise_value_assign(const prom_info_t &info, const SEXP promise);
+    void promise_environment_lookup(const prom_info_t &prom_info,
+                                    const SEXP promise);
+    void promise_environment_assign(const prom_info_t &prom_info,
+                                    const SEXP promise);
+    void promise_expression_lookup(const prom_info_t &prom_info,
+                                   const SEXP promise);
+    void promise_expression_assign(const prom_info_t &prom_info,
+                                   const SEXP promise);
     void context_jump(const unwind_info_t &info);
     void end(dyntracer_t *dyntracer);
 
   private:
-    bool is_executing(call_id_t call_id);
-    void update_argument_position(call_id_t call_id, int position);
     void push_on_call_stack(CallState call_state);
     CallState pop_from_call_stack(call_id_t call_id);
 
@@ -46,6 +46,8 @@ class StrictnessAnalysis {
     void serialize_function_call_count();
     void serialize_evaluation_context_counts();
     void serialize_promise_slot_accesses();
+    void _update_argument_usage(const prom_info_t &prom_info,
+                                const SEXP promise, const PromiseUse use);
 
     std::unordered_map<fn_id_t, FunctionState> functions_;
     std::string output_dir_;

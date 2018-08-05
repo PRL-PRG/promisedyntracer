@@ -48,6 +48,9 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
 
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_PROMISE_MAPPER);
 
+    if (analyze_functions())
+        function_analysis_.closure_entry(closure_info);
+
     ANALYSIS_TIMER_END_SEGMENT(FUNCTION_ENTRY_ANALYSIS_FUNCTION);
 
     if (analyze_promise_types())
@@ -64,11 +67,17 @@ void AnalysisDriver::closure_entry(const closure_info_t &closure_info) {
 void AnalysisDriver::special_entry(const builtin_info_t &special_info) {
     ANALYSIS_TIMER_RESET();
 
+    if (analyze_functions())
+        function_analysis_.special_entry(special_info);
+
     ANALYSIS_TIMER_END_SEGMENT(BUILTIN_ENTRY_ANALYSIS_FUNCTION);
 }
 
 void AnalysisDriver::builtin_entry(const builtin_info_t &builtin_info) {
     ANALYSIS_TIMER_RESET();
+
+    if (analyze_functions())
+        function_analysis_.builtin_entry(builtin_info);
 
     ANALYSIS_TIMER_END_SEGMENT(BUILTIN_ENTRY_ANALYSIS_FUNCTION);
 }
@@ -300,6 +309,9 @@ void AnalysisDriver::environment_remove_var(const SEXP symbol, const SEXP rho) {
 
 void AnalysisDriver::context_jump(const unwind_info_t &info) {
     ANALYSIS_TIMER_RESET();
+
+    if (analyze_functions())
+        function_analysis_.context_jump(info);
 
     if (analyze_strictness())
         strictness_analysis_.context_jump(info);

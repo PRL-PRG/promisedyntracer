@@ -41,13 +41,14 @@ class StrictnessAnalysis {
     void update_promise_slot_access_count(const PromiseState &promise_state);
     void remove_stack_frame(call_id_t call_id, fn_id_t fn_id);
     void serialize();
-    void serialize_function_formal_parameter_usage_count();
-    void serialize_function_formal_parameter_usage_order();
+    void serialize_parameter_usage_order();
+    void serialize_parameter_usage_count();
     void serialize_function_call_count();
     void serialize_evaluation_context_counts();
     void serialize_promise_slot_accesses();
-    void _update_argument_usage(const prom_info_t &prom_info,
-                                const SEXP promise, const PromiseUse use);
+
+    void metaprogram_(const prom_info_t &prom_info, const SEXP promise);
+    CallState *get_call_state(const call_id_t call_id);
 
     std::unordered_map<fn_id_t, FunctionState> functions_;
     std::string output_dir_;
@@ -55,7 +56,7 @@ class StrictnessAnalysis {
 
     std::vector<CallState> call_stack_;
     PromiseMapper *const promise_mapper_;
-    TableWriter position_table_writer_;
+    TableWriter usage_table_writer_;
     TableWriter order_table_writer_;
 };
 

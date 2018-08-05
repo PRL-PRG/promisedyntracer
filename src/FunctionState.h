@@ -1,7 +1,7 @@
 #ifndef __FUNCTION_STATE_H__
 #define __FUNCTION_STATE_H__
 
-#include "PromiseUse.h"
+#include "ParameterUse.h"
 #include "State.h"
 #include "utilities.h"
 
@@ -9,24 +9,34 @@ class FunctionState {
   public:
     FunctionState(std::size_t formal_parameter_count)
         : formal_parameter_count_{formal_parameter_count},
-          uses_{formal_parameter_count,
-                std::vector<std::vector<int>>(
-                    2, std::vector<int>(to_underlying_type(PromiseUse::Count),
-                                        0))},
-          call_count_{0} {}
+          default_parameter_uses_{formal_parameter_count},
+          custom_parameter_uses_{formal_parameter_count}, call_count_{0} {}
+
+    const std::size_t get_formal_parameter_count() const {
+        return formal_parameter_count_;
+    }
+
+    const std::vector<ParameterUse> &get_custom_parameter_uses() const {
+        return custom_parameter_uses_;
+    }
+
+    const std::vector<ParameterUse> &get_default_parameter_uses() const {
+        return default_parameter_uses_;
+    }
 
     void increment_call() { ++call_count_; }
 
-    void add_uses(const std::vector<std::vector<std::vector<int>>> &uses) {
+    void update_custom_parameter_uses(
+        const std::vector<ParameterUse> &custom_parameter_uses) {
+        for (auto i = 0; i < custom_parameter_uses_.size(); ++i) {
+            custom_parameter_uses_[i] += custom_parameter_uses[i];
+        }
+    }
 
-        for (std::size_t parameter = 0; parameter < formal_parameter_count_;
-             ++parameter) {
-            for (std::size_t type = 0; type < 2; ++type) {
-                for (std::size_t use = 0;
-                     use < to_underlying_type(PromiseUse::Count); ++use) {
-                    uses_[parameter][type][use] += uses[parameter][type][use];
-                }
-            }
+    void update_default_parameter_uses(
+        const std::vector<ParameterUse> &default_parameter_uses) {
+        for (auto i = 0; i < default_parameter_uses_.size(); ++i) {
+            default_parameter_uses_[i] += default_parameter_uses[i];
         }
     }
 
@@ -41,10 +51,6 @@ class FunctionState {
         order_counts_.push_back(1);
     }
 
-    const std::vector<std::vector<std::vector<int>>> &get_uses() const {
-        return uses_;
-    }
-
     const std::vector<std::string> &get_orders() const { return orders_; }
 
     const std::vector<std::size_t> &get_order_counts() const {
@@ -54,7 +60,8 @@ class FunctionState {
   private:
     std::size_t formal_parameter_count_;
     std::size_t call_count_;
-    std::vector<std::vector<std::vector<int>>> uses_;
+    std::vector<ParameterUse> default_parameter_uses_;
+    std::vector<ParameterUse> custom_parameter_uses_;
     std::vector<std::string> orders_;
     std::vector<std::size_t> order_counts_;
 };

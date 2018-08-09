@@ -11,9 +11,11 @@ destroy_dyntracer <- function(dyntracer)
 dyntrace_promises <- function(expr, trace_filepath, output_dir,
                               truncate=FALSE, enable_trace = TRUE,
                               verbose=FALSE, analysis_switch = emptyenv()) {
+  write(Sys.time(), file.path(output_dir, "BEGIN"))
   dyntracer <- create_dyntracer(trace_filepath, output_dir, truncate,
                                 enable_trace, verbose, analysis_switch)
   result <- dyntrace(dyntracer, expr)
   destroy_dyntracer(dyntracer)
+  write(Sys.time(), file.path(output_dir, "FINISH"))
   result
 }

@@ -1,11 +1,12 @@
 #ifndef __STRICTNESS_ANALYSIS_H__
 #define __STRICTNESS_ANALYSIS_H__
 
+#include "BinaryTableWriter.h"
+#include "BinaryTableWriter.h"
 #include "CallState.h"
 #include "FunctionState.h"
 #include "PromiseMapper.h"
 #include "State.h"
-#include "TableWriter.h"
 #include <algorithm>
 #include <tuple>
 #include <unordered_map>
@@ -42,7 +43,7 @@ class StrictnessAnalysis {
     void remove_stack_frame(call_id_t call_id, fn_id_t fn_id);
     void serialize();
     void serialize_parameter_usage_order();
-    void serialize_parameter_usage_count();
+    void serialize_parameter_usage_count(const CallState &call_state);
     void serialize_function_call_count();
     void serialize_evaluation_context_counts();
     void serialize_promise_slot_accesses();
@@ -56,8 +57,8 @@ class StrictnessAnalysis {
 
     std::vector<CallState> call_stack_;
     PromiseMapper *const promise_mapper_;
-    TableWriter usage_table_writer_;
-    TableWriter order_table_writer_;
+    BinaryTableWriter usage_table_writer_;
+    BinaryTableWriter order_table_writer_;
 };
 
 #endif /* __STRICTNESS_ANALYSIS_H__ */

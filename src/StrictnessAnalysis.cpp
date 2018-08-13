@@ -10,8 +10,8 @@ StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
       functions_(std::unordered_map<fn_id_t, FunctionState>(
           FUNCTION_MAPPING_BUCKET_SIZE)),
       usage_table_writer_{output_dir + "/" + "parameter-usage-count.csv",
-                          {"function_id", "position", "default", "unpromised",
-                           "force", "lookup", "metaprogram",
+                          {"function_id", "call_id", "position", "default",
+                           "unpromised", "force", "lookup", "metaprogram",
                            "metaprogram_and_lookup", "use"}},
       order_table_writer_{output_dir + "/" + "parameter-force-order.csv",
                           {"function_id", "order", "count"}} {}
@@ -69,10 +69,7 @@ void StrictnessAnalysis::remove_stack_frame(call_id_t call_id, fn_id_t fn_id) {
                   << "call " << call_id << " not found." << std::endl;
         exit(EXIT_FAILURE);
     }
-    it->second.update_default_parameter_uses(
-        call_state.get_default_parameter_uses());
-    it->second.update_custom_parameter_uses(
-        call_state.get_custom_parameter_uses());
+
     it->second.add_order(call_state.get_order());
 }
 
@@ -90,49 +87,43 @@ CallState StrictnessAnalysis::pop_from_call_stack(call_id_t call_id) {
         exit(EXIT_FAILURE);
     }
 
+    serialize_parameter_usage_count(call_state);
     return call_state;
 }
 
 void StrictnessAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
-void StrictnessAnalysis::serialize() {
+void StrictnessAnalysis::serialize() { serialize_parameter_usage_order(); }
 
-    serialize_parameter_usage_count();
-    serialize_parameter_usage_order();
-}
+void StrictnessAnalysis::serialize_parameter_usage_count(
+    const CallState &call_state) {
 
-void StrictnessAnalysis::serialize_parameter_usage_count() {
-    for (const auto &kv : functions_) {
+    const auto &default_parameter_uses{call_state.get_default_parameter_uses()};
+    const auto &custom_parameter_uses{call_state.get_custom_parameter_uses()};
 
-        const auto &fn_id{kv.first};
-        const auto &function_state{kv.second};
-        const auto &default_parameter_uses{
-            function_state.get_default_parameter_uses()};
-        const auto &custom_parameter_uses{
-            function_state.get_custom_parameter_uses()};
+    for (int position = 0; position < call_state.get_formal_parameter_count();
+         ++position) {
 
-        for (std::size_t position = 0;
-             position < function_state.get_formal_parameter_count();
-             ++position) {
+        const auto &default_parameter{default_parameter_uses[position]};
+        const auto &custom_parameter{custom_parameter_uses[position]};
 
-            const auto &default_parameter{default_parameter_uses[position]};
-            const auto &custom_parameter{custom_parameter_uses[position]};
+        usage_table_writer_.write_row(
+            call_state.get_function_id(),
+            static_cast<double>(call_state.get_call_id()), position, "DA",
+            default_parameter.get_unpromised(), default_parameter.get_forced(),
+            default_parameter.get_looked_up(),
+            default_parameter.get_metaprogrammed(),
+            default_parameter.get_metaprogrammed_and_looked_up(),
+            default_parameter.get_used());
 
-            usage_table_writer_.write_row(
-                fn_id, position, "DA", default_parameter.get_unpromised(),
-                default_parameter.get_forced(),
-                default_parameter.get_looked_up(),
-                default_parameter.get_metaprogrammed(),
-                default_parameter.get_metaprogrammed_and_looked_up(),
-                default_parameter.get_used());
-
-            usage_table_writer_.write_row(
-                fn_id, position, "CA", custom_parameter.get_unpromised(),
-                custom_parameter.get_forced(), custom_parameter.get_looked_up(),
-                custom_parameter.get_metaprogrammed(),
-                custom_parameter.get_metaprogrammed_and_looked_up(),
-                custom_parameter.get_used());
-        }
+        usage_table_writer_.write_row(
+            call_state.get_function_id(),
+            static_cast<double>(call_state.get_call_id()), position, "CA",
+            custom_parameter.get_unpromised(), custom_parameter.get_forced(),
+            custom_parameter.get_looked_up(),
+            custom_parameter.get_metaprogrammed(),
+            custom_parameter.get_metaprogrammed_and_looked_up(),
+            custom_parameter.get_used());
     }
 }
 
@@ -142,7 +133,8 @@ void StrictnessAnalysis::serialize_parameter_usage_order() {
         const auto &orders_{pair.second.get_orders()};
         const auto &order_counts_{pair.second.get_order_counts()};
         for (std::size_t i = 0; i < orders_.size(); ++i) {
-            order_table_writer_.write_row(fn_id, orders_[i], order_counts_[i]);
+            order_table_writer_.write_row(fn_id, orders_[i],
+                                          (double)order_counts_[i]);
         }
     }
 }

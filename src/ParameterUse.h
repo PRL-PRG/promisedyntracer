@@ -1,6 +1,7 @@
 #ifndef PROMISE_DYNTRACER_PARAMETER_USE_H
 #define PROMISE_DYNTRACER_PARAMETER_USE_H
 
+#include <cstdint>
 #include <string>
 
 class ParameterUse {
@@ -9,18 +10,18 @@ class ParameterUse {
         : unpromised_(0), forced_(0), looked_up_(0), metaprogrammed_(0),
           metaprogrammed_and_looked_up_(0), used_(0) {}
 
-    size_t get_unpromised() const { return unpromised_; }
+    std::uint8_t get_unpromised() const { return unpromised_; }
 
     void unpromise() { unpromised_ = 1; }
 
-    size_t get_forced() const { return forced_; }
+    std::uint8_t get_forced() const { return forced_; }
 
     void force() {
         forced_ = 1;
         used_ = 1;
     }
 
-    size_t get_looked_up() const { return looked_up_; }
+    std::uint8_t get_looked_up() const { return looked_up_; }
 
     void lookup() {
         used_ = 1;
@@ -33,7 +34,7 @@ class ParameterUse {
         }
     }
 
-    size_t get_metaprogrammed() const { return metaprogrammed_; }
+    std::uint8_t get_metaprogrammed() const { return metaprogrammed_; }
 
     void metaprogram() {
         used_ = 1;
@@ -46,7 +47,7 @@ class ParameterUse {
         }
     }
 
-    size_t get_metaprogrammed_and_looked_up() const {
+    std::uint8_t get_metaprogrammed_and_looked_up() const {
         return metaprogrammed_and_looked_up_;
     }
 
@@ -56,7 +57,7 @@ class ParameterUse {
         metaprogrammed_and_looked_up_ = 1;
     }
 
-    size_t get_used() const { return used_; }
+    std::uint8_t get_used() const { return used_; }
 
     void operator+=(const ParameterUse &rhs) {
         unpromised_ += rhs.get_unpromised();
@@ -68,12 +69,12 @@ class ParameterUse {
     }
 
   private:
-    size_t unpromised_;
-    size_t forced_;
-    size_t looked_up_;
-    size_t metaprogrammed_;
-    size_t metaprogrammed_and_looked_up_;
-    size_t used_;
+    std::uint8_t unpromised_;
+    std::uint8_t forced_;
+    std::uint8_t looked_up_;
+    std::uint8_t metaprogrammed_;
+    std::uint8_t metaprogrammed_and_looked_up_;
+    std::uint8_t used_;
 };
 
 #endif /* PROMISE_DYNTRACER_PARAMETER_USE_H */

@@ -5,7 +5,7 @@
 #include "FunctionState.h"
 #include "PromiseState.h"
 #include "State.h"
-#include "TableWriter.h"
+#include "TextTableWriter.h"
 #include <algorithm>
 #include <tuple>
 #include <unordered_map>
@@ -54,8 +54,8 @@ class SideEffectAnalysis {
     tracer_state_t &tracer_state_;
     const timestamp_t undefined_timestamp;
     std::unordered_set<prom_id_t> side_effect_observers_;
-    TableWriter caused_side_effects_table_writer_;
-    TableWriter observed_side_effects_table_writer_;
+    TextTableWriter caused_side_effects_table_writer_;
+    TextTableWriter observed_side_effects_table_writer_;
 };
 
 #endif /* __SIDE_EFFECT_ANALYSIS_H__ */

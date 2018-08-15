@@ -5,7 +5,7 @@
 #include "FunctionState.h"
 #include "PromiseState.h"
 #include "State.h"
-#include "TextTableWriter.h"
+#include "table.h"
 #include <algorithm>
 #include <tuple>
 #include <unordered_map>
@@ -21,7 +21,9 @@ class SideEffectAnalysis {
     const static std::vector<std::string> scopes;
 
     SideEffectAnalysis(tracer_state_t &tracer_state,
-                       const std::string &output_dir);
+                       const std::string &output_dir, bool binary,
+                       int compression_level);
+
     void promise_created(const prom_basic_info_t &prom_basic_info,
                          const SEXP promise);
     void environment_define_var(const SEXP symbol, const SEXP value,
@@ -34,6 +36,8 @@ class SideEffectAnalysis {
     void environment_action(const SEXP rho,
                             std::vector<long long int> &counter);
     void end(dyntracer_t *dyntracer);
+
+    ~SideEffectAnalysis();
 
   private:
     void serialize();
@@ -54,8 +58,8 @@ class SideEffectAnalysis {
     tracer_state_t &tracer_state_;
     const timestamp_t undefined_timestamp;
     std::unordered_set<prom_id_t> side_effect_observers_;
-    TextTableWriter caused_side_effects_table_writer_;
-    TextTableWriter observed_side_effects_table_writer_;
+    DataTableStream *caused_side_effects_data_table_;
+    DataTableStream *observed_side_effects_data_table_;
 };
 
 #endif /* __SIDE_EFFECT_ANALYSIS_H__ */

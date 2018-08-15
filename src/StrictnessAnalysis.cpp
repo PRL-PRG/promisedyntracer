@@ -3,18 +3,24 @@
 const size_t FUNCTION_MAPPING_BUCKET_SIZE = 20000;
 
 StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
+                                       PromiseMapper *const promise_mapper,
                                        const std::string &output_dir,
-                                       PromiseMapper *const promise_mapper)
+                                       bool binary, int compression_level)
     : tracer_state_(tracer_state), output_dir_(output_dir),
       promise_mapper_(promise_mapper),
       functions_(std::unordered_map<fn_id_t, FunctionState>(
-          FUNCTION_MAPPING_BUCKET_SIZE)),
-      usage_table_writer_{output_dir + "/" + "parameter-usage-count.csv",
-                          {"function_id", "call_id", "position", "default",
-                           "unpromised", "force", "lookup", "metaprogram",
-                           "metaprogram_and_lookup", "use"}},
-      order_table_writer_{output_dir + "/" + "parameter-force-order.csv",
-                          {"function_id", "order", "count"}} {}
+          FUNCTION_MAPPING_BUCKET_SIZE)) {
+
+    usage_data_table_ = create_data_table(
+        output_dir + "/" + "parameter-usage-count",
+        {"function_id", "call_id", "position", "default", "unpromised", "force",
+         "lookup", "metaprogram", "metaprogram_and_lookup", "use"},
+        binary, compression_level);
+
+    order_data_table_ = create_data_table(
+        output_dir + "/" + "parameter-force-order",
+        {"function_id", "order", "count"}, binary, compression_level);
+}
 
 /* When we enter a function, push information about it on a custom call stack.
    We also update the function table to create an entry for this function.
@@ -93,6 +99,11 @@ CallState StrictnessAnalysis::pop_from_call_stack(call_id_t call_id) {
 
 void StrictnessAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
+StrictnessAnalysis::~StrictnessAnalysis() {
+    delete usage_data_table_;
+    delete order_data_table_;
+}
+
 void StrictnessAnalysis::serialize() { serialize_parameter_usage_order(); }
 
 void StrictnessAnalysis::serialize_parameter_usage_count(
@@ -107,7 +118,7 @@ void StrictnessAnalysis::serialize_parameter_usage_count(
         const auto &default_parameter{default_parameter_uses[position]};
         const auto &custom_parameter{custom_parameter_uses[position]};
 
-        usage_table_writer_.write_row(
+        usage_data_table_->write_row(
             call_state.get_function_id(),
             static_cast<double>(call_state.get_call_id()), position, "DA",
             default_parameter.get_unpromised(), default_parameter.get_forced(),
@@ -116,7 +127,7 @@ void StrictnessAnalysis::serialize_parameter_usage_count(
             default_parameter.get_metaprogrammed_and_looked_up(),
             default_parameter.get_used());
 
-        usage_table_writer_.write_row(
+        usage_data_table_->write_row(
             call_state.get_function_id(),
             static_cast<double>(call_state.get_call_id()), position, "CA",
             custom_parameter.get_unpromised(), custom_parameter.get_forced(),
@@ -133,8 +144,8 @@ void StrictnessAnalysis::serialize_parameter_usage_order() {
         const auto &orders_{pair.second.get_orders()};
         const auto &order_counts_{pair.second.get_order_counts()};
         for (std::size_t i = 0; i < orders_.size(); ++i) {
-            order_table_writer_.write_row(fn_id, orders_[i],
-                                          (double)order_counts_[i]);
+            order_data_table_->write_row(fn_id, orders_[i],
+                                         (double)order_counts_[i]);
         }
     }
 }

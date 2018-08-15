@@ -15,6 +15,7 @@ class AnalysisDriver {
 
   public:
     AnalysisDriver(tracer_state_t &tracer_state, const std::string &output_dir,
+                   bool binary, int compression_level,
                    const AnalysisSwitch analysis_switch);
 
     void begin(dyntracer_t *dyntracer);

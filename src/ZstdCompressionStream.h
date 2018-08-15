@@ -36,6 +36,8 @@ class ZstdCompressionStream : public Stream {
         }
     }
 
+    int get_compression_level() const { return compression_level_; }
+
     void write(const void *buffer, std::size_t bytes) override {
         const char *buf = static_cast<const char *>(buffer);
         std::size_t copied_bytes = 0;
@@ -79,7 +81,6 @@ class ZstdCompressionStream : public Stream {
     }
 
     void finalize() {
-        flush();
         if (output_buffer_ != nullptr && input_buffer_ != nullptr) {
             flush();
             size_t unflushed;

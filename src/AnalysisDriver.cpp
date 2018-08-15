@@ -1,7 +1,7 @@
 #include "AnalysisDriver.h"
-
 AnalysisDriver::AnalysisDriver(tracer_state_t &tracer_state,
-                               const std::string &output_dir,
+                               const std::string &output_dir, bool binary,
+                               int compression_level,
                                const AnalysisSwitch analysis_switch)
     : analysis_switch_{analysis_switch},
       promise_mapper_{tracer_state, output_dir},
@@ -10,8 +10,10 @@ AnalysisDriver::AnalysisDriver(tracer_state_t &tracer_state,
       function_analysis_{tracer_state, output_dir},
       promise_evaluation_analysis_{tracer_state, output_dir, &promise_mapper_},
       promise_type_analysis_{tracer_state, output_dir},
-      strictness_analysis_{tracer_state, output_dir, &promise_mapper_},
-      side_effect_analysis_{tracer_state, output_dir} {
+      strictness_analysis_{tracer_state, &promise_mapper_, output_dir, binary,
+                           compression_level},
+      side_effect_analysis_{tracer_state, output_dir, binary,
+                            compression_level} {
 
     std::cout << analysis_switch;
 }

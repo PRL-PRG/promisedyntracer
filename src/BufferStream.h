@@ -40,10 +40,9 @@ class BufferStream : public Stream {
         }
     }
 
-    void fill(std::uint8_t byte, std::size_t count) {
+    void fill(char byte, std::size_t count) {
         /* TODO - nullptr ?*/
-        char *buffer =
-            static_cast<char *>(std::calloc(count, sizeof(std::uint8_t)));
+        char *buffer = static_cast<char *>(std::calloc(count, sizeof(char)));
         for (std::size_t index = 0; index < count; ++index) {
             buffer[index] = byte;
         }

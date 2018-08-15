@@ -2,6 +2,7 @@
 #define PROMISEDYNTRACER_BUFFER_STREAM_H
 
 #include "Stream.h"
+#include "utilities.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstdio>
@@ -23,7 +24,7 @@ class BufferStream : public Stream {
 
     void set_capacity(std::size_t capacity) {
         std::free(buffer_);
-        if ((buffer_ = static_cast<char *>(std::calloc(capacity, 1))) ==
+        if ((buffer_ = static_cast<char *>(calloc_or_die(capacity, 1))) ==
             nullptr) {
             std::fprintf(stderr, "unable to reserve buffer with capacity %ld",
                          capacity);
@@ -41,8 +42,7 @@ class BufferStream : public Stream {
     }
 
     void fill(char byte, std::size_t count) {
-        /* TODO - nullptr ?*/
-        char *buffer = static_cast<char *>(std::calloc(count, sizeof(char)));
+        char *buffer = static_cast<char *>(calloc_or_die(count, sizeof(char)));
         for (std::size_t index = 0; index < count; ++index) {
             buffer[index] = byte;
         }

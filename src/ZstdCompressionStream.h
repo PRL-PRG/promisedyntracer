@@ -13,12 +13,11 @@ class ZstdCompressionStream : public Stream {
           compression_stream_{nullptr} {
 
         input_buffer_size_ = ZSTD_CStreamInSize();
-        input_buffer_ = static_cast<char *>(
-            std::malloc(input_buffer_size_)); /* TODO - nullptr? */
+        input_buffer_ = static_cast<char *>(malloc_or_die(input_buffer_size_));
 
         output_buffer_size_ = ZSTD_CStreamOutSize();
-        output_buffer_ = static_cast<char *>(
-            std::malloc(output_buffer_size_)); /* TODO - nullptr? */
+        output_buffer_ =
+            static_cast<char *>(malloc_or_die(output_buffer_size_));
 
         compression_stream_ = ZSTD_createCStream();
         if (compression_stream_ == NULL) {

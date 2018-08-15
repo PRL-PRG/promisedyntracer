@@ -53,6 +53,9 @@ class ZstdCompressionStream : public Stream {
     }
 
     void flush() {
+        if (output_buffer_ == nullptr || input_buffer_ == nullptr) {
+            return;
+        }
         ZSTD_inBuffer input{input_buffer_, input_buffer_index_, 0};
         ZSTD_outBuffer output{output_buffer_, output_buffer_size_, 0};
         std::size_t compressed_bytes = 0;
@@ -80,27 +83,33 @@ class ZstdCompressionStream : public Stream {
     }
 
     void finalize() {
-        if (output_buffer_ != nullptr && input_buffer_ != nullptr) {
-            flush();
-            size_t unflushed;
-            ZSTD_outBuffer output = {output_buffer_, output_buffer_size_, 0};
-            while (unflushed = ZSTD_endStream(compression_stream_, &output)) {
-                /* close frame */
-                if (ZSTD_isError(unflushed)) {
-                    fprintf(stderr, "ZSTD_endStream() error : %s \n",
-                            ZSTD_getErrorName(unflushed));
-                    exit(EXIT_FAILURE);
-                }
-                get_sink()->write(output.dst, output.pos);
-                output.pos = 0;
-            }
-
-            ZSTD_freeCStream(compression_stream_);
-            std::free(input_buffer_);
-            input_buffer_ = nullptr;
-            std::free(output_buffer_);
-            output_buffer_ = nullptr;
+        if (output_buffer_ == nullptr || input_buffer_ == nullptr) {
+            return;
         }
+        flush();
+        size_t unflushed;
+        ZSTD_outBuffer output = {output_buffer_, output_buffer_size_, 0};
+        while (unflushed = ZSTD_endStream(compression_stream_, &output)) {
+            /* close frame */
+            if (ZSTD_isError(unflushed)) {
+                fprintf(stderr, "ZSTD_endStream() error : %s \n",
+                        ZSTD_getErrorName(unflushed));
+                exit(EXIT_FAILURE);
+            }
+            get_sink()->write(output.dst, output.pos);
+            output.pos = 0;
+        }
+        /* handles the remaining output in buffer after the loop */
+        get_sink()->write(output.dst, output.pos);
+
+        ZSTD_freeCStream(compression_stream_);
+        std::free(input_buffer_);
+        input_buffer_ = nullptr;
+        input_buffer_size_ = 0;
+        input_buffer_index_ = 0;
+        std::free(output_buffer_);
+        output_buffer_ = nullptr;
+        output_buffer_size_ = 0;
     }
 
     ~ZstdCompressionStream() { finalize(); }

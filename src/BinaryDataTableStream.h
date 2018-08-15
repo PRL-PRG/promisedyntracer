@@ -50,7 +50,6 @@ class BinaryDataTableStream : public DataTableStream {
            the beginning of file.
         */
         write_header_();
-        std::cerr << "Row count is " << get_current_row_index() << std::endl;
     }
 
   private:

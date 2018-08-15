@@ -37,7 +37,7 @@ write_data_table <- function(df, filepath, truncate = TRUE,
 
 read_data_table <- function(filepath) {
 
-    compression_level <- if(endsWith(filepath, "zstd")) 1 else 0
-    binary <- endsWith(filepath, ".bin") | endsWith(filepath, ".bin.zstd")
+    compression_level <- if(endsWith(filepath, "zst")) 1 else 0
+    binary <- endsWith(filepath, ".bin") | endsWith(filepath, ".bin.zst")
     .Call(C_read_data_table, filepath, binary, compression_level)
 }

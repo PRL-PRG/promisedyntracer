@@ -7,7 +7,7 @@ DataTableStream *create_data_table(const std::string &table_filepath,
                                    const std::vector<std::string> &column_names,
                                    bool truncate, bool binary,
                                    int compression_level) {
-    std::string extension = compression_level == 0 ? "" : ".zstd";
+    std::string extension = compression_level == 0 ? "" : ".zst";
     DataTableStream *stream = nullptr;
     if (binary) {
         stream = new BinaryDataTableStream(table_filepath + ".bin" + extension,

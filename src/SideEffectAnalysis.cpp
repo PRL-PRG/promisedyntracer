@@ -9,19 +9,20 @@ const std::vector<std::string> SideEffectAnalysis::scopes{"promise", "function",
 
 SideEffectAnalysis::SideEffectAnalysis(tracer_state_t &tracer_state,
                                        const std::string &output_dir,
-                                       bool binary, int compression_level)
+                                       bool truncate, bool binary,
+                                       int compression_level)
     : tracer_state_(tracer_state), output_dir_(output_dir),
       defines_{std::vector<long long int>(3)},
       assigns_{std::vector<long long int>(3)},
       removals_{std::vector<long long int>(3)},
       lookups_{std::vector<long long int>(3)}, timestamp_{0},
       undefined_timestamp{std::numeric_limits<std::size_t>::max()},
-      observed_side_effects_data_table_{
-          create_data_table(output_dir + "/" + "observed-side-effects",
-                            {"scope", "count"}, binary, compression_level)},
+      observed_side_effects_data_table_{create_data_table(
+          output_dir + "/" + "observed-side-effects", {"scope", "count"},
+          truncate, binary, compression_level)},
       caused_side_effects_data_table_{create_data_table(
           output_dir + "/" + "caused-side-effects",
-          {"scope", "action", "count"}, binary, compression_level)} {}
+          {"scope", "action", "count"}, truncate, binary, compression_level)} {}
 
 void SideEffectAnalysis::promise_created(
     const prom_basic_info_t &prom_basic_info, const SEXP promise) {

@@ -7,8 +7,9 @@ class BinaryDataTableStream : public DataTableStream {
   public:
     explicit BinaryDataTableStream(const std::string &table_filepath,
                                    const std::vector<std::string> &column_names,
-                                   int compression_level)
-        : DataTableStream(table_filepath, column_names, compression_level),
+                                   bool truncate, int compression_level)
+        : DataTableStream(table_filepath, column_names, truncate,
+                          compression_level),
           column_types_{column_names.size(), {NILSXP, 0}} {
 
         std::size_t header_buffer_size = 8;

@@ -16,7 +16,7 @@ class Context {
         : state_(new tracer_state_t()),
           serializer_(
               new TraceSerializer(trace_filepath, truncate, enable_trace)),
-          driver_(new AnalysisDriver(*state_, output_dir, binary,
+          driver_(new AnalysisDriver(*state_, output_dir, truncate, binary,
                                      compression_level, analysis_switch)),
           debugger_(new DebugSerializer(verbose)), output_dir_{output_dir},
           binary_{binary}, compression_level_{compression_level} {}

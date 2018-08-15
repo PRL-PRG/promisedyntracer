@@ -15,8 +15,8 @@ class StrictnessAnalysis {
   public:
     StrictnessAnalysis(const tracer_state_t &tracer_state,
                        PromiseMapper *const promise_mapper,
-                       const std::string &output_dir, bool binary,
-                       int compression_level);
+                       const std::string &output_dir, bool truncate,
+                       bool binary, int compression_level);
     void closure_entry(const closure_info_t &closure_info);
     void closure_exit(const closure_info_t &closure_info);
     void promise_force_entry(const prom_info_t &prom_info, const SEXP promise);

@@ -21,8 +21,8 @@ class SideEffectAnalysis {
     const static std::vector<std::string> scopes;
 
     SideEffectAnalysis(tracer_state_t &tracer_state,
-                       const std::string &output_dir, bool binary,
-                       int compression_level);
+                       const std::string &output_dir, bool truncate,
+                       bool binary, int compression_level);
 
     void promise_created(const prom_basic_info_t &prom_basic_info,
                          const SEXP promise);

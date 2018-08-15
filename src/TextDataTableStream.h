@@ -11,13 +11,19 @@ class TextDataTableStream : public DataTableStream {
   public:
     explicit TextDataTableStream(const std::string &table_filepath,
                                  const std::vector<std::string> &column_names,
-                                 int compression_level)
-        : DataTableStream(table_filepath, column_names, compression_level) {
+                                 bool truncate, int compression_level)
+        : DataTableStream(table_filepath, column_names, truncate,
+                          compression_level) {
 
         contents_.reserve(1024);
 
         const char *separator = get_column_separator().c_str();
         std::size_t bytes = get_column_separator().size();
+
+        if (get_column_count() == 0) {
+            return;
+        }
+
         for (size_t i = 0; i < get_column_count() - 1; ++i) {
             contents_.append(column_names[i]);
             contents_.append(get_column_separator());

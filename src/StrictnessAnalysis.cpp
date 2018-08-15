@@ -5,7 +5,8 @@ const size_t FUNCTION_MAPPING_BUCKET_SIZE = 20000;
 StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
                                        PromiseMapper *const promise_mapper,
                                        const std::string &output_dir,
-                                       bool binary, int compression_level)
+                                       bool truncate, bool binary,
+                                       int compression_level)
     : tracer_state_(tracer_state), output_dir_(output_dir),
       promise_mapper_(promise_mapper),
       functions_(std::unordered_map<fn_id_t, FunctionState>(
@@ -15,11 +16,11 @@ StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
         output_dir + "/" + "parameter-usage-count",
         {"function_id", "call_id", "position", "default", "unpromised", "force",
          "lookup", "metaprogram", "metaprogram_and_lookup", "use"},
-        binary, compression_level);
+        truncate, binary, compression_level);
 
     order_data_table_ = create_data_table(
         output_dir + "/" + "parameter-force-order",
-        {"function_id", "order", "count"}, binary, compression_level);
+        {"function_id", "order", "count"}, truncate, binary, compression_level);
 }
 
 /* When we enter a function, push information about it on a custom call stack.

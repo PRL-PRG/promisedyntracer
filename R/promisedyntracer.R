@@ -29,9 +29,10 @@ dyntrace_promises <- function(expr, trace_filepath, output_dir,
   result
 }
 
-write_data_table <- function(df, filepath, binary = TRUE,
-                             compression_level = 1) {
-    invisible(.Call(C_write_data_table, df, filepath, binary, compression_level))
+write_data_table <- function(df, filepath, truncate = TRUE,
+                             binary = TRUE, compression_level = 1) {
+    invisible(.Call(C_write_data_table, df, filepath, truncate,
+                    binary, compression_level))
 }
 
 read_data_table <- function(filepath) {

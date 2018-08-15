@@ -32,8 +32,6 @@ std::pair<void *, std::size_t> map_to_memory(const std::string &filepath) {
         return {NULL, 0};
     }
 
-    // std::cerr << "File size is : " << file_info.st_size;
-
     void *data = mmap(NULL, file_info.st_size, PROT_READ,
                       MAP_PRIVATE | MAP_POPULATE, fd, 0);
 

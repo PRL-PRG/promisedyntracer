@@ -5,21 +5,24 @@
 
 DataTableStream *create_data_table(const std::string &table_filepath,
                                    const std::vector<std::string> &column_names,
-                                   bool binary, int compression_level) {
+                                   bool truncate, bool binary,
+                                   int compression_level) {
     std::string extension = compression_level == 0 ? "" : ".zstd";
     DataTableStream *stream = nullptr;
     if (binary) {
         stream = new BinaryDataTableStream(table_filepath + ".bin" + extension,
-                                           column_names, compression_level);
+                                           column_names, truncate,
+                                           compression_level);
     } else {
-        stream = new TextDataTableStream(table_filepath + ".csv" + extension,
-                                         column_names, compression_level);
+        stream =
+            new TextDataTableStream(table_filepath + ".csv" + extension,
+                                    column_names, truncate, compression_level);
     }
     return stream;
 }
 
-SEXP write_data_table(SEXP data_frame, SEXP table_filepath, SEXP binary,
-                      SEXP compression_level) {
+SEXP write_data_table(SEXP data_frame, SEXP table_filepath, SEXP truncate,
+                      SEXP binary, SEXP compression_level) {
 
     std::size_t column_count = LENGTH(data_frame);
     std::vector<std::string> column_names{column_count, ""};
@@ -45,11 +48,11 @@ SEXP write_data_table(SEXP data_frame, SEXP table_filepath, SEXP binary,
         }
     }
 
-    std::size_t row_count = LENGTH(columns[0]);
+    std::size_t row_count = column_count == 0 ? 0 : LENGTH(columns[0]);
 
-    DataTableStream *stream =
-        create_data_table(sexp_to_string(table_filepath), column_names,
-                          sexp_to_bool(binary), sexp_to_int(compression_level));
+    DataTableStream *stream = create_data_table(
+        sexp_to_string(table_filepath), column_names, sexp_to_bool(truncate),
+        sexp_to_bool(binary), sexp_to_int(compression_level));
 
     for (int row_index = 0; row_index < row_count; ++row_index) {
         for (int column_index = 0; column_index < column_count;
@@ -80,6 +83,7 @@ SEXP write_data_table(SEXP data_frame, SEXP table_filepath, SEXP binary,
     }
 
     delete stream;
+
     return R_NilValue;
 }
 
@@ -106,4 +110,5 @@ SEXP read_data_table(SEXP table_filepath, SEXP binary, SEXP compression_level) {
     // setAttrib(data_frame, R_NamesSymbol, column_names);
     // UNPROTECT(2);
     // return data_frame;
+    return R_NilValue;
 }

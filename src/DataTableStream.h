@@ -16,7 +16,7 @@ class DataTableStream : public Stream {
     using column_type_t = std::pair<SEXPTYPE, uint32_t>;
 
     DataTableStream(const std::string &table_filepath,
-                    const std::vector<std::string> &column_names,
+                    const std::vector<std::string> &column_names, bool truncate,
                     int compression_level)
         : Stream(nullptr), table_filepath_{table_filepath},
           column_names_{column_names}, column_count_{column_names.size()},
@@ -24,7 +24,10 @@ class DataTableStream : public Stream {
           file_stream_{nullptr}, buffer_stream_{nullptr},
           zstd_compression_stream_{nullptr} {
 
-        file_stream_ = new FileStream(table_filepath, O_WRONLY | O_CREAT);
+        int flags = O_WRONLY | O_CREAT;
+        flags = truncate ? flags | O_TRUNC : flags;
+
+        file_stream_ = new FileStream(table_filepath, flags);
         buffer_stream_ = new BufferStream(file_stream_);
 
         if (compression_level > 0) {

@@ -1,4 +1,5 @@
 #include "AnalysisDriver.h"
+
 AnalysisDriver::AnalysisDriver(tracer_state_t &tracer_state,
                                const std::string &output_dir, bool truncate,
                                bool binary, int compression_level,

@@ -14,8 +14,8 @@ StrictnessAnalysis::StrictnessAnalysis(const tracer_state_t &tracer_state,
 
     usage_data_table_ = create_data_table(
         output_dir + "/" + "parameter-usage-count",
-        {"function_id", "call_id", "position", "default", "unpromised", "force",
-         "lookup", "metaprogram", "metaprogram_and_lookup", "use"},
+        {"function_id", "call_id", "position", "parameter_mode",
+         "argument_type", "force", "lookup", "metaprogram"},
         truncate, binary, compression_level);
 
     order_data_table_ = create_data_table(
@@ -40,11 +40,10 @@ void StrictnessAnalysis::closure_entry(const closure_info_t &closure_info) {
     fn_iter.first->second.increment_call();
 
     for (const auto &argument : closure_info.arguments) {
-        /* Process arguments that have been unpromised. */
-        if (argument.value_type != PROMSXP) {
-            call_stack_.back().unpromise(argument.formal_parameter_position,
-                                         argument.default_argument);
-        }
+        call_stack_.back().set_parameter_mode(
+            argument.formal_parameter_position, argument.parameter_mode);
+        call_stack_.back().set_type(argument.formal_parameter_position,
+                                    argument.value_type);
     }
 }
 
@@ -110,32 +109,19 @@ void StrictnessAnalysis::serialize() { serialize_parameter_usage_order(); }
 void StrictnessAnalysis::serialize_parameter_usage_count(
     const CallState &call_state) {
 
-    const auto &default_parameter_uses{call_state.get_default_parameter_uses()};
-    const auto &custom_parameter_uses{call_state.get_custom_parameter_uses()};
+    const auto &parameter_uses{call_state.get_parameter_uses()};
 
     for (int position = 0; position < call_state.get_formal_parameter_count();
          ++position) {
 
-        const auto &default_parameter{default_parameter_uses[position]};
-        const auto &custom_parameter{custom_parameter_uses[position]};
+        const auto &parameter{parameter_uses[position]};
 
         usage_data_table_->write_row(
             call_state.get_function_id(),
-            static_cast<double>(call_state.get_call_id()), position, "DA",
-            default_parameter.get_unpromised(), default_parameter.get_forced(),
-            default_parameter.get_looked_up(),
-            default_parameter.get_metaprogrammed(),
-            default_parameter.get_metaprogrammed_and_looked_up(),
-            default_parameter.get_used());
-
-        usage_data_table_->write_row(
-            call_state.get_function_id(),
-            static_cast<double>(call_state.get_call_id()), position, "CA",
-            custom_parameter.get_unpromised(), custom_parameter.get_forced(),
-            custom_parameter.get_looked_up(),
-            custom_parameter.get_metaprogrammed(),
-            custom_parameter.get_metaprogrammed_and_looked_up(),
-            custom_parameter.get_used());
+            static_cast<double>(call_state.get_call_id()), position,
+            parameter_mode_to_string(parameter.get_parameter_mode()),
+            sexptype_to_string(parameter.get_type()), parameter.get_force(),
+            parameter.get_lookup(), parameter.get_metaprogram());
     }
 }
 
@@ -168,8 +154,7 @@ void StrictnessAnalysis::promise_force_entry(const prom_info_t &prom_info,
         return;
     }
 
-    call_state->force(promise_state.formal_parameter_position,
-                      promise_state.default_argument);
+    call_state->force(promise_state.formal_parameter_position);
 }
 
 void StrictnessAnalysis::promise_value_lookup(const prom_info_t &prom_info,
@@ -189,8 +174,7 @@ void StrictnessAnalysis::promise_value_lookup(const prom_info_t &prom_info,
         return;
     }
 
-    call_state->lookup(promise_state.formal_parameter_position,
-                       promise_state.default_argument);
+    call_state->lookup(promise_state.formal_parameter_position);
 }
 
 void StrictnessAnalysis::promise_value_assign(const prom_info_t &prom_info,
@@ -232,8 +216,7 @@ void StrictnessAnalysis::metaprogram_(const prom_info_t &prom_info,
         return;
     }
 
-    call_state->metaprogram(promise_state.formal_parameter_position,
-                            promise_state.default_argument);
+    call_state->metaprogram(promise_state.formal_parameter_position);
 }
 
 CallState *StrictnessAnalysis::get_call_state(const call_id_t call_id) {

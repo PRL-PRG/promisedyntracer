@@ -85,8 +85,7 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
         // if promise environment is same as the caller's environment, then
         // serialize this promise as it is a default argument.
 
-        debug_serializer(dyntracer).serialize_promise_argument_type(
-            promise, argument.default_argument);
+        debug_serializer(dyntracer).serialize_promise_argument_type(promise);
 
         auto it = fresh_promises.find(promise);
         if (it != fresh_promises.end()) {

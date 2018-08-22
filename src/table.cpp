@@ -158,9 +158,6 @@ static data_frame_t read_header(const char *buffer, const char **end) {
     data_frame.row_count = row_count;
     data_frame.column_count = column_count;
 
-    std::cerr << "Rows: " << row_count << std::endl;
-    std::cerr << "Cols: " << column_count << std::endl;
-
     data_frame.object = PROTECT(allocVector(VECSXP, column_count));
     SEXP column_names = PROTECT(allocVector(STRSXP, column_count));
     SEXP row_names = PROTECT(allocVector(STRSXP, row_count));
@@ -171,7 +168,6 @@ static data_frame_t read_header(const char *buffer, const char **end) {
     for (int column_index = 0; column_index < column_count; ++column_index) {
         SEXP name =
             parse_character(*end, end, &character_value, &character_size);
-        std::cerr << "Read: " << CHAR(name) << "\n";
         SET_STRING_ELT(column_names, column_index, name);
         SEXPTYPE sexptype = parse_sexptype(*end, end);
         uint32_t size = parse_integer(*end, end);
@@ -188,8 +184,7 @@ static data_frame_t read_header(const char *buffer, const char **end) {
 
     setAttrib(data_frame.object, R_RowNamesSymbol, row_names);
     setAttrib(data_frame.object, R_NamesSymbol, column_names);
-    classgets(data_frame.object, mkString("data.frame"));
-
+    setAttrib(data_frame.object, R_ClassSymbol, mkString("data.frame"));
     free(character_value);
     UNPROTECT(3);
     return data_frame;

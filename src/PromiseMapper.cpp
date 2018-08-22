@@ -28,7 +28,6 @@ void PromiseMapper::closure_entry(const closure_info_t &closure_info) {
             continue;
         prom_id_t promise_id = argument.promise_id;
         int formal_parameter_position = argument.formal_parameter_position;
-        bool is_default_argument = argument.default_argument;
         if (argument.promise_id < 0) {
             promises_.insert({argument.promise_id,
                               PromiseState(argument.promise_id,
@@ -44,7 +43,7 @@ void PromiseMapper::closure_entry(const closure_info_t &closure_info) {
         // assert(it != promises_.end());
         promise_state.make_function_argument(
             closure_info.fn_id, closure_info.call_id, formal_parameter_position,
-            is_default_argument);
+            argument.parameter_mode);
     }
 }
 

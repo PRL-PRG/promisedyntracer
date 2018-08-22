@@ -26,20 +26,6 @@ class FunctionState {
 
     void increment_call() { ++call_count_; }
 
-    void update_custom_parameter_uses(
-        const std::vector<ParameterUse> &custom_parameter_uses) {
-        for (auto i = 0; i < custom_parameter_uses_.size(); ++i) {
-            custom_parameter_uses_[i] += custom_parameter_uses[i];
-        }
-    }
-
-    void update_default_parameter_uses(
-        const std::vector<ParameterUse> &default_parameter_uses) {
-        for (auto i = 0; i < default_parameter_uses_.size(); ++i) {
-            default_parameter_uses_[i] += default_parameter_uses[i];
-        }
-    }
-
     void add_order(const std::string &order) {
         for (size_t i = 0; i < orders_.size(); ++i) {
             if (orders_[i] == order) {

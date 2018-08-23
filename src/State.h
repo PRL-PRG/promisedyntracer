@@ -1,5 +1,5 @@
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef PROMISEDYNTRACER_STATE_H
+#define PROMISEDYNTRACER_STATE_H
 
 #include "sexptypes.h"
 #include "stdlibs.h"
@@ -334,13 +334,13 @@ struct tracer_state_t {
 inline std::string parameter_mode_to_string(parameter_mode_t parameter_mode) {
     switch (parameter_mode) {
         case parameter_mode_t::UNKNOWN:
-            return "UNKNOWN";
+            return "Unknown";
         case parameter_mode_t::DEFAULT:
-            return "DEFAULT";
+            return "Default";
         case parameter_mode_t::CUSTOM:
-            return "CUSTOM";
+            return "Custom";
     }
-    return "ERROR";
+    return "Error";
 }
 
-#endif /* __STATE_H__ */
+#endif /* PROMISEDYNTRACER_STATE_H */

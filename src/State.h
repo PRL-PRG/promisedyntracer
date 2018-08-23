@@ -1,5 +1,5 @@
-#ifndef __STATE_H__
-#define __STATE_H__
+#ifndef PROMISEDYNTRACER_STATE_H
+#define PROMISEDYNTRACER_STATE_H
 
 #include "sexptypes.h"
 #include "stdlibs.h"
@@ -44,6 +44,8 @@ typedef pair<call_id_t, string> arg_key_t;
 
 rid_t get_sexp_address(SEXP e);
 
+enum class parameter_mode_t { UNKNOWN = 0, DEFAULT, CUSTOM };
+
 struct arg_t {
     arg_id_t id;
     string name;
@@ -51,7 +53,7 @@ struct arg_t {
     sexptype_t name_type;
     prom_id_t promise_id; // only set if sexptype_t == PROM
     SEXP promise_environment;
-    bool default_argument;
+    parameter_mode_t parameter_mode;
     int formal_parameter_position;
 };
 
@@ -329,4 +331,16 @@ struct tracer_state_t {
     tracer_state_t();
 };
 
-#endif /* __STATE_H__ */
+inline std::string parameter_mode_to_string(parameter_mode_t parameter_mode) {
+    switch (parameter_mode) {
+        case parameter_mode_t::UNKNOWN:
+            return "Unknown";
+        case parameter_mode_t::DEFAULT:
+            return "Default";
+        case parameter_mode_t::CUSTOM:
+            return "Custom";
+    }
+    return "Error";
+}
+
+#endif /* PROMISEDYNTRACER_STATE_H */

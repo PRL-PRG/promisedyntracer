@@ -55,7 +55,7 @@ string DebugSerializer::log_line(const arglist_t &arguments) {
         line << "{name=" << argument.name << " id=" << argument.id
              << " name_type=" << log_line(argument.name_type)
              << " value_type=" << log_line(argument.value_type)
-             << " default=" << argument.default_argument
+             //<< " default=" << argument.default_argument
              << " prom_id=" << argument.promise_id
              << " position=" << argument.formal_parameter_position << "}";
     }
@@ -302,12 +302,11 @@ void DebugSerializer::serialize_promise_created(const prom_basic_info_t &info) {
          << endl;
 }
 
-void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id,
-                                                      bool default_argument) {
+void DebugSerializer::serialize_promise_argument_type(const prom_id_t prom_id) {
     if (!verbose)
         return;
-    cerr << prefix() << "prom_arg_type prom_id=" << prom_id
-         << " default_argument=" << default_argument << print_stack() << endl;
+    cerr << prefix() << "prom_arg_type prom_id=" << prom_id << print_stack()
+         << endl;
 }
 
 void DebugSerializer::serialize_new_environment(const env_id_t env_id,

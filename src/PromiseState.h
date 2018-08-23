@@ -23,7 +23,7 @@ class PromiseState {
     fn_id_t fn_id;
     call_id_t call_id;
     int formal_parameter_position;
-    bool default_argument;
+    parameter_mode_t parameter_mode;
     bool evaluated;
     std::vector<int> mutations;
 
@@ -31,7 +31,7 @@ class PromiseState {
 
     void make_function_argument(fn_id_t fn_id, call_id_t call_id,
                                 int formal_parameter_position,
-                                bool default_argument);
+                                parameter_mode_t parameter_mode);
 
     inline void increment_mutation_slot(SlotMutation slot_mutation) {
         ++mutations[to_underlying_type(slot_mutation)];

@@ -1,79 +1,43 @@
 #ifndef PROMISE_DYNTRACER_PARAMETER_USE_H
 #define PROMISE_DYNTRACER_PARAMETER_USE_H
 
+#include "State.h"
+#include "sexptypes.h"
+#include <cstdint>
 #include <string>
 
 class ParameterUse {
   public:
     explicit ParameterUse()
-        : unpromised_(0), forced_(0), looked_up_(0), metaprogrammed_(0),
-          metaprogrammed_and_looked_up_(0), used_(0) {}
+        : type_(0), force_(0), lookup_(0), metaprogram_(0),
+          mode_(parameter_mode_t::UNKNOWN) {}
 
-    size_t get_unpromised() const { return unpromised_; }
+    std::uint8_t get_metaprogram() const { return metaprogram_; }
 
-    void unpromise() { unpromised_ = 1; }
+    void metaprogram() { ++metaprogram_; }
 
-    size_t get_forced() const { return forced_; }
+    std::uint8_t get_lookup() const { return lookup_; }
 
-    void force() {
-        forced_ = 1;
-        used_ = 1;
-    }
+    void lookup() { ++lookup_; }
 
-    size_t get_looked_up() const { return looked_up_; }
+    std::uint8_t get_force() const { return force_; }
 
-    void lookup() {
-        used_ = 1;
-        if (get_metaprogrammed_and_looked_up()) {
-            return;
-        } else if (get_metaprogrammed()) {
-            metaprogram_and_look_up();
-        } else {
-            looked_up_ = 1;
-        }
-    }
+    void force() { ++force_; }
 
-    size_t get_metaprogrammed() const { return metaprogrammed_; }
+    sexptype_t get_type() const { return type_; }
 
-    void metaprogram() {
-        used_ = 1;
-        if (get_metaprogrammed_and_looked_up()) {
-            return;
-        } else if (get_looked_up()) {
-            metaprogram_and_look_up();
-        } else {
-            metaprogrammed_ = 1;
-        }
-    }
+    void set_type(const sexptype_t type) { type_ = type; }
 
-    size_t get_metaprogrammed_and_looked_up() const {
-        return metaprogrammed_and_looked_up_;
-    }
+    parameter_mode_t get_parameter_mode() const { return mode_; }
 
-    void metaprogram_and_look_up() {
-        looked_up_ = 0;
-        metaprogrammed_ = 0;
-        metaprogrammed_and_looked_up_ = 1;
-    }
-
-    size_t get_used() const { return used_; }
-
-    void operator+=(const ParameterUse &rhs) {
-        unpromised_ += rhs.get_unpromised();
-        forced_ += rhs.get_forced();
-        looked_up_ += rhs.get_looked_up();
-        metaprogrammed_ += rhs.get_metaprogrammed();
-        metaprogrammed_and_looked_up_ += rhs.get_metaprogrammed_and_looked_up();
-        used_ += rhs.get_used();
-    }
+    void set_parameter_mode(parameter_mode_t mode) { mode_ = mode; }
 
   private:
-    size_t unpromised_;
-    size_t forced_;
-    size_t looked_up_;
-    size_t metaprogrammed_;
-    size_t metaprogrammed_and_looked_up_;
-    size_t used_;
+    sexptype_t type_;
+    std::uint8_t force_;
+    std::uint8_t lookup_;
+    std::uint8_t metaprogram_;
+    parameter_mode_t mode_;
 };
 
 #endif /* PROMISE_DYNTRACER_PARAMETER_USE_H */

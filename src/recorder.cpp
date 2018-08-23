@@ -8,7 +8,6 @@ void update_closure_argument(closure_info_t &info, dyntracer_t *dyntracer,
                              bool dot_argument, int position) {
 
     arg_t argument;
-
     SEXPTYPE arg_value_type = TYPEOF(arg_value);
     SEXPTYPE arg_name_type = TYPEOF(arg_name);
 
@@ -20,11 +19,13 @@ void update_closure_argument(closure_info_t &info, dyntracer_t *dyntracer,
 
     if (arg_value_type == PROMSXP) {
         argument.promise_id = get_promise_id(dyntracer, arg_value);
-        argument.default_argument = (PRENV(arg_value) == environment);
+        argument.parameter_mode = PRENV(arg_value) == environment
+                                      ? parameter_mode_t::DEFAULT
+                                      : parameter_mode_t::CUSTOM;
         argument.promise_environment = PRENV(arg_value);
     } else {
         argument.promise_id = 0;
-        argument.default_argument = true;
+        argument.parameter_mode = parameter_mode_t::UNKNOWN;
         argument.promise_environment = NULL;
     }
 

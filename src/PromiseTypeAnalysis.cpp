@@ -67,10 +67,10 @@ void PromiseTypeAnalysis::closure_entry(const closure_info_t &closure_info) {
     for (const auto &argument : closure_info.arguments) {
         prom_id_t promise_id = argument.promise_id;
         int formal_parameter_position = argument.formal_parameter_position;
-        bool is_default_argument = argument.default_argument;
-        if (is_default_argument)
+        auto parameter_mode = argument.parameter_mode;
+        if (parameter_mode == parameter_mode_t::DEFAULT)
             add_default_argument_promise(promise_id);
-        else
+        else if (parameter_mode == parameter_mode_t::CUSTOM)
             add_custom_argument_promise(promise_id);
         remove_non_argument_promise(promise_id);
     }

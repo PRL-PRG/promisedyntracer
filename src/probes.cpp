@@ -5,10 +5,6 @@
 void dyntrace_entry(dyntracer_t *dyntracer, SEXP expression, SEXP environment) {
     MAIN_TIMER_RESET();
 
-    std::ofstream begin_file{tracer_output_dir(dyntracer) + "/BEGIN"};
-    begin_file << "BEGIN";
-    begin_file.close();
-
     debug_serializer(dyntracer).serialize_start_trace();
 
     MAIN_TIMER_END_SEGMENT(BEGIN_SETUP);
@@ -40,13 +36,13 @@ void dyntrace_exit(dyntracer_t *dyntracer, SEXP expression, SEXP environment,
     MAIN_TIMER_END_SEGMENT(END_ANALYSIS);
 
     if (error) {
-        std::ofstream failure_file{tracer_output_dir(dyntracer) + "/FAILURE"};
-        failure_file << "FAILURE";
-        failure_file.close();
+        std::ofstream error_file{tracer_output_dir(dyntracer) + "/ERROR"};
+        error_file << "ERROR";
+        error_file.close();
     } else {
-        std::ofstream success_file{tracer_output_dir(dyntracer) + "/SUCCESS"};
-        success_file << "SUCCESS";
-        success_file.close();
+        std::ofstream noerror_file{tracer_output_dir(dyntracer) + "/NOERROR"};
+        noerror_file << "NOERROR";
+        noerror_file.close();
     }
 }
 
@@ -89,8 +85,7 @@ void closure_entry(dyntracer_t *dyntracer, const SEXP call, const SEXP op,
         // if promise environment is same as the caller's environment, then
         // serialize this promise as it is a default argument.
 
-        debug_serializer(dyntracer).serialize_promise_argument_type(
-            promise, argument.default_argument);
+        debug_serializer(dyntracer).serialize_promise_argument_type(promise);
 
         auto it = fresh_promises.find(promise);
         if (it != fresh_promises.end()) {

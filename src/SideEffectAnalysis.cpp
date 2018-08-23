@@ -8,18 +8,21 @@ const std::vector<std::string> SideEffectAnalysis::scopes{"promise", "function",
                                                           "global"};
 
 SideEffectAnalysis::SideEffectAnalysis(tracer_state_t &tracer_state,
-                                       const std::string &output_dir)
+                                       const std::string &output_dir,
+                                       bool truncate, bool binary,
+                                       int compression_level)
     : tracer_state_(tracer_state), output_dir_(output_dir),
       defines_{std::vector<long long int>(3)},
       assigns_{std::vector<long long int>(3)},
       removals_{std::vector<long long int>(3)},
       lookups_{std::vector<long long int>(3)}, timestamp_{0},
       undefined_timestamp{std::numeric_limits<std::size_t>::max()},
-      observed_side_effects_table_writer_{
-          output_dir + "/" + "observed-side-effects.csv", {"scope", "count"}},
-      caused_side_effects_table_writer_{output_dir + "/" +
-                                            "caused-side-effects.csv",
-                                        {"scope", "action", "count"}} {}
+      observed_side_effects_data_table_{create_data_table(
+          output_dir + "/" + "observed-side-effects", {"scope", "count"},
+          truncate, binary, compression_level)},
+      caused_side_effects_data_table_{create_data_table(
+          output_dir + "/" + "caused-side-effects",
+          {"scope", "action", "count"}, truncate, binary, compression_level)} {}
 
 void SideEffectAnalysis::promise_created(
     const prom_basic_info_t &prom_basic_info, const SEXP promise) {
@@ -107,18 +110,23 @@ void SideEffectAnalysis::environment_action(
 
 void SideEffectAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
+SideEffectAnalysis::~SideEffectAnalysis() {
+    delete observed_side_effects_data_table_;
+    delete caused_side_effects_data_table_;
+}
+
 void SideEffectAnalysis::serialize() {
 
     for (int i = 0; i < scopes.size(); ++i) {
-        caused_side_effects_table_writer_
-            .write_row(scopes[i], "defines", defines_[i])
-            .write_row(scopes[i], "assigns", assigns_[i])
-            .write_row(scopes[i], "removals", removals_[i])
-            .write_row(scopes[i], "lookups", lookups_[i]);
+        caused_side_effects_data_table_
+            ->write_row(scopes[i], "defines", (double)defines_[i])
+            ->write_row(scopes[i], "assigns", (double)assigns_[i])
+            ->write_row(scopes[i], "removals", (double)removals_[i])
+            ->write_row(scopes[i], "lookups", (double)lookups_[i]);
     }
 
-    observed_side_effects_table_writer_.write_row(
-        "promise", side_effect_observers_.size());
+    observed_side_effects_data_table_->write_row(
+        "promise", (double)side_effect_observers_.size());
 }
 
 timestamp_t SideEffectAnalysis::get_timestamp_() const { return timestamp_; }

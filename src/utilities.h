@@ -8,6 +8,15 @@
 extern const char UNIT_SEPARATOR;
 extern const char RECORD_SEPARATOR;
 
+#define failwith(format, ...)                                                  \
+    failwith_impl(__FILE__, __LINE__, format, __VA_ARGS__)
+
+#define failwith_impl(file, line, format, ...)                                 \
+    do {                                                                       \
+        fprintf(stderr, "ERROR [%s:%d] " format, file, line, __VA_ARGS__);     \
+        exit(EXIT_FAILURE);                                                    \
+    } while (0)
+
 int get_file_size(std::ifstream &file);
 
 std::string readfile(std::ifstream &file);
@@ -44,4 +53,23 @@ std::string to_string(const char *str);
 inline std::string check_string(const char *s) {
     return s == NULL ? "<unknown>" : s;
 }
+
+inline void *malloc_or_die(std::size_t size) {
+    void *data = std::malloc(size);
+    if (data == nullptr) {
+        failwith("memory allocation error: unable to allocate %lu bytes.\n",
+                 size);
+    }
+    return data;
+}
+
+inline void *calloc_or_die(std::size_t num, std::size_t size) {
+    void *data = std::calloc(num, size);
+    if (data == nullptr) {
+        failwith("memory allocation error: unable to allocate %lu bytes.\n",
+                 size);
+    }
+    return data;
+}
+
 #endif /* __UTILITIES_H__ */

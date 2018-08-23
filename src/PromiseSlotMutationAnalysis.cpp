@@ -108,7 +108,7 @@ void PromiseSlotMutationAnalysis::update_promise_slot_access_count(
          ++i) {
         key += std::to_string(promise_state.mutations[i]) + " , ";
     }
-    key += promise_state.default_argument ? "da , " : "ca , ";
+    key = key + parameter_mode_to_string(promise_state.parameter_mode) + " , ";
     key += promise_state.evaluated ? "Y" : "N";
     auto result = promise_slot_accesses_.insert(make_pair(key, 1));
     if (!result.second)

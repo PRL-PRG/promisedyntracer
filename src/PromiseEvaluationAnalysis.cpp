@@ -25,7 +25,7 @@ void PromiseEvaluationAnalysis::compute_evaluation_distance(
     const PromiseState &promise_state) {
 
     std::string key;
-    std::string argument_type = promise_state.default_argument ? "da" : "ca";
+    std::string argument_type = parameter_mode_to_string(promise_state.parameter_mode);
 
     int closure_count = 0;
     int builtin_count = 0;
@@ -66,9 +66,7 @@ void PromiseEvaluationAnalysis::update_evaluation_distance(std::string key) {
         ++result.first->second;
 }
 
-void PromiseEvaluationAnalysis::end(dyntracer_t *dyntracer) {
-    serialize();
-}
+void PromiseEvaluationAnalysis::end(dyntracer_t *dyntracer) { serialize(); }
 
 PromiseEvaluationAnalysis::EvaluationContext
 PromiseEvaluationAnalysis::get_current_evaluation_context() {

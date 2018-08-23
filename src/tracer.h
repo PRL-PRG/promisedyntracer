@@ -1,5 +1,7 @@
-#ifndef __TRACER_H__
-#define __TRACER_H__
+#ifndef PROMISEDYNTRACER_TRACER_H
+#define PROMISEDYNTRACER_TRACER_H
+
+#include <Rinternals.h>
 
 #include <Rinternals.h>
 
@@ -8,7 +10,8 @@ extern "C" {
 #endif
 
 SEXP create_dyntracer(SEXP trace_filepath, SEXP truncate, SEXP enable_trace,
-                      SEXP verbose, SEXP output_dir, SEXP analysis_switch_env);
+                      SEXP verbose, SEXP output_dir, SEXP binary,
+                      SEXP compression_level, SEXP analysis_switch_env);
 
 SEXP destroy_dyntracer(SEXP tracer);
 
@@ -16,4 +19,4 @@ SEXP destroy_dyntracer(SEXP tracer);
 }
 #endif
 
-#endif /* __TRACER_H__ */
+#endif /* PROMISEDYNTRACER_TRACER_H */
